@@ -380,7 +380,7 @@ def ask_if_install(match) :
 def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	                                    acceptable_types=None, mode='missing', recursive=True, hook=None,
 	                                    noWeb=False, add_self='if_required', install_optional='ask', ask_hook=None,
-	                                    all_matches = None, no_compatlist=False, cross_compile=False):
+	                                    all_matches = None, no_compatlist=False, cross_compile=False, depfile=None):
 	ordered_matches, ordered_rules = [], []
 	self_match, self_rule = None, None
 
@@ -395,7 +395,7 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	if not acceptable_types :
 		acceptable_types = getGoboVariable('defaultRepositories', 'Scripts/FindPackage.conf', True)
 
-	if (add_self == 'always') or (add_self != 'never' and (not v or not t))  :
+	if not depfile and ((add_self == 'always') or (add_self != 'never' and (not v or not t))) :
 		if t :
 			ret = FindPackage(p, v, r, types=[t], accessWeb=not noWeb)
 		else :
@@ -414,7 +414,10 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 		all_matches.append(self_match)
 		p,v,r,t,u = self_match
 
-	all_rules = get_rules_for(p, v, r, t, u, noWeb=noWeb, no_compatlist=no_compatlist, cross_compile=cross_compile)
+	if depfile:
+		all_rules = get_rules_of_files([depfile])
+	else:
+		all_rules = get_rules_for(p, v, r, t, u, noWeb=noWeb, no_compatlist=no_compatlist, cross_compile=cross_compile)
 
 	# optimization only:
 	#all_rules  = [ rule for rule in all_rules if not any(pp == rule['program'] for pp,vv,tt,uu in all_matches) ]
@@ -496,11 +499,11 @@ Get_Version %s Current'"""%rule['program']
 #
 # This function is used when mode == 'list'
 #
-def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missing=False, report_updating=False, recursive=True, hook=None, noWeb=False, cross_compile=False) :
+def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missing=False, report_updating=False, recursive=True, hook=None, noWeb=False, cross_compile=False, depfile=None) :
 	if not types :
 		types = getGoboVariable('defaultRepositories', 'Scripts/FindPackage.conf', True)
 
-	all_rules, all_matches = get_all_dependencies_and_matches_for(p,v,r,t,u, types, recursive=recursive, hook=hook, mode='all', noWeb=noWeb, cross_compile=cross_compile)
+	all_rules, all_matches = get_all_dependencies_and_matches_for(p,v,r,t,u, types, recursive=recursive, hook=hook, mode='all', noWeb=noWeb, cross_compile=cross_compile, depfile=depfile)
 
 	if report_missing :
 		missing_dependencies      = [ rule for rule in all_rules if not find_matching_package(rule, ['installed'], noWeb=noWeb)[3] ]
@@ -609,7 +612,7 @@ if __name__ == '__main__' :
 		try :
 			if not sys.argv[1:] :
 				sys.argv[1:] = [ '--help' ]
-			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBCh', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'quiet-progress', 'no-compatlist', 'cross-compile', 'help'])
+			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'quiet-progress', 'no-compatlist', 'cross-compile', 'file=', 'help'])
 		except getopt.GetoptError, detail :
 			print sys.argv[0].split('/')[-1]+': '+str(detail)
 			sys.exit(1)
@@ -624,6 +627,7 @@ if __name__ == '__main__' :
 		install_optional = 'ask'
 		no_compatlist = False
 		cross_compile = False
+		depfile = None
 		for o, a in opts :
 			if o in ['--types','--type', '-t'] :
 				types = a.split(',')
@@ -658,6 +662,8 @@ if __name__ == '__main__' :
 				no_compatlist = True
 			elif o in ['--cross-compile'] :
 				cross_compile = True
+			elif o in ['--file', '-f'] :
+				depfile = a
 			elif o in ['--help', '-h'] :
 				print """
 CheckDependencies
@@ -710,6 +716,9 @@ Options:
 
  --cross-compile      Check dependencies for cross compilation
 
+ -f
+ --file               Check for the dependencies listed in the given file.
+
 Examples of usage:
  CheckDependencies kde-libs 3.5.0
  CheckDependencies kde-libs 3.5.0 recipe
@@ -719,7 +728,7 @@ Examples of usage:
 				sys.exit(0)
 
 		if len(args) >= 1 : p = args[0]
-		else :              sys.exit(1)
+		else :              p = None
 
 		if len(args) >= 2 : vr = args[1]
 		else :              vr = None
@@ -736,12 +745,13 @@ Examples of usage:
 		else :
 			v,r = '',''
 		if mode == 'list' :
-			print ListDependencies(p,v,r,t,u,types=types,recursive=recursive,hook=progress_hook,noWeb=noWeb,cross_compile=cross_compile)
+			print ListDependencies(p,v,r,t,u,types=types,recursive=recursive,hook=progress_hook,noWeb=noWeb,cross_compile=cross_compile, depfile=depfile)
 		elif mode == 'convert' :
 			print ConvertRecipeToBinary(p,v,r,t,u),
 		else :
 			rules, matches = get_all_dependencies_and_matches_for(p, v, r, t, u, types, mode=mode, recursive=recursive,
-			                     noWeb=noWeb, hook=progress_hook, add_self=add_self, ask_hook=ask_if_install, no_compatlist=no_compatlist, cross_compile=cross_compile)
+			                     noWeb=noWeb, hook=progress_hook, add_self=add_self, ask_hook=ask_if_install,
+			                     no_compatlist=no_compatlist, cross_compile=cross_compile, depfile=depfile)
 			if rules :
 				for rule,match in zip(rules,matches):
 					pp,vv,rr,tt,uu=match
