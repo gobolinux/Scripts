@@ -35,12 +35,12 @@ do
    done
    cp "${current}" "$old"
    cat "$old" | sed -r "
-s%$goboPrograms/[^ /]*/*[^ /]*/*lib(/?)/*%$goboLibraries\1%g;
-s%$goboPrograms/[^ /]*/*[^ /]*/*lib([ '\''])%$goboLibraries/\1%g;
-s%$goboPrograms/[^ /]*/*[^ /]*/*include(/?)/*%$goboHeaders\1%g;
-s%$goboPrograms/[^ /]*/*[^ /]*/*include([ '\''])%$goboHeaders/\1%g;
-s%$goboPrograms/[^ /]*/*[^ /]*/*share(/?)/*%$goboShared\1%g;
-s%$goboPrograms/[^ /]*/*[^ /]*/*share([ '\''])%$goboShared/\1%g;
+s%$goboPrograms/[^ /]*/*[^ /]*/+lib(/?)/*%$goboLibraries\1%g;
+s%$goboPrograms/[^ /]*/*[^ /]*/+lib([ '\''])%$goboLibraries/\1%g;
+s%$goboPrograms/[^ /]*/*[^ /]*/+include(/?)/*%$goboHeaders\1%g;
+s%$goboPrograms/[^ /]*/*[^ /]*/+include([ '\''])%$goboHeaders/\1%g;
+s%$goboPrograms/[^ /]*/*[^ /]*/+share(/?)/*%$goboShared\1%g;
+s%$goboPrograms/[^ /]*/*[^ /]*/+share([ '\''])%$goboShared/\1%g;
 s%$goboPrograms/[^ /]*/*[^ /]*%/usr%g;
 s%(-L|-I|-R)*$compileDir/[^ ]*%%g;
 " > "${current}"
