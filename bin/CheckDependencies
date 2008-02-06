@@ -30,19 +30,19 @@ global_dependencies_cache_dir = os.path.expanduser(getGoboVariable('goboUserSett
 global_dependencies_blacklist = [ i.lower() for i in getGoboVariable('','Scripts/Dependencies.blacklist') ]
 
 global_compatibility_list = {}
-for line in getGoboVariable('','Scripts/CompatibilityList') :
-	try :
+for line in getGoboVariable('','Scripts/CompatibilityList'):
+	try:
 		dependency_x      = line.split(':')[0].strip()
 		is_satisfiable_by = line.split(':')[1].split()
 		global_compatibility_list[dependency_x.lower()] = is_satisfiable_by
-	except :
+	except:
 		pass
 
-if not os.access(global_dependencies_cache_dir, os.R_OK) :
+if not os.access(global_dependencies_cache_dir, os.R_OK):
 	os.makedirs(global_dependencies_cache_dir)
 
-for i in ['recipe', 'official_package', 'contrib_package', 'local_package'] :
-	if not os.access(global_dependencies_cache_dir+i, os.F_OK) :
+for i in ['recipe', 'official_package', 'contrib_package', 'local_package']:
+	if not os.access(global_dependencies_cache_dir+i, os.F_OK):
 		os.makedirs(global_dependencies_cache_dir+i)
 
 #############################################################################
@@ -50,10 +50,10 @@ for i in ['recipe', 'official_package', 'contrib_package', 'local_package'] :
 #  type (a specific url can be passed, to avoid calling 'FindPackage')
 #############################################################################
 
-def add_compatible_dependencies(rule) :
+def add_compatible_dependencies(rule):
 	program_name = rule['program'].lower()
-	if program_name in global_compatibility_list.keys() :
-		for option in global_compatibility_list[program_name] :
+	if program_name in global_compatibility_list.keys():
+		for option in global_compatibility_list[program_name]:
 			# compatible_rule could also be set to something more related to
 			# rule itself (using the same version range, for example).
 			compatible_rule = {'program'    : option,
@@ -67,101 +67,101 @@ def add_compatible_dependencies(rule) :
 
 def get_rules_of_files(depfiles):
 	toReturn = []
-	for depfile in depfiles :
-		if depfile and os.access(depfile, os.R_OK) :
+	for depfile in depfiles:
+		if depfile and os.access(depfile, os.R_OK):
 			f = open(depfile)
-			for line in f.readlines() :
+			for line in f.readlines():
 				options=line.split("|")
 				last_rule = None
-				for o in options :
+				for o in options:
 					rule = interpret_dependency_line(o,t, cross_compile=cross_compile) # todo: add exception handling
-					if last_rule :
+					if last_rule:
 						last_rule['option'] = rule
 						last_rule = rule
-				if rule :
-					if not no_compatlist :
+				if rule:
+					if not no_compatlist:
 						add_compatible_dependencies(rule)
 					toReturn.append(rule)
 			f.close()
 	return toReturn
 
 # Notice that type may be required since dependencies(recipe(p)) != dependencies(package(p))
-def get_rules_for(p, v, r, t, u, noWeb=False, no_compatlist=False, no_builddeps=False, cross_compile=False) :
+def get_rules_for(p, v, r, t, u, noWeb=False, no_compatlist=False, no_builddeps=False, cross_compile=False):
 	depfiles = find_dependencies_files(p, v, r, t, u, noWeb=False, no_builddeps=no_builddeps)
 	toReturn = get_rules_of_files(depfiles)
 	return toReturn
 
 global_not_found_cache=[]
 def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False):
-	if t == 'installed' :
+	if t == 'installed':
 		p = GuessProgramCase(p, v)
 		localdep = Get_Dir('runtime', p, v)+"/Resources/Dependencies"
-		if os.access(localdep, os.R_OK) :
+		if os.access(localdep, os.R_OK):
 			return [ localdep ]
 
-	elif t == 'local_package' :
-		if not u or os.access(u, os.R_OK) :
+	elif t == 'local_package':
+		if not u or os.access(u, os.R_OK):
 			ret = FindPackage(p, v, r, types=[t], availables=global_available_packages_cache, accessWeb = not noWeb)
-			if ret :
+			if ret:
 				p,v,r,t,u = ret[0]
-		if u :
-			if os.path.isdir(u) :
-				if os.access(u+'/Resources/Dependencies', os.R_OK) :
+		if u:
+			if os.path.isdir(u):
+				if os.access(u+'/Resources/Dependencies', os.R_OK):
 					return [ u+'/Resources/Dependencies' ]
-			else :
+			else:
 				cachedep = global_dependencies_cache_dir+'/'+t+'/'+ u.split('/')[-1]
-				if os.access(cachedep, os.R_OK) :
+				if os.access(cachedep, os.R_OK):
 					return [ cachedep ]
 
 				err = os.system("bash -c 'tar xvfj %s -O %s/%s/Resources/Dependencies 2> /dev/null > %s'"%(u,p,v,cachedep))
 				if err == 0:
 					return [ cachedep ]
-				else :
+				else:
 					os.remove(cachedep)
 
-	elif t == 'recipe' :
+	elif t == 'recipe':
 		if u and not u.startswith('http'):
-			if no_builddeps :
+			if no_builddeps:
 				return [ u+'/Resources/Dependencies' ]
-			else :
+			else:
 				return [ u+'/Resources/Dependencies', u+'/Resources/BuildDependencies' ]
 		# searches local recipes first
 		compileRecipeDirs, getRecipeStores = getCompileOptions()
-		for compileRecipeDir in compileRecipeDirs :
+		for compileRecipeDir in compileRecipeDirs:
 			recipedir=compileRecipeDir+'/'+p+'/'+v+'/'
-			if os.access(recipedir+'Recipe', os.R_OK) :
-				if no_builddeps :
+			if os.access(recipedir+'Recipe', os.R_OK):
+				if no_builddeps:
 					return [ recipedir+'/Resources/Dependencies' ]
-				else :
+				else:
 					return [ recipedir+'/Resources/Dependencies', recipedir+'/Resources/BuildDependencies' ]
 
-	if t in [ 'official_package', 'contrib_package', 'recipe' ] :
+	if t in [ 'official_package', 'contrib_package', 'recipe' ]:
 		if not u:
 			ret = FindPackage(p, v, r, types=[t], availables=global_available_packages_cache, accessWeb = not noWeb)
-			if ret :
+			if ret:
 				u = ret[0][4]
 
-		if u and t in [ 'official_package', 'contrib_package' ] :
+		if u and t in [ 'official_package', 'contrib_package' ]:
 			cachedep = global_dependencies_cache_dir+'/'+t+'/'+ u.split('/')[-1]
-			if os.access(cachedep, os.R_OK) :
+			if os.access(cachedep, os.R_OK):
 				return [ cachedep ]
 
-			if not noWeb :
+			if not noWeb:
 				temp = u.split('/')
 				dependency_u = string.join(temp[:-1]+['dependencies']+[temp[-1][:-len('.tar.bz2')]],'/')
-				if not dependency_u in global_not_found_cache :
+				if not dependency_u in global_not_found_cache:
 					err = os.system("bash -c 'wget --timeout="+global_wget_timeout+" -q -O "+cachedep+" "+dependency_u+"'")
 					if err == 0:
 						return [ cachedep ]
-					else :
+					else:
 						global_not_found_cache.append(dependency_u)
 						os.remove(cachedep)
 
-	if t == 'recipe' and not noWeb :
+	if t == 'recipe' and not noWeb:
 		# gets remote recipe, if no cache was found
-		if u :
+		if u:
 			f = os.popen('GetRecipe %s 2> /dev/null'%(u))
-		else :
+		else:
 			f = os.popen('GetRecipe %s %s 2> /dev/null'%(p,Join_Version_Revision(v,r)))
 		s = f.read().strip()
 		ret = f.close()
@@ -171,17 +171,17 @@ def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False)
 	#sys.stderr.write('Dependencies for %s %s %s %s %s not found\n'%(p,v,r,t,u))
 	return []
 
-def interpret_dependency_line(line, t=None, cross_compile=False) :
+def interpret_dependency_line(line, t=None, cross_compile=False):
 	line = line.split('#')[0].strip()
-	if not line :
+	if not line:
 		return
 
 	global global_dependencies_blacklist
 	m = new_format_c.match(line)
-	if m :
-		if (m.group(1).lower() in global_dependencies_blacklist) :
+	if m:
+		if (m.group(1).lower() in global_dependencies_blacklist):
 			return
-		if ((m.group(8) == 'cross' and not cross_compile) or (m.group(8) == '!cross' and cross_compile)) :
+		if ((m.group(8) == 'cross' and not cross_compile) or (m.group(8) == '!cross' and cross_compile)):
 			return
 
 		ret = {'program'    : m.group(1),
@@ -190,26 +190,26 @@ def interpret_dependency_line(line, t=None, cross_compile=False) :
 		       'hiver'      : '',
 		       'hiincluded' : True,
 		       'optional'   : True }
-		for i in [2, 5] :
+		for i in [2, 5]:
 			op = m.group(i)
-			if not op :
+			if not op:
 				break
-			if '=' == op :
+			if '=' == op:
 				ret['hiver'] = ret['lover'] = m.group(i+1)
 				ret['hiincluded'] = True
-			else :
-				if '>' in op :
+			else:
+				if '>' in op:
 					limit = 'lo'
-				else :
+				else:
 					limit = 'hi'
 				ret[limit+'ver']      = m.group(i+1)
 				ret[limit+'included'] = '=' in m.group(i)
-	else :
+	else:
 		m = old_format_c.match(line)
-		if m :
-			if (m.group(1).lower() in global_dependencies_blacklist) :
+		if m:
+			if (m.group(1).lower() in global_dependencies_blacklist):
 				return
-			if ((m.group(4) == 'cross' and not cross_compile) or (m.group(4) == '!cross' and cross_compile)) :
+			if ((m.group(4) == 'cross' and not cross_compile) or (m.group(4) == '!cross' and cross_compile)):
 				return
 
 			ret = {'program'    : m.group(1),
@@ -218,9 +218,9 @@ def interpret_dependency_line(line, t=None, cross_compile=False) :
 			       'hiver'      : '',
 			       'hiincluded' : False,
 			       'optional'   : True }
-			if t == 'recipe' :
+			if t == 'recipe':
 				ret['lover'] = ''
-		else :
+		else:
 			raise Exception("Parse error")
 	return ret
 
@@ -230,25 +230,25 @@ def interpret_dependency_line(line, t=None, cross_compile=False) :
 #############################################################################
 
 
-def does_version_match_rule(version, rule) :
+def does_version_match_rule(version, rule):
 	loOk=True
 	hiOk=True
-	if rule['lover'] :
+	if rule['lover']:
 		loOk=False
-		if rule['loincluded'] or rule['lover'] != version :
-			if GuessLatest([version,rule['lover']]) == version :
+		if rule['loincluded'] or rule['lover'] != version:
+			if GuessLatest([version,rule['lover']]) == version:
 				loOk=True
 
-	if rule['hiver'] :
+	if rule['hiver']:
 		hiOk=False
-		if rule['hiincluded'] or rule['hiver'] != version :
-			if GuessLatest([version,rule['hiver']]) != version :
+		if rule['hiincluded'] or rule['hiver'] != version:
+			if GuessLatest([version,rule['hiver']]) != version:
 				hiOk=True
 
-	if loOk and hiOk :
+	if loOk and hiOk:
 		#print 'Version:',version,' does match ',rule
 		return True
-	else :
+	else:
 		#print 'Version:',version,' does NOT match ',rule
 		return False
 
@@ -261,27 +261,27 @@ def does_version_match_rule(version, rule) :
 global_available_packages_cache = {}
 global_matches_cache = {}
 
-def version_range_string(r) :
+def version_range_string(r):
 	ss = ''
-	if r['lover'] :
+	if r['lover']:
 		ss += ' ' + (r['loincluded'] and '>=' or '>') + ' ' + r['lover']
-	if r['hiver'] :
-		if r['lover'] :
+	if r['hiver']:
+		if r['lover']:
 			ss += ','
 		ss += ' ' + (r['hiincluded'] and '<=' or '<') + ' ' + r['hiver']
 	return ss
 
-def rule_to_string(rule) :
+def rule_to_string(rule):
 	ss = rule['program']
-	if rule['lover'] :
+	if rule['lover']:
 		ss += ' ' + (rule['loincluded'] and '>=' or '>') + ' ' + rule['lover']
-	if rule['hiver'] :
-		if rule['lover'] :
+	if rule['hiver']:
+		if rule['lover']:
 			ss += ','
 		ss += ' ' + (rule['hiincluded'] and '<=' or '<') + ' ' + rule['hiver']
 	return ss
 
-def find_matching_package(rule, acceptable_types, noWeb=False) :
+def find_matching_package(rule, acceptable_types, noWeb=False):
 	global global_available_packages_cache
 	global global_matches_cache
 
@@ -289,24 +289,24 @@ def find_matching_package(rule, acceptable_types, noWeb=False) :
 	if global_matches_cache.has_key(string_rule):
 		return global_matches_cache[string_rule]
 
-	if not global_available_packages_cache :
+	if not global_available_packages_cache:
 		global_available_packages_cache = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb)
 
 	available_options = FindPackage(rule['program'], types=acceptable_types, availables=global_available_packages_cache, accessWeb=not noWeb, fulllist=True)
 
-	if available_options :
-		for p,v,r,t,u in available_options :
-			if does_version_match_rule(v, rule) :
+	if available_options:
+		for p,v,r,t,u in available_options:
+			if does_version_match_rule(v, rule):
 				global_matches_cache[string_rule] = (p, v, r, t, u)
 				return (p, v, r, t, u)
 		to_return = ((rule['program'], version_range_string(rule).replace(' ',''), '', None, "NO_VERSION"))
-	else :
+	else:
 		to_return = ((rule['program'], None, '', None, "NO_PROGRAM"))
 
 	# if we got here, no matching program/version was found.
-	if rule.has_key('option') :
+	if rule.has_key('option'):
 		ret = find_matching_package(rule['option'], acceptable_types, noWeb)
-		if ret and ret[3] : # ret[3] corresponds to 'type'
+		if ret and ret[3]: # ret[3] corresponds to 'type'
 			global_matches_cache[string_rule] = ret
 			return ret
 
@@ -318,54 +318,54 @@ def find_matching_package(rule, acceptable_types, noWeb=False) :
 #############################################################################
 
 global_always_do=None
-def ask_if_install(match) :
+def ask_if_install(match):
 	p,v,r,t,u=match
 	global global_always_do
 
 	installed = FindPackage(p,types=['installed'])
-	if installed :
+	if installed:
 		reason = p + " is installed, but version "+installed[0][1]+" does not match given dependency."
-	else :
+	else:
 		reason = p + " is not installed."
 
-	if t == None :
+	if t == None:
 		Log_Terse('%s\nUnable to fulfill the dependency.'%(reason), 'CheckDependencies')
 		return
 
-	if install_optional == 'never' :
+	if install_optional == 'never':
 		Log_Terse('%s'%(reason))
 		return
 
-	if global_always_do :
-		if global_always_do=='install/compile' :
-			if t == 'recipe' :
+	if global_always_do:
+		if global_always_do=='install/compile':
+			if t == 'recipe':
 				action = "Compiled"
-			else :
+			else:
 				action = "Installed"
-		else :
+		else:
 			action = 'Skipped'
 
 		Log_Terse("%s\n%s %s (%s) will be %s"%(reason,p,v,t,action), 'CheckDependencies')
 
-		if global_always_do == 'install/compile' :
+		if global_always_do == 'install/compile':
 			return True
-		else :
+		else:
 			return False
 
-	while True :
-		if t == 'recipe' :
+	while True:
+		if t == 'recipe':
 			action = "Compile"
-		else :
+		else:
 			action = "Install"
 		yes = action[0]
 		reply = Ask_Option('%s\n%s %s for %s %s or skip this dependency? [%s]%s/[S]Skip/[%sA]%s All/[SA]Skip All'%(reason,action,t,p,v,yes,action,yes,action), 'CheckDependencies')
-		if reply :
-			if reply[0] in [yes.lower() ,'s'] :
+		if reply:
+			if reply[0] in [yes.lower() ,'s']:
 				install = (reply[0] == yes.lower())
-				if len(reply) >= 2 and reply[1] == 'a' :
-					if reply[0] == yes.lower() :
+				if len(reply) >= 2 and reply[1] == 'a':
+					if reply[0] == yes.lower():
 						global_always_do = 'install/compile'
-					else :
+					else:
 						global_always_do = 'skip'
 				return install
 	return True
@@ -384,21 +384,21 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	ordered_matches, ordered_rules = [], []
 	self_match, self_rule = None, None
 
-	if all_matches == None :
+	if all_matches == None:
 		global_available_packages_cache = {}
 		global_always_do = None
 		all_matches = []
 		first_call = True
-	else :
+	else:
 		first_call = False
 
-	if not acceptable_types :
+	if not acceptable_types:
 		acceptable_types = getGoboVariable('defaultRepositories', 'Scripts/FindPackage.conf', True)
 
-	if not depfile and ((add_self == 'always') or (add_self != 'never' and (not v or not t))) :
-		if t :
+	if not depfile and ((add_self == 'always') or (add_self != 'never' and (not v or not t))):
+		if t:
 			ret = FindPackage(p, v, r, types=[t], accessWeb=not noWeb)
-		else :
+		else:
 			if not v or not r:
 				ret = FindPackage(p, v, r, accessWeb=not noWeb)
 			else:
@@ -406,7 +406,7 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 				if ret:
 					ret = FindPackage(p, v, r, accessWeb=not noWeb)
 
-		if not ret :
+		if not ret:
 			return [], []
 
 		self_rule = { 'program':p, 'lover':'', 'loincluded':False, 'hiver':'', 'hiincluded':False, 'optional':True }
@@ -422,32 +422,32 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	# optimization only:
 	#all_rules  = [ rule for rule in all_rules if not any(pp == rule['program'] for pp,vv,tt,uu in all_matches) ]
 	missing_dependencies = [ rule for rule in all_rules if not find_matching_package(rule, ['installed'], noWeb=noWeb) ]
-	for rule in all_rules :
-		if hook :
+	for rule in all_rules:
+		if hook:
 			hook("Checking dependencies", len(all_matches), len(all_matches)+1)
 
-		if mode == 'missing' and find_matching_package(rule, ['installed'], noWeb=noWeb)[3] :
+		if mode == 'missing' and find_matching_package(rule, ['installed'], noWeb=noWeb)[3]:
 			continue
 
-		if mode == 'all' :
+		if mode == 'all':
 			match = find_matching_package(rule, acceptable_types, noWeb=noWeb) # (program, version, type, site)
-		else :
+		else:
 			match = find_matching_package(rule, ['installed']+acceptable_types, noWeb=noWeb) # (program, version, type, site)
-			if mode == 'updating' and match[3] == 'installed' :
+			if mode == 'updating' and match[3] == 'installed':
 				continue
 
 		# Note: if no package is found, find_matching_package returns a
 		#       tuple with None in the place of type
-		if not match in all_matches :
+		if not match in all_matches:
 			all_matches.append(match) # we append before, to avoid asking twice for a package that is meant to be skipped
 
-			if mode != 'all' :
+			if mode != 'all':
 				# Asking here!
-				if install_optional == 'never' or (install_optional == 'ask' and ask_hook and not ask_hook(match)) :
+				if install_optional == 'never' or (install_optional == 'ask' and ask_hook and not ask_hook(match)):
 					continue
 
 			pp, vv, rr, tt, uu = match
-			if tt and recursive :
+			if tt and recursive:
 				rr, mm = get_all_dependencies_and_matches_for(pp, vv, rr, tt, uu, acceptable_types, mode, recursive, hook=hook, all_matches=all_matches, ask_hook=ask_hook, install_optional=install_optional, noWeb=noWeb)
 				ordered_matches += mm
 				ordered_rules += rr
@@ -462,7 +462,7 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	if self_match and self_rule:
 		#rule = self_rule
 		#ret_type = find_matching_package(rule, ['installed'], noWeb=noWeb)[2]
-		#if not ((mode == 'missing' and ret_type) or (mode == 'updating' and ret_type == 'installed')) :
+		#if not ((mode == 'missing' and ret_type) or (mode == 'updating' and ret_type == 'installed')):
 		ordered_matches.append(self_match)
 		ordered_rules.append(self_rule)
 
@@ -476,7 +476,7 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 # This function is used when mode == 'convert'
 #  simple implementation for now
 #
-def ConvertRecipeToBinary(p, v, r, t, u) :
+def ConvertRecipeToBinary(p, v, r, t, u):
 	global global_dependencies_blacklist
 	global_dependencies_blacklist = []
 	rules = get_rules_for(p, v, r, t, u, noWeb=True, no_compatlist=True, no_builddeps=True)
@@ -491,7 +491,7 @@ Get_Version %s Current'"""%rule['program']
 		installed_version = f.read().strip()
 		f.close()
 		ret += rule['program'] + ' >= ' + installed_version
-		if rule['hiver'] :
+		if rule['hiver']:
 			ret += ', ' + (rule['hiincluded'] and '<= ' or '< ') + rule['hiver']
 		ret += '\n'
 	return ret
@@ -499,102 +499,102 @@ Get_Version %s Current'"""%rule['program']
 #
 # This function is used when mode == 'list'
 #
-def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missing=False, report_updating=False, recursive=True, hook=None, noWeb=False, cross_compile=False, depfile=None) :
-	if not types :
+def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missing=False, report_updating=False, recursive=True, hook=None, noWeb=False, cross_compile=False, depfile=None):
+	if not types:
 		types = getGoboVariable('defaultRepositories', 'Scripts/FindPackage.conf', True)
 
 	all_rules, all_matches = get_all_dependencies_and_matches_for(p,v,r,t,u, types, recursive=recursive, hook=hook, mode='all', noWeb=noWeb, cross_compile=cross_compile, depfile=depfile)
 
-	if report_missing :
+	if report_missing:
 		missing_dependencies      = [ rule for rule in all_rules if not find_matching_package(rule, ['installed'], noWeb=noWeb)[3] ]
 		missing_programs          = [ rule for rule in missing_dependencies if 'NO_PROGRAM' == find_matching_package(rule, ['installed'], noWeb=noWeb)[4] ]
 		unresolvable_dependencies = [ rule for rule in missing_dependencies if not find_matching_package(rule, ['installed']+types, noWeb=noWeb)[3] ]
 
-	if report_updating :
+	if report_updating:
 		updating_dependencies          = [ rule for rule in all_rules if not find_matching_package(rule, ['installed']+types, noWeb=noWeb)[3] == 'installed' ]
 		tracked_is_higher_dependencies = [ rule for rule in all_rules if find_matching_package(rule, ['installed']+types+['tracked'], noWeb=noWeb)[3] == 'tracked' ]
 
-	if mode == 'terminal' :
+	if mode == 'terminal':
 		s = ''
-		for rule in all_rules :
+		for rule in all_rules:
 			ss  = rule['program']
-			if rule['lover'] :
+			if rule['lover']:
 				ss += ' ' + (rule['loincluded'] and '>=' or '>') + ' ' + rule['lover']
-			if rule['hiver'] :
-				if rule['lover'] :
+			if rule['hiver']:
+				if rule['lover']:
 					ss += ','
 				ss += ' ' + (rule['hiincluded'] and '<=' or '<') + ' ' + rule['hiver']
 
-			if report_missing and rule in missing_dependencies :
+			if report_missing and rule in missing_dependencies:
 				ss += ' M' + (rule in missing_programs and 'P' or 'V')
-			if report_updating and rule in updating_dependencies :
+			if report_updating and rule in updating_dependencies:
 				ss += ' U'
 			s += ss + '\n'
 		return s.strip()
 
-	elif mode == 'html' :
+	elif mode == 'html':
 		s = '<p><font color="#000077"><b>['+'Dependencies'+'] </b></font><br>'
-		for rule in all_rules :
+		for rule in all_rules:
 			ss=''
-			if report_missing and rule in missing_dependencies :
-				if rule in missing_programs :
+			if report_missing and rule in missing_dependencies:
+				if rule in missing_programs:
 					ss += '<font color="#FF0000">'
-					if rule in unresolvable_dependencies : ss += '<b>'
-				else :
+					if rule in unresolvable_dependencies: ss += '<b>'
+				else:
 					ss += '<font color="#000000">'
-			else :
+			else:
 				ss += '<font color="#000000">'
 
 			ss += rule['program']
 
-			if report_missing and rule in missing_dependencies :
-				if report_missing and not rule in missing_programs :
+			if report_missing and rule in missing_dependencies:
+				if report_missing and not rule in missing_programs:
 					ss += '</font><font color="#FF0000">'
-					if rule in unresolvable_dependencies : ss += '<b>'
-			elif report_updating and rule in updating_dependencies :
+					if rule in unresolvable_dependencies: ss += '<b>'
+			elif report_updating and rule in updating_dependencies:
 				ss += '</font><font color="#0000FF">'
-			elif report_updating  and rule in tracked_is_higher_dependencies :
+			elif report_updating  and rule in tracked_is_higher_dependencies:
 				ss += '</font><font color="#00BB00">'
 
-			if rule['lover'] :
+			if rule['lover']:
 				ss += ' ' + (rule['loincluded'] and '>=' or '>') + ' ' + rule['lover']
 
-			if rule['hiver'] :
-				if rule['lover'] : ss += ','
+			if rule['hiver']:
+				if rule['lover']: ss += ','
 				ss += ' ' + (rule['hiincluded'] and '<=' or '<') + ' ' + rule['hiver']
 
-			if rule in unresolvable_dependencies : ss += '</b>'
+			if rule in unresolvable_dependencies: ss += '</b>'
 			s += ss + '</font><br>'+'\n'
 
-		if not all_rules : s += '<font color="#000000">-</font><br>'
+		if not all_rules: s += '<font color="#000000">-</font><br>'
 		return s
-	else :
+	else:
 		return rules
 
 #
 # This function is used only in Manager at this time
 #
-def does_x_depend_on_y(x, py, acceptable_types=None, all_programs=None, hook=None, noWeb=False) :
+def does_x_depend_on_y(x, py, acceptable_types=None, all_programs=None, hook=None, noWeb=False):
 	px, vx, rx, tx, ux = x
-	if all_programs == None :
+	if all_programs == None:
 		all_programs = []
 
-	if px.lower() == py.lower() :
+	if px.lower() == py.lower():
 		return True
 
-	for rule in get_rules_for(px, vx, rx, tx, ux) :
-		if hook :
+	for rule in get_rules_for(px, vx, rx, tx, ux):
+		if hook:
 			hook()
 		p = rule['program']
-		if p.lower() == py.lower() :
+		if p.lower() == py.lower():
 			return True
-		if not p in all_programs :
+		if not p in all_programs:
 			all_programs.append(p)
 			match = find_matching_package(rule, acceptable_types, noWeb=noWeb) # (program, version, type, site)
 			pp, vv, rr, tt, uu = match
-			if tt :
+			if tt:
 				x = does_x_depend_on_y((pp, vv, rr, tt, uu), py, acceptable_types, all_programs, hook=hook)
-				if x :
+				if x:
 					return True
 	return False
 
@@ -604,16 +604,16 @@ def does_x_depend_on_y(x, py, acceptable_types=None, all_programs=None, hook=Non
 #############################################################################
 CheckDependencies=get_all_dependencies_and_matches_for
 
-if __name__ == '__main__' :
-	try :
+if __name__ == '__main__':
+	try:
 		import sys
 		import getopt, os
 
-		try :
-			if not sys.argv[1:] :
+		try:
+			if not sys.argv[1:]:
 				sys.argv[1:] = [ '--help' ]
 			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'quiet-progress', 'no-compatlist', 'cross-compile', 'file=', 'help'])
-		except getopt.GetoptError, detail :
+		except getopt.GetoptError, detail:
 			print sys.argv[0].split('/')[-1]+': '+str(detail)
 			sys.exit(1)
 
@@ -628,43 +628,43 @@ if __name__ == '__main__' :
 		no_compatlist = False
 		cross_compile = False
 		depfile = None
-		for o, a in opts :
-			if o in ['--types','--type', '-t'] :
+		for o, a in opts:
+			if o in ['--types','--type', '-t']:
 				types = a.split(',')
-				for i in range(len(types)) :
-					if len (types[i]) == 1 :
-						for t in validTypes :
-							if types[i][0] == t[0] :
+				for i in range(len(types)):
+					if len (types[i]) == 1:
+						for t in validTypes:
+							if types[i][0] == t[0]:
 								types[i] = t
 								break
-				if 'all' in types :
+				if 'all' in types:
 					types = validTypes[:-1] # don't include 'all'
-			elif o in ['--mode','-m'] :
+			elif o in ['--mode','-m']:
 				mode = a
-			elif o in ['--no-recursive','-R'] :
+			elif o in ['--no-recursive','-R']:
 				recursive = False
-			elif o in ['--quiet-progress'] :
+			elif o in ['--quiet-progress']:
 				progress_hook=None
-			elif o in ['--add-self','-s'] :
+			elif o in ['--add-self','-s']:
 				add_self=a
-			elif o in ['--install-optional','-i'] :
+			elif o in ['--install-optional','-i']:
 				install_optional=a
-				if install_optional == 'always' :
+				if install_optional == 'always':
 					global_always_do = 'install/compile'
-			elif o in ['--batch', '-b'] :
+			elif o in ['--batch', '-b']:
 				install_optional = 'always'
 				global_always_do = 'install/compile'
-			elif o in ['--no-web', '-W'] :
+			elif o in ['--no-web', '-W']:
 				noWeb = True
-			elif o in ['--no-blacklist', '-B'] :
+			elif o in ['--no-blacklist', '-B']:
 				global_dependencies_blacklist = []
-			elif o in ['--no-compatlist', '-C'] :
+			elif o in ['--no-compatlist', '-C']:
 				no_compatlist = True
-			elif o in ['--cross-compile'] :
+			elif o in ['--cross-compile']:
 				cross_compile = True
-			elif o in ['--file', '-f'] :
+			elif o in ['--file', '-f']:
 				depfile = a
-			elif o in ['--help', '-h'] :
+			elif o in ['--help', '-h']:
 				print """
 CheckDependencies
  Check dependencies. No decent help yet.
@@ -727,36 +727,36 @@ Examples of usage:
  """
 				sys.exit(0)
 
-		if len(args) >= 1 : p = args[0]
-		else :              p = None
+		if len(args) >= 1: p = args[0]
+		else:              p = None
 
-		if len(args) >= 2 : vr = args[1]
-		else :              vr = None
+		if len(args) >= 2: vr = args[1]
+		else:              vr = None
 
-		if len(args) >= 3 : t = args[2]
-		else :              t = None
+		if len(args) >= 3: t = args[2]
+		else:              t = None
 
-		if len(args) >= 4 : u = args[3]
-		else :              u = None
+		if len(args) >= 4: u = args[3]
+		else:              u = None
 
 
-		if vr :
+		if vr:
 			v,r = Split_Version_Revision(vr)
-		else :
+		else:
 			v,r = '',''
-		if mode == 'list' :
+		if mode == 'list':
 			print ListDependencies(p,v,r,t,u,types=types,recursive=recursive,hook=progress_hook,noWeb=noWeb,cross_compile=cross_compile, depfile=depfile)
-		elif mode == 'convert' :
+		elif mode == 'convert':
 			print ConvertRecipeToBinary(p,v,r,t,u),
-		else :
+		else:
 			rules, matches = get_all_dependencies_and_matches_for(p, v, r, t, u, types, mode=mode, recursive=recursive,
 			                     noWeb=noWeb, hook=progress_hook, add_self=add_self, ask_hook=ask_if_install,
 			                     no_compatlist=no_compatlist, cross_compile=cross_compile, depfile=depfile)
-			if rules :
+			if rules:
 				for rule,match in zip(rules,matches):
 					pp,vv,rr,tt,uu=match
 					print pp, Join_Version_Revision(vv,rr), tt, uu
 			sys.exit(0)
-	except KeyboardInterrupt :
+	except KeyboardInterrupt:
 		sys.exit(1)
 
