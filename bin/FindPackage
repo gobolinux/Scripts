@@ -11,53 +11,53 @@
 import os, os.path, sys, urllib
 from GetAvailable import *
 
-def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, localdirs=None, forceupdate=False, accessWeb=True, hook=None, availables=None) :
+def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, localdirs=None, forceupdate=False, accessWeb=True, hook=None, availables=None):
 
-	if not types :
+	if not types:
 		types = getGoboVariable('defaultRepositories', 'Scripts/FindPackage.conf', True)
-		if not types :
+		if not types:
 			types=['local_package', 'official_package']
 
 	#######################################################################
 	# Phase 1: Get available packages from the selected type(s)
 	#######################################################################
-	if not availables or forceupdate : # can be used as a cache
+	if not availables or forceupdate: # can be used as a cache
 		availables = GetAvailable(types, localdirs, forceupdate=forceupdate, accessWeb = accessWeb, hook = hook)
 
 	#######################################################################
 	# Phase 2: From returned structure, decide which items fit (based on p, v and r)
 	#######################################################################
 	relevant_items = []
-	for t in types :
-		if not t in availables.keys() :
+	for t in types:
+		if not t in availables.keys():
 			continue
 
 		matched_programs = [] # programs that match
-		for pname in availables[t]['programs'].keys() :
-			if substring :
-				if pname.lower().find(p.lower()) > -1 :
+		for pname in availables[t]['programs'].keys():
+			if substring:
+				if pname.lower().find(p.lower()) > -1:
 					matched_programs.append(pname)
-			else :
-				if pname.lower() == p.lower() :
+			else:
+				if pname.lower() == p.lower():
 					matched_programs.append(pname)
 					break
 
 		d = availables[t]['programs']
-		for p in matched_programs  :
-			if v :
-				if d[p].has_key(v) :
-					if r :
-						if d[p][v].has_key(r) :
-							for u in d[p][v][r] :
+		for p in matched_programs :
+			if v:
+				if d[p].has_key(v):
+					if r:
+						if d[p][v].has_key(r):
+							for u in d[p][v][r]:
 								relevant_items.append((p,v,r,t,u))
-					else :
-						for fr in d[p][v] :
-							for u in d[p][v][fr] :
+					else:
+						for fr in d[p][v]:
+							for u in d[p][v][fr]:
 								relevant_items.append((p,v,fr,t,u))
-			else :
-				for fv in d[p].keys() :
-					for fr in d[p][fv] :
-						for u in d[p][fv][fr] :
+			else:
+				for fv in d[p].keys():
+					for fr in d[p][fv]:
+						for u in d[p][fv][fr]:
 							relevant_items.append((p,fv,fr,t,u))
 
 	#################################################################################
@@ -65,20 +65,20 @@ def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, 
 	#################################################################################
 	del availables # Documentation: only the 'relevant_items' are used from now on
 
-	if v and r :
-		if fulllist :
+	if v and r:
+		if fulllist:
 			return relevant_items
-		else :
+		else:
 			return relevant_items[0:1]
-	else :
+	else:
 		from GuessLatest import GuessLatest
 		found_versions_revisions = [ (i[1]+'-'+i[2]).strip('-') for i in relevant_items ]
 		toReturn = []
-		while relevant_items :
+		while relevant_items:
 			latest = GuessLatest(found_versions_revisions)
 			selected = [ i for i in relevant_items if (i[1]+'-'+i[2]).strip('-') == latest ][0]
 			toReturn.append(selected)
-			if not fulllist :
+			if not fulllist:
 				break
 			relevant_items.remove(selected)
 			found_versions_revisions.remove(latest)
@@ -111,15 +111,15 @@ def byNewestOnServer(x, y):
 
 
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
 	import sys
 	import getopt, os
 
-	try :
-		if not sys.argv[1:] :
+	try:
+		if not sys.argv[1:]:
 			sys.argv[1:] = [ '--help' ]
 		opts, args = getopt.getopt(sys.argv[1:], 't:Wslhn', ['types=', 'type=', 'local-dirs=', 'full-list', 'force-update', 'substring', 'no-web', 'help', 'newest-on-server'])
-	except getopt.GetoptError, detail :
+	except getopt.GetoptError, detail:
 		print sys.argv[0].split('/')[-1]+': '+str(detail)
 		sys.exit(1)
 	validTypes = ['installed', 'current', 'local_package', 'official_package', 'recipe', 'contrib_package', 'tracked', 'all']
@@ -131,34 +131,34 @@ if __name__ == '__main__' :
 	noWeb = False
 	newestOnServer = False
 
-	for o, a in opts :
-		if o in ['--types','--type', '-t'] :
+	for o, a in opts:
+		if o in ['--types','--type', '-t']:
 			#typesChanged = True
 			types = a.split(',')
-			for i in range(len(types)) :
-				if len (types[i]) == 1 :
-					for t in validTypes :
-						if types[i][0] == t[0] :
+			for i in range(len(types)):
+				if len (types[i]) == 1:
+					for t in validTypes:
+						if types[i][0] == t[0]:
 							types[i] = t
 							break
-			if 'all' in types :
+			if 'all' in types:
 				types = validTypes[:-1] # don't include 'all'
-		if o == '--local-dirs' :
+		if o == '--local-dirs':
 			localdirs = a.split(',')
-		elif o in ['--full-list', '-l'] :
+		elif o in ['--full-list', '-l']:
 			fulllist = True
-		elif o == '--force-update' :
+		elif o == '--force-update':
 			forceupdate = True
 		elif o in ['-n', '--newest-on-server']:
 			fulllist = True
 			newestOnServer = True
-		elif o in ['--substring','-s'] :
+		elif o in ['--substring','-s']:
 			substring = True
-		elif o in ['--no-web', '-W'] :
+		elif o in ['--no-web', '-W']:
 			noWeb = True
-			if not types :
+			if not types:
 				types =  [ 'local_package' ]
-		elif o in ['--help', '-h'] :
+		elif o in ['--help', '-h']:
 			print """
 FindPackage
  Searches, chooses an occurence and prints where some package (or recipe) can
@@ -216,14 +216,14 @@ Examples of usage:
  """
 			sys.exit(0)
 
-	if len (args) >= 1 :
+	if len (args) >= 1:
 		p = args[0]
-	else :
+	else:
 		sys.exit(1)
 
-	if len (args) >= 2 :
+	if len (args) >= 2:
 		v,r = Split_Version_Revision(args[1])
-	else  :
+	else :
 		v = ''
 		r = ''
 
@@ -232,24 +232,24 @@ Examples of usage:
 		newestOnServer = False
 
 
-	try :
+	try:
 		import os.path
 		if not os.path.realpath('/dev/fd/1').find('/fd/pipe:') > 0:
 			hook = consoleProgressHook
 			pass
-	except :
+	except:
 		pass
 
 	returned = FindPackage(p, v, r, fulllist or substring, substring, types, localdirs, forceupdate, accessWeb = not noWeb, hook = hook)
 
-	if returned :
+	if returned:
 		if newestOnServer:
 			returnedResults = len(returned)
 			returned.sort(byNewestOnServer)
 
 		if (substring and not fulllist):
 			listed_programs = []
-		for rp, rv, rr, rt, site in returned :
+		for rp, rv, rr, rt, site in returned:
 			if (substring and not fulllist):
 				if rp in listed_programs:
 					continue
@@ -257,5 +257,5 @@ Examples of usage:
 					listed_programs.append(rp)
 			print site
 		sys.exit(0)
-	else :
+	else:
 		sys.exit(1)
