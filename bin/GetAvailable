@@ -333,7 +333,7 @@ def getVersionsFromPackagesList(file, path_prefix = '', d = None) :
 		return d
 
 
-def GetAvailable(types, localdirs = None, forceupdate = False, hook = None, availables = None, accessWeb = True, doNotUpdate = False) :
+def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables=None, accessWeb=True, doNotUpdate=False, goboPrograms=None) :
 	if 'recipe' in types :
 		compileRecipeDirs, getRecipeStores = getCompileOptions()
 
@@ -341,7 +341,10 @@ def GetAvailable(types, localdirs = None, forceupdate = False, hook = None, avai
 		availables = {}
 
 	if 'installed' in types :
-		path = getGoboVariable('goboPrograms')
+		if goboPrograms:
+			path= goboPrograms
+		else:
+			path = getGoboVariable('goboPrograms')
 		if not availables.has_key('installed') or not availables['installed'] :
 			availables['installed'] = {}
 		if not availables['installed'].has_key('programs') or not availables['installed']['programs']:
@@ -349,7 +352,10 @@ def GetAvailable(types, localdirs = None, forceupdate = False, hook = None, avai
 		getUnpackedLocalPackages(path, True, availables['installed']['programs'], default_revision= 'r1')
 
 	if 'current' in types :
-		path = getGoboVariable('goboPrograms')
+		if goboPrograms:
+			path= goboPrograms
+		else:
+			path = getGoboVariable('goboPrograms')
 		if not availables.has_key('current') or not availables['current'] :
 			availables['current'] = {}
 		if not availables['current'].has_key('programs') or not availables['current']['programs']:
@@ -443,7 +449,7 @@ if __name__ == '__main__' :
 	import getopt, os
 
 	try :
-		opts, args = getopt.getopt(sys.argv[1:], 't:Wh', ['type=', 'types=', 'local-dirs=', 'full-list', 'force-update', 'no-web', 'help'])
+		opts, args = getopt.getopt(sys.argv[1:], 't:Whp:', ['type=', 'types=', 'local-dirs=', 'full-list', 'force-update', 'no-web', 'gobo-programs=', 'help'])
 	except getopt.GetoptError, detail :
 		print sys.argv[0].split('/')[-1]+': '+str(detail)
 		sys.exit(1)
@@ -454,6 +460,7 @@ if __name__ == '__main__' :
 	localdirs = None
 	forceupdate = False
 	noWeb = False
+	goboPrograms = None
 
 	for o, a in opts :
 		if o in ['--types','--type', '-t'] :
@@ -471,6 +478,8 @@ if __name__ == '__main__' :
 			localdirs = a.split(',')
 		elif o == '--force-update' :
 			forceupdate = True
+		elif o in ['--gobo-programs', '-p']:
+			goboPrograms = a
 		elif o in ['--no-web', '-W'] :
 			noWeb = True
 			if not typesChanged :
@@ -506,6 +515,9 @@ Options:
                       remote recipes and packages (if not explicitly listed
                       in '--types='). Overrides '--force-update'
 
+ -p
+ --gobo-programs      Override default """+getGoboVariable("goboPrograms")+""" as path of installed packages
+
 Examples of usage:
  GetAvailable --types=recipe
 
@@ -515,7 +527,7 @@ Examples of usage:
 
 	hook = consoleProgressHook
 
-	availables = GetAvailable(types, localdirs, forceupdate, accessWeb = not noWeb, hook = hook)
+	availables = GetAvailable(types, localdirs, forceupdate, accessWeb=not noWeb, hook=hook, goboPrograms=goboPrograms)
 
 	for t in availables.keys() :
 		for p in caseinsensitive_sort(availables[t]['programs'].keys()) :

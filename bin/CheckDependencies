@@ -92,16 +92,19 @@ def get_rules_for(p, v, r, t, u, noWeb=False, no_compatlist=False, no_builddeps=
 	return toReturn
 
 global_not_found_cache=[]
-def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False):
+def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False, goboPrograms=None):
 	if t == 'installed':
 		p = GuessProgramCase(p, v)
-		localdep = Get_Dir('runtime', p, v)+"/Resources/Dependencies"
+		if goboPrograms:
+			localdep = goboPrograms + '/' + p + '/' + v + "/Resources/Dependencies"
+		else:
+			localdep = Get_Dir('runtime', p, v)+"/Resources/Dependencies"
 		if os.access(localdep, os.R_OK):
 			return [ localdep ]
 
 	elif t == 'local_package':
 		if not u or os.access(u, os.R_OK):
-			ret = FindPackage(p, v, r, types=[t], availables=global_available_packages_cache, accessWeb = not noWeb)
+			ret = FindPackage(p, v, r, types=[t], availables=global_available_packages_cache, accessWeb=not noWeb)
 			if ret:
 				p,v,r,t,u = ret[0]
 		if u:
@@ -281,7 +284,7 @@ def rule_to_string(rule):
 		ss += ' ' + (rule['hiincluded'] and '<=' or '<') + ' ' + rule['hiver']
 	return ss
 
-def find_matching_package(rule, acceptable_types, noWeb=False):
+def find_matching_package(rule, acceptable_types, noWeb=False, goboPrograms=None, localdirs=None):
 	global global_available_packages_cache
 	global global_matches_cache
 
@@ -292,7 +295,7 @@ def find_matching_package(rule, acceptable_types, noWeb=False):
 	if not global_available_packages_cache:
 		global_available_packages_cache = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb)
 
-	available_options = FindPackage(rule['program'], types=acceptable_types, availables=global_available_packages_cache, accessWeb=not noWeb, fulllist=True)
+	available_options = FindPackage(rule['program'], types=acceptable_types, availables=global_available_packages_cache, accessWeb=not noWeb, fulllist=True, goboPrograms=goboPrograms, localdirs=localdirs)
 
 	if available_options:
 		for p,v,r,t,u in available_options:
@@ -305,7 +308,7 @@ def find_matching_package(rule, acceptable_types, noWeb=False):
 
 	# if we got here, no matching program/version was found.
 	if rule.has_key('option'):
-		ret = find_matching_package(rule['option'], acceptable_types, noWeb)
+		ret = find_matching_package(rule['option'], acceptable_types, noWeb, goboPrograms=goboPrograms, localdirs=localdirs)
 		if ret and ret[3]: # ret[3] corresponds to 'type'
 			global_matches_cache[string_rule] = ret
 			return ret
@@ -318,11 +321,11 @@ def find_matching_package(rule, acceptable_types, noWeb=False):
 #############################################################################
 
 global_always_do=None
-def ask_if_install(match):
+def ask_if_install(match, goboPrograms=None):
 	p,v,r,t,u=match
 	global global_always_do
 
-	installed = FindPackage(p,types=['installed'])
+	installed = FindPackage(p, types=['installed'], goboPrograms=goboPrograms)
 	if installed:
 		reason = p + " is installed, but version "+installed[0][1]+" does not match given dependency."
 	else:
@@ -380,7 +383,8 @@ def ask_if_install(match):
 def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	                                    acceptable_types=None, mode='missing', recursive=True, hook=None,
 	                                    noWeb=False, add_self='if_required', install_optional='ask', ask_hook=None,
-	                                    all_matches = None, no_compatlist=False, cross_compile=False, depfile=None):
+	                                    all_matches = None, no_compatlist=False, cross_compile=False, depfile=None,
+	                                    goboPrograms=None, localdirs=None):
 	ordered_matches, ordered_rules = [], []
 	self_match, self_rule = None, None
 
@@ -397,14 +401,14 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 
 	if not depfile and ((add_self == 'always') or (add_self != 'never' and (not v or not t))):
 		if t:
-			ret = FindPackage(p, v, r, types=[t], accessWeb=not noWeb)
+			ret = FindPackage(p, v, r, types=[t], accessWeb=not noWeb, goboPrograms=goboPrograms, localdirs=localdirs)
 		else:
 			if not v or not r:
-				ret = FindPackage(p, v, r, accessWeb=not noWeb)
+				ret = FindPackage(p, v, r, accessWeb=not noWeb, goboPrograms=goboPrograms, localdirs=localdirs)
 			else:
-				ret = FindPackage(p, v, r, types=['installed'], accessWeb=not noWeb)
+				ret = FindPackage(p, v, r, types=['installed'], accessWeb=not noWeb, goboPrograms=goboPrograms, localdirs=localdirs)
 				if ret:
-					ret = FindPackage(p, v, r, accessWeb=not noWeb)
+					ret = FindPackage(p, v, r, accessWeb=not noWeb, goboPrograms=goboPrograms, localdirs=localdirs)
 
 		if not ret:
 			return [], []
@@ -421,18 +425,18 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 
 	# optimization only:
 	#all_rules  = [ rule for rule in all_rules if not any(pp == rule['program'] for pp,vv,tt,uu in all_matches) ]
-	missing_dependencies = [ rule for rule in all_rules if not find_matching_package(rule, ['installed'], noWeb=noWeb) ]
+	missing_dependencies = [ rule for rule in all_rules if not find_matching_package(rule, ['installed'], noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs) ]
 	for rule in all_rules:
 		if hook:
 			hook("Checking dependencies", len(all_matches), len(all_matches)+1)
 
-		if mode == 'missing' and find_matching_package(rule, ['installed'], noWeb=noWeb)[3]:
+		if mode == 'missing' and find_matching_package(rule, ['installed'], noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs)[3]:
 			continue
 
 		if mode == 'all':
-			match = find_matching_package(rule, acceptable_types, noWeb=noWeb) # (program, version, type, site)
+			match = find_matching_package(rule, acceptable_types, noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs) # (program, version, type, site)
 		else:
-			match = find_matching_package(rule, ['installed']+acceptable_types, noWeb=noWeb) # (program, version, type, site)
+			match = find_matching_package(rule, ['installed']+acceptable_types, noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs) # (program, version, type, site)
 			if mode == 'updating' and match[3] == 'installed':
 				continue
 
@@ -443,7 +447,7 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 
 			if mode != 'all':
 				# Asking here!
-				if install_optional == 'never' or (install_optional == 'ask' and ask_hook and not ask_hook(match)):
+				if install_optional == 'never' or (install_optional == 'ask' and ask_hook and not ask_hook(match, goboPrograms=goboPrograms)):
 					continue
 
 			pp, vv, rr, tt, uu = match
@@ -499,20 +503,20 @@ Get_Version %s Current'"""%rule['program']
 #
 # This function is used when mode == 'list'
 #
-def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missing=False, report_updating=False, recursive=True, hook=None, noWeb=False, cross_compile=False, depfile=None):
+def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missing=False, report_updating=False, recursive=True, hook=None, noWeb=False, cross_compile=False, depfile=None, goboPrograms=None, localdirs=None):
 	if not types:
 		types = getGoboVariable('defaultRepositories', 'Scripts/FindPackage.conf', True)
 
-	all_rules, all_matches = get_all_dependencies_and_matches_for(p,v,r,t,u, types, recursive=recursive, hook=hook, mode='all', noWeb=noWeb, cross_compile=cross_compile, depfile=depfile)
+	all_rules, all_matches = get_all_dependencies_and_matches_for(p,v,r,t,u, types, recursive=recursive, hook=hook, mode='all', noWeb=noWeb, cross_compile=cross_compile, depfile=depfile, goboPrograms=goboPrograms, localdirs=localdirs)
 
 	if report_missing:
-		missing_dependencies      = [ rule for rule in all_rules if not find_matching_package(rule, ['installed'], noWeb=noWeb)[3] ]
-		missing_programs          = [ rule for rule in missing_dependencies if 'NO_PROGRAM' == find_matching_package(rule, ['installed'], noWeb=noWeb)[4] ]
-		unresolvable_dependencies = [ rule for rule in missing_dependencies if not find_matching_package(rule, ['installed']+types, noWeb=noWeb)[3] ]
+		missing_dependencies      = [ rule for rule in all_rules if not find_matching_package(rule, ['installed'], noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs)[3] ]
+		missing_programs          = [ rule for rule in missing_dependencies if 'NO_PROGRAM' == find_matching_package(rule, ['installed'], noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs)[4] ]
+		unresolvable_dependencies = [ rule for rule in missing_dependencies if not find_matching_package(rule, ['installed']+types, noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs)[3] ]
 
 	if report_updating:
-		updating_dependencies          = [ rule for rule in all_rules if not find_matching_package(rule, ['installed']+types, noWeb=noWeb)[3] == 'installed' ]
-		tracked_is_higher_dependencies = [ rule for rule in all_rules if find_matching_package(rule, ['installed']+types+['tracked'], noWeb=noWeb)[3] == 'tracked' ]
+		updating_dependencies          = [ rule for rule in all_rules if not find_matching_package(rule, ['installed']+types, noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs)[3] == 'installed' ]
+		tracked_is_higher_dependencies = [ rule for rule in all_rules if find_matching_package(rule, ['installed']+types+['tracked'], noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs)[3] == 'tracked' ]
 
 	if mode == 'terminal':
 		s = ''
@@ -612,7 +616,7 @@ if __name__ == '__main__':
 		try:
 			if not sys.argv[1:]:
 				sys.argv[1:] = [ '--help' ]
-			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'quiet-progress', 'no-compatlist', 'cross-compile', 'file=', 'help'])
+			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:l:p:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'quiet-progress', 'no-compatlist', 'cross-compile', 'file=', 'help', 'local-dirs=', 'gobo-programs'])
 		except getopt.GetoptError, detail:
 			print sys.argv[0].split('/')[-1]+': '+str(detail)
 			sys.exit(1)
@@ -628,6 +632,8 @@ if __name__ == '__main__':
 		no_compatlist = False
 		cross_compile = False
 		depfile = None
+		localdirs = None
+		goboPrograms = None
 		for o, a in opts:
 			if o in ['--types','--type', '-t']:
 				types = a.split(',')
@@ -664,6 +670,10 @@ if __name__ == '__main__':
 				cross_compile = True
 			elif o in ['--file', '-f']:
 				depfile = a
+			elif o == '--local-dirs' :
+				localdirs = a.split(',')
+			elif o in ['--gobo-programs', '-p']:
+				goboPrograms = a
 			elif o in ['--help', '-h']:
 				print """
 CheckDependencies
@@ -719,6 +729,12 @@ Options:
  -f
  --file               Check for the dependencies listed in the given file.
 
+ -p
+ --gobo-programs      Override default """+getGoboVariable("goboPrograms")+""" as path of installed packages
+
+ --local-dirs=[d1,..] Where to look for local binary packages. By default,
+                      uses the paths defined at GetAvailable.conf.
+
 Examples of usage:
  CheckDependencies kde-libs 3.5.0
  CheckDependencies kde-libs 3.5.0 recipe
@@ -745,13 +761,14 @@ Examples of usage:
 		else:
 			v,r = '',''
 		if mode == 'list':
-			print ListDependencies(p,v,r,t,u,types=types,recursive=recursive,hook=progress_hook,noWeb=noWeb,cross_compile=cross_compile, depfile=depfile)
+			print ListDependencies(p,v,r,t,u,types=types,recursive=recursive,hook=progress_hook,noWeb=noWeb,cross_compile=cross_compile, depfile=depfile, goboPrograms=goboPrograms, localdirs=localdirs)
 		elif mode == 'convert':
 			print ConvertRecipeToBinary(p,v,r,t,u),
 		else:
 			rules, matches = get_all_dependencies_and_matches_for(p, v, r, t, u, types, mode=mode, recursive=recursive,
 			                     noWeb=noWeb, hook=progress_hook, add_self=add_self, ask_hook=ask_if_install,
-			                     no_compatlist=no_compatlist, cross_compile=cross_compile, depfile=depfile)
+			                     no_compatlist=no_compatlist, cross_compile=cross_compile, depfile=depfile, goboPrograms=goboPrograms,
+			                     localdirs=localdirs)
 			if rules:
 				for rule,match in zip(rules,matches):
 					pp,vv,rr,tt,uu=match

@@ -11,7 +11,7 @@
 import os, os.path, sys, urllib
 from GetAvailable import *
 
-def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, localdirs=None, forceupdate=False, accessWeb=True, hook=None, availables=None):
+def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, localdirs=None, forceupdate=False, accessWeb=True, hook=None, availables=None, goboPrograms=None):
 
 	if not types:
 		types = getGoboVariable('defaultRepositories', 'Scripts/FindPackage.conf', True)
@@ -22,7 +22,7 @@ def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, 
 	# Phase 1: Get available packages from the selected type(s)
 	#######################################################################
 	if not availables or forceupdate: # can be used as a cache
-		availables = GetAvailable(types, localdirs, forceupdate=forceupdate, accessWeb = accessWeb, hook = hook)
+		availables = GetAvailable(types, localdirs, forceupdate=forceupdate, accessWeb=accessWeb, hook=hook, goboPrograms=goboPrograms)
 
 	#######################################################################
 	# Phase 2: From returned structure, decide which items fit (based on p, v and r)
@@ -118,7 +118,7 @@ if __name__ == '__main__':
 	try:
 		if not sys.argv[1:]:
 			sys.argv[1:] = [ '--help' ]
-		opts, args = getopt.getopt(sys.argv[1:], 't:Wslhn', ['types=', 'type=', 'local-dirs=', 'full-list', 'force-update', 'substring', 'no-web', 'help', 'newest-on-server'])
+		opts, args = getopt.getopt(sys.argv[1:], 't:Wslhnp:', ['types=', 'type=', 'local-dirs=', 'full-list', 'force-update', 'substring', 'no-web', 'help', 'newest-on-server', 'gobo-programs='])
 	except getopt.GetoptError, detail:
 		print sys.argv[0].split('/')[-1]+': '+str(detail)
 		sys.exit(1)
@@ -130,7 +130,7 @@ if __name__ == '__main__':
 	substring = False
 	noWeb = False
 	newestOnServer = False
-
+	goboPrograms = None
 	for o, a in opts:
 		if o in ['--types','--type', '-t']:
 			#typesChanged = True
@@ -154,6 +154,8 @@ if __name__ == '__main__':
 			newestOnServer = True
 		elif o in ['--substring','-s']:
 			substring = True
+		elif o in ['--gobo-programs', '-p']:
+			goboPrograms = a
 		elif o in ['--no-web', '-W']:
 			noWeb = True
 			if not types:
@@ -201,6 +203,9 @@ Options:
                       in '--types='). Overrides '--force-update' and
                       '--newest-on-server'.
 
+ -p
+ --gobo-programs      Override default """+getGoboVariable("goboPrograms")+""" as path of installed packages
+
 Examples of usage:
  FindPackage kde
  FindPackage kde 3.2.3
@@ -240,7 +245,7 @@ Examples of usage:
 	except:
 		pass
 
-	returned = FindPackage(p, v, r, fulllist or substring, substring, types, localdirs, forceupdate, accessWeb = not noWeb, hook = hook)
+	returned = FindPackage(p, v, r, fulllist or substring, substring, types, localdirs, forceupdate, accessWeb=not noWeb, hook=hook, goboPrograms=goboPrograms)
 
 	if returned:
 		if newestOnServer:
