@@ -234,19 +234,21 @@ def interpret_dependency_line(line, t=None, cross_compile=False):
 
 
 def does_version_match_rule(version, rule):
-	loOk=True
-	hiOk=True
+	loOk = True
+	hiOk = True
 	if rule['lover']:
 		loOk=False
-		if rule['loincluded'] or rule['lover'] != version:
-			if GuessLatest([version,rule['lover']]) == version:
-				loOk=True
+		if rule['loincluded'] and rule['lover'] == version:
+			loOk = True
+		else:
+			loOk = (GuessLatest([version, rule['lover']]) == version)
 
 	if rule['hiver']:
 		hiOk=False
-		if rule['hiincluded'] or rule['hiver'] != version:
-			if GuessLatest([version,rule['hiver']]) != version:
-				hiOk=True
+		if rule['hiincluded'] and rule['hiver'] == version:
+			hiOk = True
+		else:
+			hiOk = (GuessLatest([version,rule['hiver']]) != version)
 
 	if loOk and hiOk:
 		#print 'Version:',version,' does match ',rule
