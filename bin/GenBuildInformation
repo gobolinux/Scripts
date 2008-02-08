@@ -36,6 +36,9 @@ do
    elif [ -z "${cross_compiler}" ] && realfile=$(ldd "$1" | grep "${obj}" | awk '{ print $3 }') && [ -f "${realfile}" ]
    then
       echo ${realfile}
+   elif realfile=$(find "${prefix}" -name "${obj}" | xargs -i readlink -f {} ) && [ -f "${realfile}" ]
+   then
+      continue
    elif [ -z "${cross_compiler}" ] && realfile=$(find ${goboLibraries} -name "${obj}" | xargs -i readlink -f {} ) && [ -f "${realfile}" ]
    then
       echo ${realfile}
@@ -87,12 +90,12 @@ report=$({
       Progress_Move
    done < <(if Boolean "all"
             then
-               find "$prefix"
+               find "$prefix" 2>/dev/null
             else
                find "$prefix" -path "$prefix/sbin/*" -or \
                               -path "$prefix/bin/*"  -or \
                               -path "$prefix/lib/*"  -or \
-                              -path "$prefix/libexec/*"
+                              -path "$prefix/libexec/*" 2>/dev/null
             fi)
    Progress_End
 })
