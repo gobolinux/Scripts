@@ -42,7 +42,7 @@ s%$goboPrograms/[^ /]*/*[^ /]*/+include([ '\''])%$goboHeaders/\1%g;
 s%$goboPrograms/[^ /]*/*[^ /]*/+share(/?)/*%$goboShared\1%g;
 s%$goboPrograms/[^ /]*/*[^ /]*/+share([ '\''])%$goboShared/\1%g;
 s%$goboPrograms/[^ /]*/*[^ /]*%/usr%g;
-s%(-L|-I|-R)*$compileDir/[^ ]*%%g;
+s%(-L|-I|-R)*$compileDir/[^('| )]*%%g;
 " > "${current}"
    Boolean "backup" || rm -- "$old"
 done
