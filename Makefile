@@ -12,7 +12,7 @@ DESTDIR=/Programs/Scripts/$(VERSION)/
 CVSTAG=`echo $(PROGRAM)_$(VERSION) | tr "[:lower:]" "[:upper:]" | sed  's,\.,_,g'`
 
 PYTHON_VERSION=2.3
-PYTHON_LIBS=FindPackage GetAvailable GuessLatest CheckDependencies DescribeProgram
+PYTHON_LIBS=FindPackage GetAvailable GuessLatest CheckDependencies DescribeProgram UseFlags
 PYTHON_SITE=lib/python$(PYTHON_VERSION)/site-packages
 
 all: python

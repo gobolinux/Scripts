@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+# Copyright (C) 2008 Michael Homer <=mwh>
+# Gives information about the state of use flags
+# Distributed under the GNU GPLv3+
+
+from GetAvailable import getGoboVariable
+import sys, os.path
+
+global_use_flags_cache = None
+
+def UseFlags(program=None):
+	"""Return the set of flags enabled for program, or whether or not flag is enabled if specified"""
+	# At present, program is ignored, but it would allow enabling/disabling
+	# flags on a per-program basis later.
+	global global_use_flags_cache
+	if global_use_flags_cache is not None:
+		return global_use_flags_cache
+	else:
+		goboSettings = getGoboVariable('goboSettings')
+		flags = set()
+		if os.path.exists(goboSettings + '/UseFlags.conf'):
+			f = open(goboSettings + '/UseFlags.conf')
+			mergeFlags(flags, f)
+			f.close()
+		if 'USE' in os.environ:
+			mergeFlags(flags, os.environ['USE'].split(' '))
+		global_use_flags_cache = frozenset(flags)
+	return global_use_flags_cache
+
+def mergeFlags(flagSet, iterable):
+	for spec in iterable:
+		modifyFlagSetFromSpec(spec.strip(), flagSet)
+		
+def modifyFlagSetFromSpec(specStr, flagSet):
+	"""Update the set flagSet with the flag specification in specStr
+	Flag specifications are of the form [-+][a-z0-9]+|-*"""
+	if specStr == '-*': flagSet.clear()
+	elif specStr[0] == '-': flagSet.discard(specStr[1:])
+	elif specStr[0] == '+': flagSet.add(specStr[1:])
+	elif specStr[0] == '#': pass
+	else: flagSet.add(specStr)
+
+if __name__ == '__main__':
+	verbose = False
+	args = sys.argv[1:]
+	if '-v' == args[0]:
+		verbose = True
+		args = args[1:]
+	elif '--help' == args[0]:
+		sys.stdout.write("""
+UseFlags
+Usage: UseFlags [-v] [<program> [<flag-to-test>]]
+""")
+	flags = UseFlags()
+	if len(args) < 2:
+		for flag in flags:
+			sys.stdout.write(flag + '\n')
+	else:
+		if args[1] in flags:
+			if verbose: sys.stdout.write(args[1] + ' on\n')
+			exit(0)
+		else:
+			if verbose: sys.stdout.write(args[1] + ' off\n')
+			exit(1)
