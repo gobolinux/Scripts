@@ -8,6 +8,7 @@ from GetAvailable import *
 from GuessLatest import *
 from FindPackage import *
 from PythonUtils import *
+from UseFlags import *
 
 import re
 
@@ -16,13 +17,18 @@ s_blank='[ \t]*'
 s_name='([A-Za-z0-9][-A-Za-z0-9_+]*)'
 s_operand='(<|>|<=|>=|=)'
 s_version='([0-9a-z._\-]+)'
+s_sep=s_blank+','+s_blank
+
+s_flag=s_blank+s_name+s_blank
+s_useflags='('+s_flag+',)*'+s_flag
+s_flags = '(\['+s_blank+'(cross|!cross)?[, ]?('+s_useflags+')?\])'
 
 s_cross='(\['+s_blank+'(cross|!cross)'+s_blank+'\])'
 
-new_format = s_name +s_blank+ s_operand +s_blank+ s_version + '('+s_blank+ ',' +s_blank+ s_operand +s_blank+ s_version+')?'+s_blank+s_cross+'?'
+new_format = s_name +s_blank+ s_operand +s_blank+ s_version + '('+s_blank+ ',' +s_blank+ s_operand +s_blank+ s_version+')?'+s_blank+s_flags+'?'
 new_format_c = re.compile(new_format)
 
-old_format = s_name+s_blank+s_version+'?'+s_blank+s_cross+'?'
+old_format = s_name+s_blank+s_version+'?'+s_blank+s_flags+'?'
 old_format_c = re.compile(old_format)
 
 global_wget_timeout = getGoboVariable('timeout', 'Scripts/GetAvailable.conf')
@@ -186,7 +192,12 @@ def interpret_dependency_line(line, t=None, cross_compile=False):
 			return
 		if ((m.group(8) == 'cross' and not cross_compile) or (m.group(8) == '!cross' and cross_compile)):
 			return
-
+		# Group 9 is use flags
+		if m.group(9):
+			progFlags = UseFlags(m.group(1))
+			# If none of the listed flags are enabled, skip this dependency
+			if not reduce(lambda inc,flag: inc and inc or flag in progFlags, m.group(9).split(','), False):
+				return
 		ret = {'program'    : m.group(1),
 		       'loincluded' : True,
 		       'lover'      : '',
@@ -213,6 +224,12 @@ def interpret_dependency_line(line, t=None, cross_compile=False):
 			if (m.group(1).lower() in global_dependencies_blacklist):
 				return
 			if ((m.group(4) == 'cross' and not cross_compile) or (m.group(4) == '!cross' and cross_compile)):
+				return
+		# Group 5 is use flags
+		if m.group(5):
+			progFlags = UseFlags(m.group(1))
+			# If none of the listed flags are enabled, skip this dependency
+			if not reduce(lambda inc,flag: inc and inc or flag in progFlags, m.group(5).split(','), False):
 				return
 
 			ret = {'program'    : m.group(1),
