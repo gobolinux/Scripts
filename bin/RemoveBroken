@@ -8,22 +8,22 @@ import os, sys
 
 verbose = 1
 if len(sys.argv) == 1:
-    def delnewline(s):
-        if s[-1] == "\n":
-            return s[:-1]
-        return s
-    files = map(delnewline, sys.stdin.readlines())
+	def delnewline(s):
+		if s[-1] == "\n":
+			return s[:-1]
+		return s
+	files = map(delnewline, sys.stdin.readlines())
 else:
-    files = sys.argv[1:]
+	files = sys.argv[1:]
 
-for filename in files :
-    try :
-        if os.lstat(filename) and not os.access(filename, os.F_OK) :
-            try :
-                os.unlink(filename)
-                if verbose == 1 :
-                   print filename
-            except :
-                print "Failed removing "+filename
-    except :
-	continue
+for filename in files:
+	try :
+		if os.lstat(filename) and not os.access(filename, os.F_OK):
+			try :
+					os.unlink(filename)
+					if verbose == 1:
+						print filename
+			except :
+					print "Failed removing " + filename
+	except :
+		continue

@@ -32,16 +32,16 @@ only = 1
 # XXX I really need a Python option parser...
 mode = only
 if len(sys.argv) < 2:
-    print "Pass regexps to filter as a parameter."
-    sys.exit(1)
+	print "Pass regexps to filter as a parameter."
+	sys.exit(1)
 
 patterns = sys.argv[1:]
 
 def split_list(list, delim):
-    for i in range(len(list)):
-        if list[i] == delim:
-	    return list[:i], list[i+1:]
-    return list, []
+	for i in range(len(list)):
+		if list[i] == delim:
+			return list[:i], list[i+1:]
+	return list, []
 
 positives, negatives = split_list(patterns, "-n")
 
@@ -50,12 +50,12 @@ negrxs = map(re.compile, negatives)
 
 ls = sys.stdin.readlines()
 for l in ls:
-    def match_one(rxs, l, empty=0):
-	if rxs == []:
-	    return empty
-	for rx in rxs:
-	    if rx.search(l) != None:
-		return 1
-	return 0
-    if (match_one(posrxs, l, 1) and not match_one(negrxs, l)):
-	print l,
+	def match_one(rxs, l, empty=0):
+		if rxs == []:
+			return empty
+		for rx in rxs:
+			if rx.search(l) != None:
+				return 1
+		return 0
+	if (match_one(posrxs, l, 1) and not match_one(negrxs, l)):
+		print l,
