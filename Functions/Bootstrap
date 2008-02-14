@@ -5,6 +5,7 @@ function Create_Filesystem_Tree() {
    # The GoboLinux directory hierarchy
    #
    root="$1"
+   superuser="$2"
 
    function create_dir() {
       [ -d "$1" ] || mkdir -p "$1"
@@ -40,7 +41,7 @@ function Create_Filesystem_Tree() {
    create_dir $root/System/Kernel/Devices
    create_dir $root/System/Kernel/Status
    create_dir $root/Users
-   create_dir $root/Users/root
+   create_dir $root/Users/$superuser
    create_dir $root/Files
    create_dir $root/Files/Compile
    create_dir $root/Files/Compile/Archives
