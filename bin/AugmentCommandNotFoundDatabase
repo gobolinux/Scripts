@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+# AugmentCommandNotFoundDatabase - augments the existing database with data from this system
+# Copyright (C) 2008 Michael Homer <=mwh>
+
+import sys, os, os.path
+from GetAvailable import *
+
+goboPrograms = getGoboVariable('goboPrograms')
+path = goboPrograms+'/Scripts/Current/Data/CommandNotFound.py'
+if not os.path.exists(path):
+	exit()
+def out(s):
+	"""Output word-wrapped text"""
+	sys.stdout.write(s)
+exec(open(path).read())
+
+programs = os.listdir(goboPrograms)
+for prog in programs:
+	if os.path.exists(goboPrograms+'/'+prog+'/Current/bin'):
+		executables = os.listdir(goboPrograms+'/'+prog+'/Current/bin')
+		for ex in executables:
+			if not ex in commands:
+				commands[ex] = []
+			if not prog in commands[ex]:
+				commands[ex].append(prog)
+
+# Output data in sorted order so it's deterministic and amenable to short diffs when maintained in CVS.
+executables = sorted(commands.keys())
+out("commands = {\n")
+for ex in executables:
+	out(" '" + ex + "': [")
+	for prog in sorted(commands[ex]):
+		out("'" + prog + "', ")
+	out("],\n")
+out("}")
