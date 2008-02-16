@@ -343,6 +343,7 @@ function Parse_Options() {
             # go through the string of short options
             for (( k = 1; k < ${#option} ; k++ ))
             do
+               unknownOption=true
                opt=${option:$k:1} # the character number k in the string
                for j in `seq $optionsListSize`
                do
