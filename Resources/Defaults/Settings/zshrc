@@ -130,3 +130,24 @@ echo -e "if [ \"\$unsetvars\" ]\nthen\n$unsetvars\nfi\n" >> "$envcachefile" } 2>
 { source "$envcachefile" } 2> /dev/null
 unset envcachefile
 
+# CommandNotFound support. Defined as separate functions to ease the use of other precmd() functions
+# in ~/.zshrc. Behaviour can be disabled by unsetting or redefining precmd().
+function CommandNotFound_preexec() {
+   command="${1%% *}"
+}
+
+function CommandNotFound_precmd() {
+   if [ $? ] && [ -n "$command" ]
+   then
+      whence -- "$command" >& /dev/null ||
+         CommandNotFound $command
+      unset command
+   fi
+}
+function preexec() {
+   CommandNotFound_preexec $1
+}
+
+function precmd() {
+   CommandNotFound_precmd
+}
