@@ -19,7 +19,7 @@ function our_which() {
    return 1
 }
 
-CURRENT_SCRIPTS_VERSION=2.8.3 # This variable is automatically set by Make
+CURRENT_SCRIPTS_VERSION= # This variable is automatically set by Make
 hostSystemDependencies=(
    sh
    sed
@@ -82,7 +82,7 @@ then
    mkdir -p "$1"
    export goboPrefix="`readlink -f $1`"
 else
-   export goboPrefix=${HOME}
+   export goboPrefix="${HOME}"
 fi
 
 # Saves the current directory for later restoration
@@ -158,34 +158,34 @@ then
    [ -e "${goboPrefix}/System/Settings/bashrc" ] && . "${goboPrefix}/System/Settings/bashrc"
 fi
 
-export PYTHONPATH=${goboPrefix}/System/Links/Libraries/python2.3/site-packages:${goboPrefix}/System/Links/Libraries/python2.4/site-packages${PYTHONPATH:+:$PYTHONPATH}
+export PYTHONPATH="${goboPrefix}/System/Links/Libraries/python2.3/site-packages:${goboPrefix}/System/Links/Libraries/python2.4/site-packages${PYTHONPATH:+:$PYTHONPATH}"
 
-export PKG_CONFIG_PATH=${goboPrefix}/System/Links/Libraries/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig
+export PKG_CONFIG_PATH="${goboPrefix}/System/Links/Libraries/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig"
 
 export LD_LIBRARY_PATH="${goboPrefix}/System/Links/Libraries${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
 # Without calling cd, prompt does not display ~, but ${HOME}
 { [ `readlink -f ${PWD}` = `readlink -f ${HOME}` ] && cd; } 2> /dev/null
-' >> ${goboPrefix}/Programs/Rootless/1.0/bin/StartRootless
+' >> "${goboPrefix}/Programs/Rootless/1.0/bin/StartRootless"
 
 # preparing a real_install (which is wrapped by Scripts install)...
 if [ ! "`our_which real_install`" ] 
 then
    if [ -e "/bin/install" ]
    then
-      ln -sfn /bin/install ${goboPrefix}/Programs/Rootless/1.0/bin/real_install
+      ln -sfn /bin/install "${goboPrefix}/Programs/Rootless/1.0/bin/real_install"
    elif [ -e "/usr/bin/install" ]
    then
-      ln -sfn /usr/bin/install ${goboPrefix}/Programs/Rootless/1.0/bin/real_install
+      ln -sfn /usr/bin/install "${goboPrefix}/Programs/Rootless/1.0/bin/real_install"
    else 
       i=`our_which install`
       g=`file "$i" | grep ELF`
       if [ "$g" ]
       then
-         ln -sfn "$i" ${goboPrefix}/Programs/Rootless/1.0/bin/real_install
+         ln -sfn "$i" "${goboPrefix}/Programs/Rootless/1.0/bin/real_install"
       else
          echo Warning: no CoreUtils install binary was found. Please provide it and link it 
-         echo at ${goboPrefix}/Programs/Rootless/1.0/bin/real_install  
+         echo at "${goboPrefix}/Programs/Rootless/1.0/bin/real_install"
       fi
    fi
 fi
@@ -209,9 +209,9 @@ then
       if [ "$REPLY" = "y" ]
       then
          scripts=`readlink -f /Programs/Scripts/Current`
-         mkdir ${goboPrefix}/Programs/Scripts
-         cp -r $scripts ${goboPrefix}/Programs/Scripts
-         cd ${goboPrefix}/Programs/Scripts
+         mkdir "${goboPrefix}/Programs/Scripts"
+         cp -r $scripts "${goboPrefix}/Programs/Scripts"
+         cd "${goboPrefix}/Programs/Scripts"
          find -name "CVS" | xargs rm -rf
          ln -s `basename ${scripts}` Current
       fi
@@ -219,11 +219,11 @@ then
       version="${CURRENT_SCRIPTS_VERSION:-2.6.2}"
       scripts=Scripts--${version}--i686.tar.bz2
       wget http://kundor.org/gobo/packages/official/${scripts} -O /tmp/${scripts}
-      cd ${goboPrefix}/Programs/
+      cd "${goboPrefix}/Programs/"
       tar xvfj /tmp/${scripts}
       cd Scripts
       ln -sfn $version Current
-      cp -R ${goboPrefix}/Programs/Scripts/$version/Resources/Defaults/Settings ${goboPrefix}/Programs/Scripts/Settings
+      cp -R "${goboPrefix}/Programs/Scripts/$version/Resources/Defaults/Settings" "${goboPrefix}/Programs/Scripts/Settings"
    fi
 fi
 
@@ -239,10 +239,10 @@ function link_directory() {
 if [ -e "${goboPrefix}/Programs/Scripts/Current" ]
 then
    echo "Pre-linking Scripts..."
-   link_directory ../../Programs/Scripts/Settings       ${goboPrefix}/System/Settings
-   link_directory ../../../Programs/Scripts/Current/bin ${goboPrefix}/System/Links/Executables
+   link_directory ../../Programs/Scripts/Settings       "${goboPrefix}/System/Settings"
+   link_directory ../../../Programs/Scripts/Current/bin "${goboPrefix}/System/Links/Executables"
    echo "Populating Dependencies.blacklist..."
-   echo -e "Glibc\nXorg" >> ${goboPrefix}/Programs/Scripts/Settings/Scripts/Dependencies.blacklist
+   echo -e "Glibc\nXorg" >> "${goboPrefix}/Programs/Scripts/Settings/Scripts/Dependencies.blacklist"
 fi
 
 
@@ -250,7 +250,7 @@ fi
 # Sourcing GoboPath 
 ###############################################################################
 
-. ${goboPrefix}/Programs/Rootless/1.0/bin/StartRootless
+. "${goboPrefix}/Programs/Rootless/1.0/bin/StartRootless"
 
 
 ###############################################################################
