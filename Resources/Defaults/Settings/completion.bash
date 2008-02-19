@@ -1,7 +1,7 @@
 #!/bin/bash
 #   bash_completion - some programmable completion functions for bash 2.05a
 #
-#   $Id: completion.bash,v 1.4 2007-02-16 13:02:29 lucasvr Exp $
+#   $Id: completion.bash,v 1.5 2008-02-19 20:02:31 mohjive Exp $
 #
 #   Copyright (C) Ian Macdonald <ian@caliban.org>
 #
@@ -1267,7 +1267,7 @@ _screen()
 
 	return 0
 }
-[ $have ] && complete -F _screen -o default screen
+[ "$have" ] && complete -F _screen -o default screen
 
 # ncftp(1) bookmark completion
 #
@@ -1286,7 +1286,7 @@ _ncftp()
 
 	return 0
 }
-[ $have ] && complete -F _ncftp -o default ncftp
+[ "$have" ] && complete -F _ncftp -o default ncftp
 
 # gdb(1) completion
 #
@@ -1310,7 +1310,7 @@ _gdb()
 					sed -e 's#^.*/##' ))
 	fi
 }
-[ $have ] && complete -F _gdb -o default gdb
+[ "$have" ] && complete -F _gdb -o default gdb
 
 # psql(1) completion
 #
@@ -1464,7 +1464,7 @@ _filedir_xspec()
 	_expand || return 0
 
 	# get first exclusion compspec that matches this command
-	xspec=$( sed -ne '/ '${1##*/}'/{p;q;}' $BASH_COMPLETION )
+	xspec=$( sed -ne '/ '${1##*/}'/{p;q;}' "$BASH_COMPLETION" )
 	# prune to leave nothing but the -X spec
 	xspec=${xspec#*-X }
 	xspec=${xspec%% *}
@@ -1473,7 +1473,7 @@ _filedir_xspec()
 		    $( compgen -d -- $cur ) )
 }
 list=( $( sed -ne '/^# START exclude/,/^# FINISH exclude/p' \
-	  $BASH_COMPLETION | \
+	  "$BASH_COMPLETION" | \
 	# read exclusion compspecs
 	(
 	while read line
@@ -1497,14 +1497,14 @@ fi
 unset list[@]
 
 # source completion directory definitions
-if [ -d $BASH_COMPLETION_DIR -a -r $BASH_COMPLETION_DIR -a \
-     -x $BASH_COMPLETION_DIR ]; then
-	for i in $BASH_COMPLETION_DIR/*; do
-		[ -r $i ] && . $i
+if [ -d "$BASH_COMPLETION_DIR" -a -r "$BASH_COMPLETION_DIR" -a \
+     -x "$BASH_COMPLETION_DIR" ]; then
+	for i in "$BASH_COMPLETION_DIR"/*; do
+		[ -r "$i" ] && . "$i"
 	done
 fi
 # source user completion file
-[ $BASH_COMPLETION != ~/.bash_completion -a -r ~/.bash_completion ] \
+[ "$BASH_COMPLETION" != ~/.bash_completion -a -r ~/.bash_completion ] \
 	&& . ~/.bash_completion
 unset -f have
 unset OS RELEASE have i
