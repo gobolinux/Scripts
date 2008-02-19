@@ -382,7 +382,7 @@ do
 done
 
 # Restores the last directory
-cd $pwd
+cd "$pwd"
 
 Log_Terse "Installation complete."
 echo ""
