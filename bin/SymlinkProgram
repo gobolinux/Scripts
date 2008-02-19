@@ -98,9 +98,9 @@ then
    Log_Terse "System does not seems to be ok."
    if [ "$(Arg 2)" ]
    then
-      p_path="$goboPrograms/`basename $(Arg 1)`/$(Arg 2)"
+      p_path="$goboPrograms/`basename "$(Arg 1)"`/$(Arg 2)"
    else
-      p_path="$goboPrograms/`basename $(Arg 1)`/Current"
+      p_path="$goboPrograms/`basename "$(Arg 1)"`/Current"
    fi
    Ask_Continue "About to call 'RescueSymlinkProgram ${p_path} ${goboLinks}'"
    RescueSymlinkProgram "${p_path}" "${goboLinks}"
@@ -109,13 +109,13 @@ then
 fi
 
 
-package="`basename $(Arg 1) /`"
-package=`GuessProgramCase $package $(Arg 2)`
+package="`basename "$(Arg 1)" /`"
+package=`GuessProgramCase "$package" "$(Arg 2)"`
 
 packageDir="$goboPrograms/$package"
 
 current="$packageDir/Current"
-version=$(basename $(readlink -f $current) /)
+version=$(basename `readlink -f "${current}"` /)
 
 if ! Is_Directory "$packageDir"
 then Die "Directory $packageDir does not exist."
@@ -334,11 +334,12 @@ then
    # it's ok to install the GConf schemas even if they are already installed
    # we do this to ensure that the schemas are really installed
    Is_Real_Nonempty_Directory "${goboPrograms}/${package}/Settings/gconf/schemas" && Install_GConf_Schemas "${package}"
+#   Is_Real_Nonempty_Directory "${current}/Shared/sgml" && Install_SGML_DTD "${package}"
 fi
 
 ################################################################################
 
-if [ -f $current/Resources/UnmanagedFiles ] && {
+if [ -f "$current/Resources/UnmanagedFiles" ] && {
    { Is_Entry "unmanaged" "ask" && {
         Log_Normal "The program wishes to install files to these unmanaged locations:"
         cat $current/Resources/UnmanagedFiles
@@ -371,7 +372,7 @@ fi
 
 ################################################################################
 
-if ! Boolean "no-requirements" && [ -f $current/Resources/Requirements ]
+if ! Boolean "no-requirements" && [ -f "$current/Resources/Requirements" ]
 then
    Log_Normal "Asserting that requirements are met..."
    Process_Requirements_File "$goboPrograms/$package/$version"
