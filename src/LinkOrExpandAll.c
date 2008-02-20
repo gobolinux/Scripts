@@ -273,13 +273,14 @@ static void create_single_link(char* src, char* dest) {
 }
 
 static void Link_Or_Expand(char* new) {
+   int i;
    if (relative) {
       char* candidate = goboProgramsSansPrefix;
       if (*candidate == '/')
          candidate++;
       char buffer[1024];
       char* walk = buffer;
-      for (int i = 0; i < 10; i++) {
+      for (i = 0; i < 10; i++) {
          strncpy(walk, "../", 1024 - (walk-buffer));
          walk += 3;
          strncpy(walk, candidate, 1024 - (walk-buffer));
