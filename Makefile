@@ -15,6 +15,9 @@ PYTHON_VERSION=2.3
 PYTHON_LIBS=FindPackage GetAvailable GuessLatest CheckDependencies DescribeProgram UseFlags
 PYTHON_SITE=lib/python$(PYTHON_VERSION)/site-packages
 
+default: all
+	cd src; make install
+
 all: python
 	sed -i~ "s/CURRENT_SCRIPTS_VERSION=.*#/CURRENT_SCRIPTS_VERSION="${VERSION}" #/g" bin/CreateRootlessEnvironment
 	rm -f bin/CreateRootlessEnvironment~
@@ -47,7 +50,7 @@ cleanup:
 verify:
 	! { cvs up -dP 2>&1 | grep "^[\?]" | grep -v "Resources/SettingsBackup" ;}
 
-dist: version_check cleanup verify all
+dist: version_check cleanup verify default
 	cvs commit -m "Update version." bin/CreateRootlessEnvironment
 	rm -rf $(PACKAGE_ROOT)
 	mkdir -p $(PACKAGE_VDIR)
