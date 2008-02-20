@@ -150,10 +150,10 @@ alias SymlinkProgram="SymlinkProgram --relative"
 
 [ ! "$goboPrefix" ] && export goboPrefix='"$rootlessPrefix"'
 
-if [ "${ZSH_NAME}" = "zsh" -o "$(basename `readlink -f "${SHELL}"`)" = "zsh" ]
+if [ "${ZSH_NAME}" = "zsh" -o "$(basename "$(readlink -f "${SHELL}")")" = "zsh" ]
 then
    [ -e "${goboPrefix}/System/Settings/zshrc" ] && . "${goboPrefix}/System/Settings/zshrc"
-elif [ "${SHELL}" = "/bin/bash" -o "$(basename `readlink -f "${SHELL}"`)" = "bash" ]
+elif [ "${SHELL}" = "/bin/bash" -o "$(basename "$(readlink -f "${SHELL}")")" = "bash" ]
 then
    [ -e "${goboPrefix}/System/Settings/bashrc" ] && . "${goboPrefix}/System/Settings/bashrc"
 fi
@@ -365,14 +365,14 @@ SymlinkProgram Rootless
 for sh in bash zsh
 do
    file="${HOME}/.${sh}rc"
-   line=". ${goboPrefix}/Programs/Rootless/Current/bin/StartRootless"
+   line=". \"${goboPrefix}/Programs/Rootless/Current/bin/StartRootless\""
    
-   if ! grep "^${line}" ${file} &> /dev/null
+   if ! grep "^${line}" "${file}" &> /dev/null
    then
       if Ask "Should a StartRootless line be added to ~/.${sh}rc?"
       then
-         echo >> ${file}
-         echo "$line" >> ${file}
+         echo >> "${file}"
+         echo "$line" >> "${file}"
       else
          Log_Terse "StartRootless was not added to ~/.${sh}rc."
 	 Log_Normal "To start rootless you either need to issue '. ${goboPrefix}/Programs/Rootless/Current/bin/StartRootless' at the prompt each session or add that line to ~/.${sh}rc manually."

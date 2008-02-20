@@ -25,7 +25,7 @@ function Get_Architecture() {
 function Get_Version() {
    Parameters "$@" package version
    ! Exists "$goboPrograms/$package/$version" && return 1
-   realversion=$(basename $(readlink -f "$goboPrograms/$package/$version"))
+   realversion="$(basename "$(readlink -f "$goboPrograms/$package/$version")")"
    if Is_Directory "$goboPrograms/$package/$realversion"
    then
       echo "$realversion"
@@ -56,7 +56,7 @@ function Gen_Env_Cache() {
       [ -f "$linkedfile" ] && cat "$linkedfile" >> "$cache"
       echo >> "$cache"
    done
-   unsetvars=`grep export $goboExecutables/GoboPath | awk {'print $1 " " $2'} | grep "^export" | sed -e 's,=.*,,g' -e 's,export,unset,g'`
+   unsetvars="$(grep export "$goboExecutables/GoboPath" | awk {'print $1 " " $2'} | grep "^export" | sed -e 's,=.*,,g' -e 's,export,unset,g')"
    echo -e "if [ \"\$unsetvars\" ]\nthen\n$unsetvars\nfi\n" >> "$cache"
 }
 
@@ -533,7 +533,7 @@ function Dependencies_File() {
 # Whenever you need to strip ${goboPrograms} off from a path,
 # use this function. It's the bullet-proof way to do so.
 function Strip_Gobo_Programs() {
-   sed "s@^${goboPrograms}@@;s@^$(readlink -f ${goboPrograms})@@;s@^/Programs\(/[^/]*/[^/]*/[^/]*/[^/]*\)@\1@;s@^/*@@"
+   sed "s@^${goboPrograms}@@;s@^$(readlink -f "${goboPrograms}")@@;s@^/Programs\(/[^/]*/[^/]*/[^/]*/[^/]*\)@\1@;s@^/*@@"
 }
 
 # Inspect to which package a linked file points to

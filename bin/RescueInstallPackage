@@ -70,13 +70,13 @@ then
    fi
 fi
 
-if [ ! -d $goboprograms ] 
+if [ ! -d "$goboprograms" ] 
 then
 	echo "RescueInstallPackage: $goboprograms is not an existing directory." 2> /dev/stderr
 	exit 1
 fi
 
-if [ ! -d $gobolinks ] 
+if [ ! -d "$gobolinks" ] 
 then
 	echo "RescueInstallPackage: ${gobolinks} is not an existing directory." 2> /dev/stderr
 	exit 1
@@ -90,16 +90,16 @@ then
 		realv="$1"
 	fi
 	packageversion=`basename "$realv"`
-	x=`dirname $realv`
-	packagename=`basename $x`
-	mkdir -p $goboprograms/$packagename 2> /dev/null
+	x=`dirname "$realv"`
+	packagename=`basename "$x"`
+	mkdir -p "$goboprograms/$packagename" 2> /dev/null
 	echo "RescueInstallPackage: Copying $filename in $goboprograms/$packagename" 2> /dev/stderr
-	cp -R "$filename" $goboprograms/$packagename
+	cp -R "$filename" "$goboprograms/$packagename"
 else
 	base=`basename "$filename"`
 	packageversion=`echo "$base" | cut -d'-' -f2`
 	packagename=`echo "$base" | cut -d'-' -f1`
-	tar xjvf  $filename -C $goboprograms
+	tar xjvf  "$filename" -C "$goboprograms"
 fi
 
 echo "RescueInstallPackage: Calling RescueSymlinkProgram $goboprograms/$packagename/$packageversion $gobolinks" 2> /dev/stderr

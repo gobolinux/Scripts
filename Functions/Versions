@@ -22,7 +22,7 @@ function Current_Version() {
    local basedir="$goboPrograms/$programName"
    Is_Directory "$basedir" || return 1
    Is_Link "$basedir/Current" || return 1
-   basename `readlink -f "$basedir/Current"`
+   basename "$(readlink -f "$basedir/Current")"
    return 0
 }
 

@@ -53,12 +53,12 @@ function build_change() {
 }
 
 make_symlink() {
-    local bname=`basename $1`
+    local bname=`basename "$1"`
     Exists "${baseprogramdir}/${bname}" && ln -nsf "${baseprogramdir}/${bname}" "$1"
 }
 
 remove_symlink() {
-    Exists `readlink -f $1` || rm -f -- "$1"
+    Exists "$(readlink -f "$1")" || rm -f -- "$1"
 }
 
 ### Operation #############################################################

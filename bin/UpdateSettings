@@ -538,7 +538,7 @@ function attempt_action() {
          ;;
          
       u) Log_Normal "$InstructionSource Using $default"
-         mkdir -p "$(dirname $cur)"
+         mkdir -p "$(dirname "$cur")"
          if ! Is_Directory "$default"
          then
             cp "$default" "$cur"

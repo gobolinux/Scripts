@@ -69,7 +69,7 @@ function link_directory() {
 
       Boolean "relative" && relative="--relative" || relative=""
       [ "${conflict}" = "overwrite" ] && overwrite="--overwrite" || overwrite=""
-      if [ `type -p LinkOrExpandAll` ]
+      if [ -n "$(type -p LinkOrExpandAll)" ]
       then
          LinkOrExpandAll "$rfrom" "$overwrite" "$relative"
       else
@@ -115,7 +115,7 @@ package=`GuessProgramCase "$package" "$(Arg 2)"`
 packageDir="$goboPrograms/$package"
 
 current="$packageDir/Current"
-version=$(basename `readlink -f "${current}"` /)
+version="$(basename "$(readlink -f "${current}")" /)"
 
 if ! Is_Directory "$packageDir"
 then Die "Directory $packageDir does not exist."
@@ -168,7 +168,7 @@ fi
 #dir on root. - Carlo Calica
 if [ "$rootfs" = "yes" ] && Is_Link "$goboPrograms/$package/$version" 
 then
-   srcProgram=`readlink -f $goboPrograms/$package/$version`
+   srcProgram="$(readlink -f "$goboPrograms/$package/$version")"
    Log_Normal "Copying $srcProgram to $goboPrograms/$package."
    # Copy to root partition
    rm -f -- "$goboPrograms/$package/$version"
@@ -267,7 +267,7 @@ then
    link_directory "$current/man/man6" "$goboManuals/man6"
    link_directory "$current/man/man7" "$goboManuals/man7"
    link_directory "$current/man/man8" "$goboManuals/man8"
-   cd $current
+   cd "$current"
 fi
 
 ################################################################################

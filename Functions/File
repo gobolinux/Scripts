@@ -23,7 +23,7 @@ function Is_Process() { pidof "$1" &> /dev/null ;}
 
 function Is_Readable() { [ -e "$1" -a -r "$1" ] ;}
 
-function Is_Writable() { [ \( -e "$1" -a -w "$1" \) -o \( ! -e "$1" -a -w $(dirname "$1") \) ] ;}
+function Is_Writable() { [ \( -e "$1" -a -w "$1" \) -o \( ! -e "$1" -a -w "$(dirname "$1")" \) ] ;}
 
 function Is_Link() { [ -L "$1" -a -e "$1" ] ;}
 
@@ -111,7 +111,7 @@ function Count_Lines() {
 
 function Is_Extension() {
    Parameters "$@" extension filename
-   [ "`basename "$filename" "$extension"`" != "`basename $filename`" ]
+   [ "`basename "$filename" "$extension"`" != "`basename "$filename"`" ]
 }
 
 #detsch, 23/08/2004
@@ -135,7 +135,7 @@ GPG_gobo_keyring="${goboPrograms}/Scripts/Current/Data/gpg/goboring.gpg"
 #calica 11-10-2004 - These routines handle package/recipe signing and verification
 function Gen_FileHash() {
    Parameters "$@" file_prefix hashfile
-   local dname=`dirname $hashfile`
+   local dname="$(dirname "$hashfile")"
    $sudo_exec rm -f -- "$hashfile"
    # Validate password
    $sudo_validate
