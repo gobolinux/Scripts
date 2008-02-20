@@ -150,7 +150,7 @@ alias SymlinkProgram="SymlinkProgram --relative"
 
 [ ! "$goboPrefix" ] && export goboPrefix='"$rootlessPrefix"'
 
-if [ "${ZSH_NAME}" = "zsh" -o "$(basename `readlink -f "${SHELL}"`" = "zsh" ]
+if [ "${ZSH_NAME}" = "zsh" -o "$(basename `readlink -f "${SHELL}"`)" = "zsh" ]
 then
    [ -e "${goboPrefix}/System/Settings/zshrc" ] && . "${goboPrefix}/System/Settings/zshrc"
 elif [ "${SHELL}" = "/bin/bash" -o "$(basename `readlink -f "${SHELL}"`)" = "bash" ]
@@ -235,7 +235,6 @@ function link_directory() {
    for entry in "${from}"/*; do ln -sfn "${entry}" . 2> /dev/null; done
    cd - > /dev/null
 }
-
 
 if [ -e "${goboPrefix}/Programs/Scripts/Current" ]
 then
