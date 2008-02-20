@@ -7,38 +7,59 @@ from GetAvailable import getGoboVariable
 import sys, os.path
 
 global_use_flags_cache = None
+global_program_use_flags_cache = None
 
 def UseFlags(program=None):
 	"""Return the set of flags enabled for program, or whether or not flag is enabled if specified"""
-	# At present, program is ignored, but it would allow enabling/disabling
-	# flags on a per-program basis later.
-	global global_use_flags_cache
-	if global_use_flags_cache is not None:
+	global global_use_flags_cache, global_program_use_flags_cache
+	if program and global_program_use_flags_cache and program in global_program_use_flags_cache:
+		return global_program_use_flags_cache[program]
+	elif global_use_flags_cache is not None and not program:
 		return global_use_flags_cache
 	else:
 		goboSettings = getGoboVariable('goboSettings')
 		flags = set()
 		if os.path.exists(goboSettings + '/UseFlags.conf'):
 			f = open(goboSettings + '/UseFlags.conf')
-			mergeFlags(flags, f)
+			mergeFlags(flags, f, program)
 			f.close()
 		if 'USE' in os.environ:
-			mergeFlags(flags, os.environ['USE'].split(' '))
-		global_use_flags_cache = frozenset(flags)
+			mergeFlags(flags, os.environ['USE'].split(), program)
+		if program:
+			if not global_program_use_flags_cache: global_program_use_flags_cache = dict()
+			flags = frozenset(flags)
+			global_program_use_flags_cache[program] = flags
+			return flags
+		else:
+			global_use_flags_cache = frozenset(flags)
 	return global_use_flags_cache
 
-def mergeFlags(flagSet, iterable):
+def mergeFlags(flagSet, iterable, program=None):
 	for spec in iterable:
-		modifyFlagSetFromSpec(spec.strip(), flagSet)
+		modifyFlagSetFromSpec(spec.strip(), flagSet, program)
 		
-def modifyFlagSetFromSpec(specStr, flagSet):
+def modifyFlagSetFromSpec(specStr, flagSet, program=None):
 	"""Update the set flagSet with the flag specification in specStr
 	Flag specifications are of the form [-+][a-z0-9]+|-*"""
-	if specStr == '-*': flagSet.clear()
-	elif specStr[0] == '-': flagSet.discard(specStr[1:])
-	elif specStr[0] == '+': flagSet.add(specStr[1:])
-	elif specStr[0] == '#': pass
-	else: flagSet.add(specStr)
+	specComponents = []
+	if ';' in specStr: specComponents = specStr.split(';')
+	else: specComponents = specStr.split()
+	flagSpec = specComponents[0]
+	if len(specComponents)>1:
+		if program:
+			programs = specComponents[1:]
+			if program in programs:
+				if flagSpec == '-*': flagSet.clear()
+				elif flagSpec[0] == '-': flagSet.discard(flagSpec[1:])
+				elif flagSpec[0] == '+': flagSet.add(flagSpec[1:])
+				elif flagSpec[0] == '#': pass
+				else: flagSet.add(flagSpec)
+	else:
+		if flagSpec == '-*': flagSet.clear()
+		elif flagSpec[0] == '-': flagSet.discard(flagSpec[1:])
+		elif flagSpec[0] == '+': flagSet.add(flagSpec[1:])
+		elif flagSpec[0] == '#': pass
+		else: flagSet.add(flagSpec)
 
 if __name__ == '__main__':
 	verbose = False
@@ -51,7 +72,10 @@ if __name__ == '__main__':
 UseFlags
 Usage: UseFlags [-v] [<program> [<flag-to-test>]]
 """)
-	flags = UseFlags()
+		exit()
+	program = None
+	if len(args): program = args[0]
+	flags = UseFlags(program)
 	if len(args) < 2:
 		for flag in flags:
 			sys.stdout.write(flag + '\n')
