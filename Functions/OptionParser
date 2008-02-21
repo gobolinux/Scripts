@@ -30,6 +30,7 @@ function Add_Option() {
    optionsShortList[$optionsListSize]="$3"
    optionsLongList[$optionsListSize]="$4"
    optionsDescriptionList[$optionsListSize]="$5"
+   optionsValidStateList[$optionsListSize]="$6"
 }
 
 function Add_Option_Boolean() {
@@ -38,7 +39,7 @@ function Add_Option_Boolean() {
 
 function Add_Option_Entry() {
    if [ "$4" ]
-   then Add_Option "Entry" "$4" "$1" "$2" "$3"
+   then Add_Option "Entry" "$4" "$1" "$2" "$3" "$5"
    else Add_Option "Entry" "#@unset@#" "$1" "$2" "$3"
    fi 
 }
@@ -223,6 +224,15 @@ function Show_Help() {
          "Entry")
             echo $H2Mn " <entry>"
             echo -e "        ${optionsDescriptionList[i]}"
+            if [ -n "${optionsValidStateList[i]}" ]
+            then
+               echo -n "        Valid entries are:"
+	       for entry in ${optionsValidStateList[i]}
+	       do
+	          echo -n " '$entry'"
+	       done
+	       echo
+            fi
             if [ "${optionsStateList[i]}" != "#@unset@#" ]
             then
                echo "        The default value is '${optionsStateList[i]}'."
@@ -328,7 +338,21 @@ function Parse_Options() {
                         eval val=\${$i}
                         export parsedArguments=$[parsedArguments+1]
                      fi
-                     optionsStateList[j]="$val"
+                     if [ -n "${optionsValidStateList[j]}" ]
+                     then
+                        for avail in ${optionsValidStateList[j]}
+                        do
+                           if [ "${avail}" == "${val}" ]
+                           then
+                              optionsStateList[j]="${val}"
+                              break 2
+                           fi
+                        done
+                        Log_Error "Unknown entry '${val}' for option ${opt}"
+                        exit 2
+                     else
+                        optionsStateList[j]="${val}"
+                     fi
                      ;;
                   esac
                   break
@@ -368,8 +392,22 @@ function Parse_Options() {
                            eval val=\$$i
                            export parsedArguments=$[parsedArguments+1]
                         fi
-                        optionsStateList[j]="$val"
-                        break 2
+                        if [ -n "${optionsValidStateList[j]}" ]
+                        then
+       	                   for avail in ${optionsValidStateList[j]}
+                           do
+                              if [ "${avail}" == "${val}" ]
+                              then
+                                 optionsStateList[j]="${val}"
+                                 break 3
+                              fi
+                           done
+                           Log_Error "Unknown entry '${val}' for option ${opt}"
+                           exit 2
+                        else
+                           optionsStateList[j]="${val}"
+                           break 2
+			fi
                         ;;
                      esac
                   fi
