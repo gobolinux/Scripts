@@ -57,11 +57,11 @@ then
       while true
       do
          Ask_Option "Do you want to [k]eep or [r]emove them or go through them [i]nteractively?"
-	 case "$REPLY" in
-	    [Rr]) failedunmanageddirs=$(Uninstall_Unmanaged_Files "${goboPrograms}/${programname}/${versionnumber}-Disabled/Resources/UnmanagedFiles"); break;;
+         case "$REPLY" in
+            [Rr]) failedunmanageddirs=$(Uninstall_Unmanaged_Files "${goboPrograms}/${programname}/${versionnumber}-Disabled/Resources/UnmanagedFiles"); break;;
             [Ii]) Uninstall_Unmanaged_Files "${goboPrograms}/${programname}/${versionnumber}-Disabled/Resources/UnmanagedFiles" "interactive"; break;;
             [Kk]) break;;
-	 esac # You know what? It's ridiculous
+         esac # You know what? It's ridiculous
       done
    elif Is_Entry "unmanaged" "interactive"
    then
