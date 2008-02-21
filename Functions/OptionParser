@@ -227,11 +227,11 @@ function Show_Help() {
             if [ -n "${optionsValidStateList[i]}" ]
             then
                echo -n "        Valid entries are:"
-	       for entry in ${optionsValidStateList[i]}
-	       do
-	          echo -n " '$entry'"
-	       done
-	       echo
+               for entry in ${optionsValidStateList[i]}
+               do
+                  echo -n " '$entry'"
+               done
+               echo
             fi
             if [ "${optionsStateList[i]}" != "#@unset@#" ]
             then
@@ -394,7 +394,7 @@ function Parse_Options() {
                         fi
                         if [ -n "${optionsValidStateList[j]}" ]
                         then
-       	                   for avail in ${optionsValidStateList[j]}
+                           for avail in ${optionsValidStateList[j]}
                            do
                               if [ "${avail}" == "${val}" ]
                               then
@@ -407,7 +407,7 @@ function Parse_Options() {
                         else
                            optionsStateList[j]="${val}"
                            break 2
-			fi
+                        fi
                         ;;
                      esac
                   fi
