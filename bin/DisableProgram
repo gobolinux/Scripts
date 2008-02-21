@@ -17,7 +17,7 @@ scriptNotes="This script 'disables' a program in the system, while keeping "\
 "it in the ${goboPrograms} hierarchy. To 're-enable' it, run SymlinkProgram(1) "\
 "again. If version is not specified, Current is assumed."
 Add_Option_Entry "u" "unmanaged" "Defines what to do with unmanaged files "\
-"from package. Options available are \"ask\", \"remove\" and \"keep\"." "ask"
+"from package. Options available are \"ask\", \"remove\", \"keep\" and \"interactive\"." "ask"
 Parse_Options "$@"
 
 ### Operation #################################################################
@@ -51,7 +51,28 @@ echo "$filesdir" | RemoveBroken || Die "Couldn't cleanup links."
 
 if [ -f ${disabled}/Resources/UnmanagedFiles ] && ! Is_Entry "unmanaged" "keep"
 then
-   { Is_Entry "unmanaged" "ask" && ! Ask "There are unmanaged files present. Do you want to remove them?"; } || Uninstall_Unmanaged_Files "${goboPrograms}/$programname/$versionnumber-Disabled/Resources/UnmanagedFiles"
+   if Is_Entry "unmanaged" "ask"
+   then 
+      Log_Normal "There are unmanaged files present."
+      while true
+      do
+         Ask_Option "Do you want to [k]eep or [r]emove them or go through them [i]nteractively?"
+	 case "$REPLY" in
+	    [Rr]) failedunmanageddirs=$(Uninstall_Unmanaged_Files "${goboPrograms}/${programname}/${versionnumber}-Disabled/Resources/UnmanagedFiles"); break;;
+            [Ii]) Uninstall_Unmanaged_Files "${goboPrograms}/${programname}/${versionnumber}-Disabled/Resources/UnmanagedFiles" "interactive"; break;;
+            [Kk]) break;;
+	 esac # You know what? It's ridiculous
+      done
+   elif Is_Entry "unmanaged" "interactive"
+   then
+      Log_Normal "There are unmanaged files present."
+      Log_Verbose "Will interactivly prompt for each unmanaged files entry."
+      Uninstall_Unmanaged_Files "${goboPrograms}/${programname}/${versionnumber}-Disabled/Resources/UnmanagedFiles" "interactive"
+   elif Is_Entry "unmanaged" "remove"
+   then
+      Log_Normal "Removing unmanaged files..."
+      failedunmanageddirs=$(Uninstall_Unmanaged_Files "${goboPrograms}/${programname}/${versionnumber}-Disabled/Resources/UnmanagedFiles")
+   fi
 fi
 
 Is_Real_Nonempty_Directory "${goboPrograms}/${programname}/Settings/gconf/schemas" && Uninstall_GConf_Schemas "$programname"
@@ -62,5 +83,12 @@ Gen_Env_Cache
 
 mv "$disabled" "$prefix" || Die "Please check $disabled."
 Log_Normal "${programname} ${versionnumber} disabled."
-
+[ -n "${failedunmanageddirs}" ] && {
+   Log_Terse "The following unmanaged directories were not removed since they were not empty."
+   Log_Verbose "You have to manually delete the following directories."
+   for dir in "${failedunmanageddirs[@]}"
+   do
+      Log_Normal "${dir}"
+   done
+}
 # TODO unlink current if it's the one that was disabled.

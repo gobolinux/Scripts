@@ -674,15 +674,28 @@ function Install_Unmanaged_Files() {
 }
 
 function Uninstall_Unmanaged_Files() {
-   Parameters "$@" unmanagedfilesfile
-   if [ -f "$unmanagedfilesfile" ]
+   Parameters "$@" unmanagedfilesfile interactive
+   if [ -f "${unmanagedfilesfile}" ]
    then
-      grep -E -v "^(\./|/|)Programs" "$unmanagedfilesfile" | while read line
+      for line in $(grep -E -v "^(\./|/|)Programs" "$unmanagedfilesfile")
       do
-         local dname=$(dirname "${goboPrefix}/$line")
-         rm -f "${line}"
+         local dname=$(dirname "${goboPrefix}$line")
+         if [ -n "${interactive}" ]
+         then
+            if Ask "Remove ${goboPrefix}${line}?"
+            then rm -fr "${goboPrefix}${line}"
+            else continue
+            fi
+         elif [ -d "${goboPrefix}${line}" ]
+         then
+            Log_Verbose "${goboPrefix}${line}"
+            rmdir "${goboPrefix}${line}" 2>/dev/null || echo "${goboPrefix}${line}"
+         else
+            Log_Verbose "${goboPrefix}${line}"
+            rm -f "${goboPrefix}${line}"
+         fi
          Quiet rmdir "${dname}"
-      done
+       done
       grep -q "${goboModules}/$(uname -r)" "$unmanagedfilesfile" && depmod -ae $(uname -r)
    fi
 }

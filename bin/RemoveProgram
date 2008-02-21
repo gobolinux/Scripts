@@ -16,7 +16,7 @@ scriptUsage="<program> <version>"
 scriptExample="Qt 3.2.3"
 Add_Option_Boolean "b" "batch" "Do not ask for confirmation."
 Add_Option_Entry "u" "unmanaged" "Defines what to do with unmanaged files "\
-"from package. Options available are \"ask\", \"remove\" and \"keep\"." "ask"
+"from package. Options available are \"ask\", \"remove\", \"keep\" and \"interactive\"." "ask"
 Parse_Options "$@"
 
 ### Operation #################################################################
@@ -45,9 +45,30 @@ Is_Real_Nonempty_Directory "${goboPrograms}/${program}/${version}/Shared/applica
 Is_Real_Nonempty_Directory "${goboPrograms}/${program}/Settings/gconf/schemas" && Uninstall_GConf_Schemas "$program"
 
 Log_Normal "Removing ${goboPrograms}/${program}/${version}..."
-if [ -f ${goboPrograms}/${program}/${version}/Resources/UnmanagedFiles ] && ! Is_Entry "unmanaged" "keep"
+if [ -f ${disabled}/Resources/UnmanagedFiles ] && ! Is_Entry "unmanaged" "keep"
 then
-   { Is_Entry "unmanaged" "ask" && ! Ask "There are unmanaged files present. Do you want to remove them?"; } || Uninstall_Unmanaged_Files "${goboPrograms}/$program/$version/Resources/UnmanagedFiles"
+   if Is_Entry "unmanaged" "ask"
+   then 
+      Log_Normal "There are unmanaged files present."
+      while true
+      do
+         Ask_Option "Do you want to [k]eep or [r]emove them or go through them [i]nteractively?"
+	 case "$REPLY" in
+	    [Rr]) failedunmanageddirs=$(Uninstall_Unmanaged_Files "${goboPrograms}/${programname}/${versionnumber}-Disabled/Resources/UnmanagedFiles"); break;;
+            [Ii]) Uninstall_Unmanaged_Files "${goboPrograms}/${programname}/${versionnumber}-Disabled/Resources/UnmanagedFiles" "interactive"; break;;
+            [Kk]) break;;
+	 esac # You know what? It's ridiculous
+      done
+   elif Is_Entry "unmanaged" "interactive"
+   then
+      Log_Normal "There are unmanaged files present."
+      Log_Verbose "Will interactivly prompt for each unmanaged files entry."
+      Uninstall_Unmanaged_Files "${goboPrograms}/${programname}/${versionnumber}-Disabled/Resources/UnmanagedFiles" "interactive"
+   elif Is_Entry "unmanaged" "remove"
+   then
+      Log_Normal "Removing unmanaged files..."
+      failedunmanageddirs=$(Uninstall_Unmanaged_Files "${goboPrograms}/${programname}/${versionnumber}-Disabled/Resources/UnmanagedFiles")
+   fi
 fi
 rm -rf -- ${goboPrograms}/${program}/${version}
 
@@ -66,3 +87,11 @@ echo "$filesdir" | RemoveBroken || Log_Error "Couldn't cleanup links."
 Gen_Env_Cache
 
 Log_Normal "${program} ${version} removed."
+[ -n "${failedunmanageddirs}" ] && {
+   Log_Terse "The following unmanaged directories were not removed since they were not empty."
+   Log_Verbose "You have to manually delete the following directories."
+   for dir in "${failedunmanageddirs[@]}"
+   do
+      Log_Normal "${dir}"
+   done
+}
