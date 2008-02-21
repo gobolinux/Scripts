@@ -108,39 +108,6 @@ function Install_GConf_Schemas() {
    fi
 }
 
-function Update_GTK_Icon_Cache() {
-   if Executable_Exists_In_Path "gtk-update-icon-cache"
-   then
-      iconcachedirectory="${goboVariable}/xdg/icons"
-      if ! $sudo_exec mkdir -p $iconcachedirectory && ! $sudo_exec test -w ${iconcachedirectory}
-      then [ -n "${XDG_DATA_HOME}" ] && iconcachedirectory="${XDG_DATA_HOME}" || iconcachedirectory="$HOME/.local/share"
-      fi
-      Assert_Dir ${iconcachedirectory}
-      Is_Directory ${iconcachedirectory}/hicolor || ln -s ${goboShared}/icons/hicolor ${desktopdirectory}
-      Log_Normal "Rebuilding desktop database..."
-      update-desktop-database ${desktopdirectory}
-   fi
-}
-
-function Uninstall_SGML_DTD() {
-   Parameters "$@" application_name
-   if Executable_Exists_In_Path "gconftool-2"
-   then
-      export GCONF_CONFIG_SOURCE=$(gconftool-2 --get-default-source)
-      gconftool-2 --makefile-uninstall-rule ${goboPrograms}/${application_name}/Settings/gconf/schemas/*.schemas >/dev/null
-      killall -HUP gconfd-2 &> /dev/null
-   fi
-}
-
-function Install_SGML_DTD() {
-   Parameters "$@" app_name app_ver
-   if Executable_Exists_In_Path "install-catalog"
-   then
-      install-catalog --add "${goboVariable}/sgml/$(Downcase ${app_name})-${app_ver}.cat"  >/dev/null
-      killall -HUP gconfd-2 &> /dev/null
-   fi
-}
-
 function Link_Or_Expand_All() {
 
 ### python Link_Or_Expand_All CHANGELOG
