@@ -18,20 +18,20 @@ Parse_Options "$@"
 program="$(Arg 1)"
 version="$(Arg 2)"
 
-if [ -d "${program}" -a -n "$(echo \"${program}\" | grep '\/')" ]
+if [ -d "${program}" -a -n "$(echo "${program}" | grep '\/')" ]
 then
    [ "${program:0:1}" != "/" ] && Die "If called with a directory as an argument it must be an absolute path."
    programpath="${program}"
    # the first expressions strips any slash from end of path and second removes everything up to program name.
-   program="$(echo ${programpath} | sed -e 's,\(.*\)/$,\1,' -e 's,.*/\(.*/.*\),\1,' -e 's,\(.*\)/\(.*\),\1,')"
-   version="$(echo ${programpath} | sed -e 's,\(.*\)/$,\1,' -e 's,.*/\(.*/.*\),\1,' -e 's,\(.*\)/\(.*\),\2,')"
+   program="$(echo "${programpath}" | sed -e 's,\(.*\)/$,\1,' -e 's,.*/\(.*/.*\),\1,' -e 's,\(.*\)/\(.*\),\1,')"
+   version="$(echo "${programpath}" | sed -e 's,\(.*\)/$,\1,' -e 's,.*/\(.*/.*\),\1,' -e 's,\(.*\)/\(.*\),\2,')"
 else
    program=`GuessProgramCase "${program}"`
    if [ -z "${version}" ]
    then
       version=$(readlink -f "$goboPrograms/$program/Current")
       [ ! -d "$version" ] && Die "Current not found and no version specified."
-      version=$(basename $version)
+      version=$(basename "$version")
    fi
    programpath="$goboPrograms/$program/$version"
 fi
@@ -40,10 +40,10 @@ unset type
 Boolean "files" && type="-xtype f"
 if Boolean "path"
 then
-   cd ${programpath%/$program/$version}
-   programpath="$program/$version/"
+   cd "${programpath%/$program/$version}"
+   programpath="\"$program/$version/\""
 else
-   cd ${programpath}
+   cd "${programpath}"
    programpath="*"
 fi
 

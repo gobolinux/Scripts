@@ -16,7 +16,7 @@ Import String
 # 6     Signer unknown
 # 7     Unsuported file hash format
 
-GPG_opts="--keyring ${GPG_gobo_keyring}"
+GPG_opts="--keyring '${GPG_gobo_keyring}'"
 
 scriptDescription="Verify the hashes file gpg signature and check the hashes of a Gobolinux package."
 scriptCredits="Copyright (C) 2003 Carlo Calica. Released under the GNU GPL."
@@ -51,13 +51,13 @@ function exit_with_error() {
 if [ -f "$(Arg 1)" ]
 then
    Log_Normal "Uncompressing package..."
-   tar -C $goboTemp -jxf "$(Arg 1)"
-   package=$(echo "$(basename $(Arg 1))" | sed 's,\(.*\)--\(.*\)--.*,\1,g')
-   versionandrevision=`echo "$(basename $(Arg 1))" | sed 's,\(.*\)--\(.*\)--.*,\2,g'`
+   tar -C "$goboTemp" -jxf "$(Arg 1)"
+   package=$(echo "$(basename "$(Arg 1)")" | sed 's,\(.*\)--\(.*\)--.*,\1,g')
+   versionandrevision=`echo "$(basename "$(Arg 1)")" | sed 's,\(.*\)--\(.*\)--.*,\2,g'`
    version=`String_Version "$versionandrevision"`
    basedir=$goboTemp
 else
-   package=`GuessProgramCase $(Arg 1) $(Arg 2)`
+   package=`GuessProgramCase "$(Arg 1)" "$(Arg 2)"`
    if [ "$(Arg 2)" ]
    then version=`Get_Version "$package" "$(Arg 2)"`
    else version=`Get_Version "$package" "Current"`
@@ -79,13 +79,13 @@ FileHash_sig="${FileHash_loc}.sig"
 
 if Exists "$HOME/.gnupg/pubring.gpg"
 then
-   GPG_opts="${GPG_opts} --keyring $HOME/.gnupg/pubring.gpg"
+   GPG_opts="${GPG_opts} --keyring '$HOME/.gnupg/pubring.gpg'"
 fi
 
 if Is_Entry_Set "keyring"
 then
    keyring=`Entry "keyring"`
-   GPG_opts="${GPG_opts} --keyring ${keyring}"
+   GPG_opts="${GPG_opts} --keyring '${keyring}'"
 fi
 
 [ -s ~/.gnupg/gobopackagetrustedkeys.gpg ] && GPG_opts="${GPG_opts} --keyring ~/.gnupg/gobopackagetrustedkeys.gpg"
@@ -107,28 +107,28 @@ then
       elif [ $rtn -eq 2 ]
       then
          Boolean "no-web" || {
-            tempkeyfile=$(Temporary_File)
+            tempkeyfile="$(Temporary_File)"
             gpg=$(which gpg2 || which gpg) 2> /dev/null
-            $quiet $gpg --no-default-keyring --keyring ${tempkeyfile} --recv-keys $($gpgv ${FileHash_sig} 2>&1 | awk '{ print $15 }')
-            if [ $? -eq 0 -a -s ${tempkeyfile} ]
+            $quiet $gpg --no-default-keyring --keyring "${tempkeyfile}" --recv-keys "$($gpgv "${FileHash_sig}" 2>&1 | awk '{ print $15 }')"
+            if [ $? -eq 0 -a -s "${tempkeyfile}" ]
             then
                Log_Normal "Program was signed with a signature not yet in the trust database"
                Log_Terse "Do you want to trust this signature?\n$($gpg ${tempkeyfile})"
                while true
                do
                   Ask_Option "[A]lways/[O]nce/[N]ot now."
-                  [ "$REPLY" = "N" -o "$REPLY" = "n" ] && { rm ${tempkeyfile}; exit_with_error 3; }
-       	          [ "$REPLY" = "O" -o "$REPLY" = "o" ] && { rm ${tempkeyfile}; exit 0; }
+                  [ "$REPLY" = "N" -o "$REPLY" = "n" ] && { rm "${tempkeyfile}"; exit_with_error 3; }
+       	          [ "$REPLY" = "O" -o "$REPLY" = "o" ] && { rm "${tempkeyfile}"; exit 0; }
                   [ "$REPLY" = "A" -o "$REPLY" = "a" ] && {
                      Log_Verbose "Importing key into ~/.gnupg/gobopackagetrustedkeys.gpg"
                      touch ~/.gnupg/gobopackagetrustedkeys.gpg
-                     $quiet $gpg --no-default-keyring --keyring ~/.gnupg/gobopackagetrustedkeys.gpg --import ${tempkeyfile}
-                     rm ${tempkeyfile}
+                     $quiet $gpg --no-default-keyring --keyring ~/.gnupg/gobopackagetrustedkeys.gpg --import "${tempkeyfile}"
+                     rm "${tempkeyfile}"
                      exit 0
                   }
        	       done
             else
-               rm ${tempkeyfile}
+               rm "${tempkeyfile}"
                Boolean "quiet" || Log_Error "Signature check failed: Signer unknown"
                exit_with_error 6
             fi

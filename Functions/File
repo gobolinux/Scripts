@@ -29,7 +29,7 @@ function Is_Link() { [ -L "$1" -a -e "$1" ] ;}
 
 function Is_Broken_Link() { [ -L "$1" -a ! -e "$1" ] ;}
 
-function Executable_Exists_In_Path() { [ -n "$(which ${1} 2>/dev/null)" ] ;}
+function Executable_Exists_In_Path() { [ -n "$(which "${1}" 2>/dev/null)" ] ;}
 
 # These functions provide basic tests to see if a file qualifies as a GoboLinux 
 # package or recipe. These test could (should) be extended to use 'file' to find
@@ -37,14 +37,14 @@ function Executable_Exists_In_Path() { [ -n "$(which ${1} 2>/dev/null)" ] ;}
 # files like 'Recipe' or 'Resources/Dependencies'
 function Is_GoboLinux_Package() { 
    Is_File "$1" && \
-   test -z "$(echo $(basename \"$1\") | \
+   test -z "$(echo "$(basename "$1")" | \
    sed -r 's/^[0-9A-Za-z_.]+--[0-9A-Za-z_.]+(-r[0-9]*)?--(.+).tar.bz2/\2/' | \
    sed -r '/i686/d;/ppc/d;/PPC/d')"
 }
 
 function Is_GoboLinux_Recipe() {
    Is_File "$1" && \
-   -z "$(echo $(basename \"$1\") | \
+   -z "$(echo "$(basename "$1")" | \
    sed -r 's/^[0-9A-Za-z_.]+--[0-9A-Za-z_.]+(-r[0-9]*)?--[rR]ecipe.tar.bz2/d' )"
 }
 
@@ -124,7 +124,7 @@ function Is_URL() {
 #calica 14/09/2004 -
 function Line_Match() {
    Exists "$1" || return $?
-   cat $1 | grep -E -e "^.*$2.*$" 2>&1 >/dev/null
+   cat "$1" | grep -E -e "^.*$2.*$" 2>&1 >/dev/null
    [ "$?" = "0" ]
 }
 
@@ -139,10 +139,10 @@ function Gen_FileHash() {
    $sudo_exec rm -f -- "$hashfile"
    # Validate password
    $sudo_validate
-   Assert_Dir $dname
+   Assert_Dir "$dname"
    # Below may seem odd.  We can't just Verify_Superuser script because
    # gpg must run as normal user.
-   Quiet pushd $file_prefix
+   Quiet pushd "$file_prefix"
    $sudo_exec ListProgramFiles --files "$file_prefix" | $sudo_exec python -c """#
 import sys, os, os.path, sha
 
@@ -220,9 +220,9 @@ function Check_FileHash() {
 ### python check_filehashes CHANGELOG
 # 10/10/2004 - [calica] First version
    Parameters "$@" prefix hash_file
-   cleanhashfilename=$(echo $hash_file | sed s,$prefix\/*,,g)
+   cleanhashfilename=$(echo "$hash_file" | sed 's,'"$prefix"'\/*,,g')
    local rtn
-   Quiet pushd $prefix
+   Quiet pushd "$prefix"
    $sudo_validate || sudo_exec=""
    $sudo_exec ListProgramFiles --files "$prefix" | grep -v "$cleanhashfilename" | $sudo_exec python -c """#
 import re, os, string, os.path, sys

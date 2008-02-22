@@ -73,25 +73,25 @@ then
    filename=$(basename ${url})
    #rm -f ${goboTemp}/`basename $1`
    Log_Normal "Downloading package to ${goboTemp}/${filename}."
-   wget -c ${url} -O ${goboTemp}/${filename} || Die "Error downloading package."
+   wget -c "${url}" -O "${goboTemp}/${filename}" || Die "Error downloading package."
 
    if [ "${keep}" ]
    then   
       . "`Find_Conf GetAvailable.conf`" || Die "Couldn't read GetAvailable.conf"
-      [ -d ${defaultLocalPackagesPaths[0]} ] || mkdir -p ${defaultLocalPackagesPaths[0]}
+      [ -d "${defaultLocalPackagesPaths[0]}" ] || mkdir -p "${defaultLocalPackagesPaths[0]}"
       Log_Normal "Moving package to ${defaultLocalPackagesPaths[0]}/${filename}."
 
-      if mv ${goboTemp}/${filename} ${defaultLocalPackagesPaths[0]}/${filename} 
+      if mv "${goboTemp}/${filename}" "${defaultLocalPackagesPaths[0]}/${filename}"
       then 
-         InstallPackage ${unmanaged} ${noinstall} ${nosymlink} ${nosigncheck} ${keep} ${batch} ${defaultLocalPackagesPaths[0]}/${filename}
+         InstallPackage ${unmanaged} ${noinstall} ${nosymlink} ${nosigncheck} ${keep} ${batch} "${defaultLocalPackagesPaths[0]}/${filename}"
       else
-         Log_Error "Coud not move package."
-         InstallPackage ${unmanaged} ${noinstall} ${nosymlink} ${nosigncheck} ${keep} ${batch} ${goboTemp}/${filename}
+         Log_Error "Could not move package."
+         InstallPackage ${unmanaged} ${noinstall} ${nosymlink} ${nosigncheck} ${keep} ${batch} "${goboTemp}/${filename}"
       fi
    else
-      InstallPackage ${unmanaged} ${noinstall} ${nosymlink} ${nosigncheck} ${keep} ${batch} ${goboTemp}/${filename}
+      InstallPackage ${unmanaged} ${noinstall} ${nosymlink} ${nosigncheck} ${keep} ${batch} "${goboTemp}/${filename}"
       Log_Normal "Removing downloaded package ${goboTemp}/${filename}."
-      rm -f -- ${goboTemp}/${filename}
+      rm -f -- "${goboTemp}/${filename}"
    fi
    exit 0
 fi
@@ -181,7 +181,7 @@ then
    packagetype="directory"
 
 else # $1 is a file
-   filename=$(Arg 1)
+   filename="$(Arg 1)"
    if ! { echo "${filename}" | grep -- "--" &> /dev/null ;}
    then
       Die "${filename} does not seem to be a valid GoboLinux package."
@@ -211,7 +211,7 @@ fi
 
 unset sameversion
 
-existingpackage=`ls ${goboPrograms} | grep -i "^$packagename$"`
+existingpackage=`ls "${goboPrograms}" | grep -i "^$packagename$"`
 
 [ "$existingpackage" ] && {
 
@@ -263,8 +263,8 @@ fi
 
 if [ "$packagetype" = "directory" ]
 then
-   if [ ! -d ${goboPrograms}/$packagename ]
-      then mkdir ${goboPrograms}/$packagename
+   if [ ! -d "${goboPrograms}/$packagename" ]
+      then mkdir "${goboPrograms}/$packagename"
    fi
    cp -ra "$packagedir" "${goboPrograms}/$packagename"
 else
@@ -275,7 +275,7 @@ else
    fi
 
    Log_Normal "Uncompressing to ${goboPrograms}..."
-   Verbose tar "$taroption" "$archive" -C ${goboPrograms}
+   Verbose tar "$taroption" "$archive" -C "${goboPrograms}"
 fi
 
 
@@ -325,7 +325,7 @@ fi
 
 # Hack for updating Glibc
 glibcinstalledversion=`Get_Version Glibc Current`
-glibcrequiredversion=`grep -w Glibc ${goboPrograms}/$packagename/$packageversion/Resources/BuildInformation 2> /dev/null | cut -f2 -d' '`
+glibcrequiredversion=`grep -w Glibc "${goboPrograms}/$packagename/$packageversion/Resources/BuildInformation" 2> /dev/null | cut -f2 -d' '`
 if [ "$glibcrequiredversion" -a "`GuessLatest $glibcrequiredversion $glibcinstalledversion`" != "$glibcinstalledversion" ]
 then
    Log_Question "Installed package was built using a newer Glibc ($glibcrequiredversion)."
