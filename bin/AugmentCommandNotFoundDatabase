@@ -42,9 +42,23 @@ for prog in programs:
 					eout("Adding executable %s\n"%(ex))
 				if not prog in commands[ex]:
 					commands[ex].append(prog)
-					eout("%i: Adding program %s for executable %s\n"%(changes, prog, ex))
+					eout("Adding program %s for executable %s\n"%(prog, ex))
 		except OSError:
 			pass
+
+target = path
+if len(sys.argv) > 1:
+	target = sys.argv[1]
+if os.access(target, os.W_OK):
+	eout("Will save data to %s\n"%(target))
+	sys.stdout = open(path, 'w')
+else:
+	eout("No target supplied or target is not writable. Will dump to stdout.\n")
+	eout("Use AugmentCommandNotFoundDatabase <target file> to save to a file.\n")
+	eout("<target file> defaults to %s\n"%(path))
+	if sys.stdout.isatty():
+		eout("Press enter to continue...\n")
+		sys.stdin.readline()
 
 # Output data in sorted order so it's deterministic and amenable to short diffs when maintained in CVS.
 executables = sorted(commands.keys())
