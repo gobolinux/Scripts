@@ -27,12 +27,16 @@ def eout(s):
 
 programs = os.listdir(goboPrograms)
 for prog in programs:
+	if "LocalScripts" == prog:
+		continue
 	# Cover both executable directories
 	for dtype in ('bin', 'sbin'):
 		# Not all programs have executables
 		try:
 			executables = os.listdir('%s/%s/Current/%s' % (goboPrograms, prog, dtype))
 			for ex in executables:
+				if "." == ex[0] or "CVS" == ex or "~" == ex[-1]:
+					continue
 				if not ex in commands:
 					commands[ex] = []
 					eout("Adding executable %s\n"%(ex))
