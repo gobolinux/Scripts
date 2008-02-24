@@ -1,4 +1,4 @@
-commands = {
+{
  '[': ['CoreUtils'],
  '80211debug': ['Madwifi'],
  '80211stats': ['Madwifi'],
