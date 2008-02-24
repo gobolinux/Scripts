@@ -6,13 +6,13 @@ import textwrap
 
 # Limited to real Gobo for now; importing getGoboVariable takes too long.
 path = '/Programs/Scripts/Current/Data/CommandNotFound.py'
-if not os.path.exists(path):
-	exit()
 def log(s):
 	"""Output word-wrapped text"""
 	sys.stdout.write('\n'.join(textwrap.wrap(s, 80))+'\n')
-exec(open(path).read())
-# 'commands' is now a dict of executable=>(package, ...)
+commands = dict()
+if os.path.exists(path) and os.path.getsize(path) > 0:
+	commands = eval(open(path).read())
+# 'commands' is a dict of executable=>(package, ...)
 cmd = sys.argv[1]
 
 if cmd in commands:
