@@ -58,7 +58,7 @@ if len(sys.argv) > 1:
 	target = sys.argv[1]
 if os.access(target, os.W_OK):
 	eout("Will save data to %s\n"%(target))
-	sys.stdout = open(path, 'w')
+	sys.stdout = open(target, 'w')
 else:
 	eout("No target supplied or target is not writable. Will dump to stdout.\n")
 	eout("Use AugmentCommandNotFoundDatabase <target file> to save to a file.\n")
