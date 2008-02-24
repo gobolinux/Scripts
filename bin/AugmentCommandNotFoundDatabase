@@ -17,8 +17,8 @@ from GetAvailable import getGoboVariable
 goboPrograms = getGoboVariable('goboPrograms')
 path = goboPrograms+'/Scripts/Current/Data/CommandNotFound.py'
 commands = dict()
-if os.path.exists(path):
-	exec(open(path).read())
+if os.path.exists(path) and os.path.getsize(path) > 0:
+	commands = eval(open(path).read())
 
 def out(s):
 	sys.stdout.write(s)
@@ -42,18 +42,17 @@ for prog in programs:
 					eout("Adding executable %s\n"%(ex))
 				if not prog in commands[ex]:
 					commands[ex].append(prog)
-					eout("Adding program %s for executable %s\n"%(prog, ex))
+					eout("%i: Adding program %s for executable %s\n"%(changes, prog, ex))
 		except OSError:
 			pass
 
-eout("Completed scan.")
-
 # Output data in sorted order so it's deterministic and amenable to short diffs when maintained in CVS.
 executables = sorted(commands.keys())
-out("commands = {\n")
+out("#!/usr/bin/env python (data)\n")
+out("{\n")
 for ex in executables:
 	out(" '" + ex + "': [")
 	for prog in sorted(commands[ex]):
 		out("'" + prog + "', ")
 	out("],\n")
-out("}")
+out("}\n")
