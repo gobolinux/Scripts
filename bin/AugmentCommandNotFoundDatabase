@@ -25,6 +25,7 @@ def out(s):
 def eout(s):
 	sys.stderr.write(s)
 
+changes = 0
 programs = os.listdir(goboPrograms)
 for prog in programs:
 	if "LocalScripts" == prog:
@@ -42,9 +43,15 @@ for prog in programs:
 					eout("Adding executable %s\n"%(ex))
 				if not prog in commands[ex]:
 					commands[ex].append(prog)
+					changes += 1
 					eout("Adding program %s for executable %s\n"%(prog, ex))
 		except OSError:
 			pass
+
+eout("Completed scan with %i change%s.\n"%(changes, changes!=1 and 's' or ''))
+if changes == 0:
+	eout("Nothing to do. No data saved.\n")
+	exit()
 
 target = path
 if len(sys.argv) > 1:
