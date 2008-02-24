@@ -1,5 +1,14 @@
 #!/usr/bin/env python
 # Copyright (C) 2008 Michael Homer <=mwh>
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
 import sys, os
 import textwrap
@@ -9,19 +18,26 @@ path = '/Programs/Scripts/Current/Data/CommandNotFound.py'
 def log(s):
 	"""Output word-wrapped text"""
 	sys.stdout.write('\n'.join(textwrap.wrap(s, 80))+'\n')
+
+# 'commands' is a dict of executable=>(package, ...)
 commands = dict()
 if os.path.exists(path) and os.path.getsize(path) > 0:
 	commands = eval(open(path).read())
-# 'commands' is a dict of executable=>(package, ...)
+
+# The command to search for is the first argument
 cmd = sys.argv[1]
 
 if cmd in commands:
 	packages = commands[cmd]
+	# Occasionally executables are in more than one program. In those cases, give a list of all those programs,
+	# and a suggestion of how to install them. Otherwise, just the suggestion.
 	if len(packages)>1:
 		log('The program "%s" is not currently installed. It is available in the following packages:'%(cmd))
 		log(' ' + ', '.join(packages))
 		log('You can install one of these by typing (for example):')
 		log(' sudo InstallPackage %s'%(packages[0]))
+		log('or')
+		log(' sudo Compile %s'%(packages[0]))
 	else:
 		log('The program "%s" is not currently installed. You can install it by typing:'%(cmd))
 		log(' sudo InstallPackage %s'%(packages[0]))
