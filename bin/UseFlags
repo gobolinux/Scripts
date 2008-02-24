@@ -1,30 +1,48 @@
 #!/usr/bin/env python
 # Copyright (C) 2008 Michael Homer <=mwh>
 # Gives information about the state of use flags
-# Distributed under the GNU GPLv3+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
 from GetAvailable import getGoboVariable
 import sys, os.path
 
+# A frozen set of the global set of flags (program=None, or any program with no special flags specified)
 global_use_flags_cache = None
+# A dict of program=>set of flags for each program that has been evaluated
 global_program_use_flags_cache = None
 
 def UseFlags(program=None):
-	"""Return the set of flags enabled for program, or whether or not flag is enabled if specified"""
+	"""Return the set of flags enabled for program"""
 	global global_use_flags_cache, global_program_use_flags_cache
+	# When program is specified and a cached set is available, use it.
 	if program and global_program_use_flags_cache and program in global_program_use_flags_cache:
 		return global_program_use_flags_cache[program]
+	# When a program is *not* specified and a cached global set exists, use it.
 	elif global_use_flags_cache is not None and not program:
 		return global_use_flags_cache
+	# Otherwise, generate the set of flags now.
 	else:
 		goboSettings = getGoboVariable('goboSettings')
 		flags = set()
+		# Import site-specific use flags
 		if os.path.exists(goboSettings + '/UseFlags.conf'):
 			f = open(goboSettings + '/UseFlags.conf')
 			mergeFlags(flags, f, program)
 			f.close()
+		# Flags set in the environment for a specific run of Compile are merged,
+		# and overwrite any previous specifications for the same flag.
 		if 'USE' in os.environ:
 			mergeFlags(flags, os.environ['USE'].split(), program)
+		# If program is specified, the flags should be saved in the program cache.
+		# Otherwise they are the global flags and can be saved there.
 		if program:
 			if not global_program_use_flags_cache: global_program_use_flags_cache = dict()
 			flags = frozenset(flags)
@@ -35,35 +53,40 @@ def UseFlags(program=None):
 	return global_use_flags_cache
 
 def mergeFlags(flagSet, iterable, program=None):
+	"""Merges all the flag specifications from iterable into the set flagSet, relative to program if specified. Calls modifyFlagSetFromSpec for each element."""
 	for spec in iterable:
 		modifyFlagSetFromSpec(spec.strip(), flagSet, program)
 		
 def modifyFlagSetFromSpec(specStr, flagSet, program=None):
 	"""Update the set flagSet with the flag specification in specStr
-	Flag specifications are of the form [-+][a-z0-9]+|-*"""
+	Flag specifications are of the form [-+][a-z0-9]+|-*
+	Each flag specification may have a list of programs after it to which it applies. This list of programs can be separated by spaces or semicolons (space is preferred, semicolon is available for the USE environment variable's sake)."""
+	
+	# specComponents[0] wil be initialised with the flag itself, and [1:] will
+	# contain the list of programs it applies to.
 	specComponents = []
+	# Split by semicolons if present, to allow program-specific specifications in USE: USE="-bar;baz +foo;baz"
 	if ';' in specStr: specComponents = specStr.split(';')
+	# Otherwise, split by any whitespace.
 	else: specComponents = specStr.split()
+	
 	flagSpec = specComponents[0]
-	if len(specComponents)>1:
-		if program:
-			programs = specComponents[1:]
-			if program in programs:
-				if flagSpec == '-*': flagSet.clear()
-				elif flagSpec[0] == '-': flagSet.discard(flagSpec[1:])
-				elif flagSpec[0] == '+': flagSet.add(flagSpec[1:])
-				elif flagSpec[0] == '#': pass
-				else: flagSet.add(flagSpec)
-	else:
+	
+	# Apply this specification iff there is no program list, or there is and
+	# the given program is in it.
+	if len(specComponents) == 1 or (program and program in specComponents[1:]):
 		if flagSpec == '-*': flagSet.clear()
 		elif flagSpec[0] == '-': flagSet.discard(flagSpec[1:])
 		elif flagSpec[0] == '+': flagSet.add(flagSpec[1:])
 		elif flagSpec[0] == '#': pass
 		else: flagSet.add(flagSpec)
 
+# Executable code when run from the command line.
 if __name__ == '__main__':
 	verbose = False
 	args = sys.argv[1:]
+	# "verbose" mode applies when a program AND flag are given: it will output
+	# a message as well as setting the return code
 	if '-v' == args[0]:
 		verbose = True
 		args = args[1:]
@@ -71,14 +94,23 @@ if __name__ == '__main__':
 		sys.stdout.write("""
 UseFlags
 Usage: UseFlags [-v] [<program> [<flag-to-test>]]
+
+When program and flag both specified, the return code is true if the flag is
+enabled, and false otherwise. -v will output a message as well.
+
+If only program is specified, or `UseFlags` is called alone, output the set
+of flags enabled for that program or overall.
 """)
 		exit()
 	program = None
 	if len(args): program = args[0]
 	flags = UseFlags(program)
+	# If no flag is specified, output all the enabled flags for this program
 	if len(args) < 2:
 		for flag in flags:
 			sys.stdout.write(flag + '\n')
+	# Otherwise, test whether the flag is enabled and set the return code
+	# accordingly. If -v was given, also output "<flag> on|off"
 	else:
 		if args[1] in flags:
 			if verbose: sys.stdout.write(args[1] + ' on\n')
