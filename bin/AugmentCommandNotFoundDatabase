@@ -1,28 +1,48 @@
 #!/usr/bin/env python
 # AugmentCommandNotFoundDatabase - augments the existing database with data from this system
 # Copyright (C) 2008 Michael Homer <=mwh>
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
 import sys, os, os.path
-from GetAvailable import *
+from GetAvailable import getGoboVariable
 
 goboPrograms = getGoboVariable('goboPrograms')
 path = goboPrograms+'/Scripts/Current/Data/CommandNotFound.py'
-if not os.path.exists(path):
-	exit()
+commands = dict()
+if os.path.exists(path):
+	exec(open(path).read())
+
 def out(s):
-	"""Output word-wrapped text"""
 	sys.stdout.write(s)
-exec(open(path).read())
+def eout(s):
+	sys.stderr.write(s)
 
 programs = os.listdir(goboPrograms)
 for prog in programs:
-	if os.path.exists(goboPrograms+'/'+prog+'/Current/bin'):
-		executables = os.listdir(goboPrograms+'/'+prog+'/Current/bin')
-		for ex in executables:
-			if not ex in commands:
-				commands[ex] = []
-			if not prog in commands[ex]:
-				commands[ex].append(prog)
+	# Cover both executable directories
+	for dtype in ('bin', 'sbin'):
+		# Not all programs have executables
+		try:
+			executables = os.listdir('%s/%s/Current/%s' % (goboPrograms, prog, dtype))
+			for ex in executables:
+				if not ex in commands:
+					commands[ex] = []
+					eout("Adding executable %s\n"%(ex))
+				if not prog in commands[ex]:
+					commands[ex].append(prog)
+					eout("Adding program %s for executable %s\n"%(prog, ex))
+		except OSError:
+			pass
+
+eout("Completed scan.")
 
 # Output data in sorted order so it's deterministic and amenable to short diffs when maintained in CVS.
 executables = sorted(commands.keys())
