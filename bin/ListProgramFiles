@@ -37,11 +37,11 @@ else
 fi
 
 unset type
-Boolean "files" && type="-xtype f"
+Boolean "files" && type="( -type f -or -type l )"
 if Boolean "path"
 then
    cd "${programpath%/$program/$version}"
-   programpath="\"$program/$version/\""
+   programpath="$program/$version/"
 else
    cd "${programpath}"
    programpath="*"
