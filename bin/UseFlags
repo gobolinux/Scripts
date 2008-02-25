@@ -31,7 +31,13 @@ def UseFlags(program=None):
 	# Otherwise, generate the set of flags now.
 	else:
 		goboSettings = getGoboVariable('goboSettings')
+		goboPrograms = getGoboVariable('goboPrograms')
 		flags = set()
+		# Import default use flags
+		if os.path.exists(goboPrograms + '/Scripts/Current/Data/SystemUseFlags.conf'):
+			f = open(goboPrograms + '/Scripts/Current/Data/SystemUseFlags.conf')
+			mergeFlags(flags, f, program)
+			f.close()
 		# Import site-specific use flags
 		if os.path.exists(goboSettings + '/UseFlags.conf'):
 			f = open(goboSettings + '/UseFlags.conf')
