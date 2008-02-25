@@ -56,10 +56,11 @@ if changes == 0:
 target = path
 if len(sys.argv) > 1:
 	target = sys.argv[1]
-if os.access(target, os.W_OK):
-	eout("Will save data to %s\n"%(target))
-	sys.stdout = open(target, 'w')
-else:
+try:
+	if '-' != target:
+		sys.stdout = open(target, 'w')
+		eout("Will save data to %s\n"%(target))
+except IOError:
 	eout("No target supplied or target is not writable. Will dump to stdout.\n")
 	eout("Use AugmentCommandNotFoundDatabase <target file> to save to a file.\n")
 	eout("<target file> defaults to %s\n"%(path))
