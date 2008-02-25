@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 
 import sys, os, os.path
-from GetAvailable import getGoboVariable
+from PythonUtils import getGoboVariable
 
 goboPrograms = getGoboVariable('goboPrograms')
 path = goboPrograms+'/Scripts/Current/Data/CommandNotFound.py'

@@ -11,7 +11,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from GetAvailable import getGoboVariable
+from PythonUtils import getGoboVariable
 import sys, os.path
 
 # A frozen set of the global set of flags (program=None, or any program with no special flags specified)
