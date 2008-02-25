@@ -28,7 +28,7 @@ def eout(s):
 changes = 0
 programs = os.listdir(goboPrograms)
 for prog in programs:
-	if "LocalScripts" == prog:
+	if "LocalScripts" == prog or 'LiveCD' == prog or 'Installer' == prog:
 		continue
 	# Cover both executable directories
 	for dtype in ('bin', 'sbin'):
@@ -36,6 +36,8 @@ for prog in programs:
 		try:
 			executables = os.listdir('%s/%s/Current/%s' % (goboPrograms, prog, dtype))
 			for ex in executables:
+				if os.path.isdir('%s/%s/Current/%s/%s' % (goboPrograms, prog, dtype, ex)):
+					continue
 				if "." == ex[0] or "CVS" == ex or "~" == ex[-1]:
 					continue
 				if not ex in commands:
