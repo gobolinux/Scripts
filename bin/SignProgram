@@ -25,8 +25,6 @@ Add_Option_Boolean "S" "no-signature" "Just create FileHash.  No GPG signing."
 
 Parse_Options "$@"
 
-GPG_opts="--keyring ${GPG_gobo_keyring}"
-
 if Is_Entry_Set "local-user"
 then
    localuser=`Entry "local-user"`

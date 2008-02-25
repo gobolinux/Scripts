@@ -16,8 +16,6 @@ Import String
 # 6     Signer unknown
 # 7     Unsuported file hash format
 
-GPG_opts="--keyring '${GPG_gobo_keyring}'"
-
 scriptDescription="Verify the hashes file gpg signature and check the hashes of a Gobolinux package."
 scriptCredits="Copyright (C) 2003 Carlo Calica. Released under the GNU GPL."
 helpOnNoArguments=yes
@@ -79,16 +77,15 @@ FileHash_sig="${FileHash_loc}.sig"
 
 if Exists "$HOME/.gnupg/pubring.gpg"
 then
-   GPG_opts="${GPG_opts} --keyring '$HOME/.gnupg/pubring.gpg'"
+   UserKeyring="$HOME/.gnupg/pubring.gpg"
 fi
 
 if Is_Entry_Set "keyring"
 then
-   keyring=`Entry "keyring"`
-   GPG_opts="${GPG_opts} --keyring '${keyring}'"
+   ExtraKeyring=`Entry "keyring"`
 fi
 
-[ -s ~/.gnupg/gobopackagetrustedkeys.gpg ] && GPG_opts="${GPG_opts} --keyring ~/.gnupg/gobopackagetrustedkeys.gpg"
+[ -s ~/.gnupg/gobopackagetrustedkeys.gpg ] && TrustedKeyring="~/.gnupg/gobopackagetrustedkeys.gpg"
 ########## Operations ##########
 
 result=0
