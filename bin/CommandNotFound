@@ -35,13 +35,13 @@ if cmd in commands:
 		log('The program "%s" is not currently installed. It is available in the following packages:'%(cmd))
 		log(' ' + ', '.join(packages))
 		log('You can install one of these by typing (for example):')
-		log(' sudo InstallPackage %s'%(packages[0]))
+		log(' InstallPackage %s'%(packages[0]))
 		log('or')
-		log(' sudo Compile %s'%(packages[0]))
+		log(' Compile %s'%(packages[0]))
 	else:
 		log('The program "%s" is not currently installed. You can install it by typing:'%(cmd))
-		log(' sudo InstallPackage %s'%(packages[0]))
+		log(' InstallPackage %s'%(packages[0]))
 		log('or')
-		log(' sudo Compile %s'%(packages[0]))
+		log(' Compile %s'%(packages[0]))
 else: 
 	log('The program "%s" is not currently installed, and there is no known package containing it.'%(cmd))
