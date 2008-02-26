@@ -25,7 +25,8 @@ void multiprogrammessage(char * executable, char * program, char * program2) {
 	printf("The program '%s' is not currently installed.\nIt is available in the following packages:\n", executable);
 	printf(" %s, %s", program, program2);
 	while (program2 = strtok(NULL, " "))
-		printf(", %s", program2); // The last program will include the newline in it, no need to be explicit
+		printf(", %s", program2);
+	// The last program will include the newline in it, no need to be explicit
 	printf("You can install one of these by typing (for example):\n InstallPackage %s\nor\n Compile %s\n", program, program);
 }
 
@@ -50,26 +51,29 @@ int linsearch(FILE * fp, char * target, int lo, int hi) {
 	char entry [BUFLEN];
 	char * executable;
 	fseek(fp, lo, SEEK_SET);
+	// Unless we're right at the beginning, we're probably in the middle of a line, so skip it
 	if (0 != lo)
 		fgets(entry, BUFLEN, fp);
+	// Perform a linear search from here to the upper bound of the range, and
+	// hand off to foundexecutable() if the target is found.
 	while (ftell(fp) <= hi) {
 		fgets(entry, BUFLEN, fp);
 		executable = strtok(entry, " ");
 		if (strcmp(executable, target) == 0)
 			return foundexecutable(executable, target);
 	}
+	// Not found
 	return 1;
 }
 
-int binsearch(FILE * fp, char * target, int lo, int hi, char * last, int depth) {
+int binsearch(FILE * fp, char * target, int lo, int hi) {
 	int mid = lo + (hi-lo)/2;
 	char entry [BUFLEN];
 	char * executable;
-	if ((depth > MAX_ITERATIONS))
-		return depth; // No infinite loops when we're not getting anywhere
 	// Switch to a linear search when we're getting close, for the edge cases
 	if (hi-lo<LINEAR_SEARCH_THRESHOLD)
 		return linsearch(fp, target, lo, hi);
+
 	// Jump to our current midpoint
 	fseek(fp, mid, SEEK_SET);
 	// We're probably in the middle of a line, so discard it, then use the
@@ -78,23 +82,18 @@ int binsearch(FILE * fp, char * target, int lo, int hi, char * last, int depth) 
 		fgets(entry, BUFLEN, fp);
 	fgets(entry, BUFLEN, fp);
 	executable = strtok(entry, " ");
-	// Terminate if we're at the same entry we were at last time
-	if (last && (strcmp(last, executable) == 0))
-		return depth;
 	int cmpval = strcmp(executable, target);
 	if (0 == cmpval)
 		return foundexecutable(executable, target);
 	else if (0 > cmpval)
-		return binsearch(fp, target, mid, hi, executable, depth + 1);
+		return binsearch(fp, target, mid, hi);
 	else if (0 < cmpval)
-		return binsearch(fp, target, lo, mid, executable, depth + 1);
+		return binsearch(fp, target, lo, mid);
 }
 
 int main(int argc, char **argv) {
 	FILE * fp;
-	if (argc < 2)
-		return 1;
-	if (0 == strcmp("--help", argv[1])) {
+	if ((argc < 2) || (0 == strcmp("--help", argv[1]))) {
 		puts("Usage: CommandNotFound <command>\nIntended to be run automatically from shell hooks.");
 		return 0;
 	}
@@ -104,8 +103,9 @@ int main(int argc, char **argv) {
 	
 	if (!(fp = fopen(DATAFILE, "r")))
 		return 1; // If file doesn't exist, fail silently
-	if (binsearch(fp, argv[1], 0, st.st_size, NULL, 0)) {
+	if (binsearch(fp, argv[1], 0, st.st_size)) {
 		printf("The program '%s' is not currently installed, and no known package contains it.\n", argv[1]);
+		fclose(fp);
 		return 1;
 	}
 	fclose(fp);
