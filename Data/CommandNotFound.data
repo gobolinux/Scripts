@@ -2571,7 +2571,6 @@ pinfo Pinfo
 ping InetUtils Netkit-Base
 pinky CoreUtils
 pivot_root Util-Linux
-pj-gs.sh
 pjtoppm Netpbm
 pk2bm TeTeX
 pkg-config Pkgconfig
