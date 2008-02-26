@@ -15,10 +15,12 @@ import sys, os, os.path
 from PythonUtils import getGoboVariable
 
 goboPrograms = getGoboVariable('goboPrograms')
-path = goboPrograms+'/Scripts/Current/Data/CommandNotFound.py'
+path = goboPrograms+'/Scripts/Current/Data/CommandNotFound.data'
 commands = dict()
 if os.path.exists(path) and os.path.getsize(path) > 0:
-	commands = eval(open(path).read())
+	for entry in open(path).readlines():
+		entrydata = entry.split()
+		commands[entrydata[0]] = entrydata[1:]
 
 def out(s):
 	sys.stdout.write(s)
@@ -28,7 +30,8 @@ def eout(s):
 changes = 0
 programs = os.listdir(goboPrograms)
 for prog in programs:
-	if "LocalScripts" == prog or 'LiveCD' == prog or 'Installer' == prog:
+	# Skip various problematic entries: local or non-installable program entries, renames and case changes
+	if "LocalScripts" == prog or 'LiveCD' == prog or 'Installer' == prog or 'LibUngif' == prog or 'Koffice' == prog:
 		continue
 	# Cover both executable directories
 	for dtype in ('bin', 'sbin'):
@@ -72,11 +75,7 @@ except IOError:
 
 # Output data in sorted order so it's deterministic and amenable to short diffs when maintained in CVS.
 executables = sorted(commands.keys())
-out("#!/usr/bin/env python (data)\n")
-out("{\n")
 for ex in executables:
-	out(" '" + ex + "': [")
-	for prog in sorted(commands[ex]):
-		out("'" + prog + "', ")
-	out("],\n")
-out("}\n")
+	out(ex + ' ')
+	out(' '.join(sorted(commands[ex])))
+	out('\n')
