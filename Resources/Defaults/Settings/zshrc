@@ -137,7 +137,7 @@ function CommandNotFound_preexec() {
 }
 
 function CommandNotFound_precmd() {
-   if [ $? ] && [ -n "$command" ]
+   if [ $? -ne 0 ] && [ -n "$command" ]
    then
       whence -- "$command" >& /dev/null ||
          CommandNotFound $command
