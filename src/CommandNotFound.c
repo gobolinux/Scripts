@@ -19,7 +19,11 @@
 // Determined by exhaustive experimentation on the data; double the minimum
 // tested working value (2008-02-26)
 #define LINEAR_SEARCH_THRESHOLD 256
+// For possible Rootless support, or hardwiring each CNF to its own version's
+// data, make the data file configurable.
+#ifndef DATAFILE
 #define DATAFILE "/Programs/Scripts/Current/Data/CommandNotFound.data"
+#endif
 
 void multiprogrammessage(char * executable, char * program, char * program2) {
 	printf("The program '%s' is not currently installed.\nIt is available in the following packages:\n", executable);
@@ -99,10 +103,11 @@ int main(int argc, char **argv) {
 	}
 	// Stat for the filesize to initialise the binary search
 	struct stat st;
-	stat(DATAFILE, &st);
+	if (stat(DATAFILE, &st))
+		// If the file doesn't exist or isn't readable for some reason, just quit.
+		return 1;
 	
-	if (!(fp = fopen(DATAFILE, "r")))
-		return 1; // If file doesn't exist, fail silently
+	fp = fopen(DATAFILE, "r");
 	if (binsearch(fp, argv[1], 0, st.st_size)) {
 		printf("The program '%s' is not currently installed, and no known package contains it.\n", argv[1]);
 		fclose(fp);
