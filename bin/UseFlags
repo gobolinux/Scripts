@@ -89,6 +89,7 @@ def potentialFlags(recipedir):
 				m = flagre.match(dep)
 				if m:
 					potentialflags.update(m.group(1).split(','))
+	potentialflags = frozenset(potentialflags)
 	global_program_potential_flags_cache[recipedir] = potentialflags
 	return potentialflags
 
