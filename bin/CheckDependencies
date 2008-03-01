@@ -240,6 +240,8 @@ def interpret_dependency_line(line, t=None, cross_compile=False):
 			       'optional'   : True }
 			if t == 'recipe':
 				ret['lover'] = ''
+		elif line.startswith('['):
+			return
 		else:
 			raise Exception("Parse error")
 	return ret
