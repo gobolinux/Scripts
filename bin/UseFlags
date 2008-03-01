@@ -18,10 +18,25 @@ import sys, os.path
 global_use_flags_cache = None
 # A dict of program=>set of flags for each program that has been evaluated
 global_program_use_flags_cache = None
+# A dict of recipe dir=>set of potential flags
+global_program_potential_flags_cache = None
 
 def UseFlags(program=None):
 	"""Return the set of flags enabled for program"""
 	global global_use_flags_cache, global_program_use_flags_cache
+	potentialflags = set()
+	if program.startswith('/'):
+		catch = False
+		recipedir = str(program)
+		components = os.path.split(recipedir)
+		for comp in components:
+			if catch:
+				program = comp
+				break
+			elif comp.endswith('Recipes'):
+				catch = True
+		potentialflags = potentialFlags(recipedir)
+					
 	# When program is specified and a cached set is available, use it.
 	if program and global_program_use_flags_cache and program in global_program_use_flags_cache:
 		return global_program_use_flags_cache[program]
@@ -51,12 +66,31 @@ def UseFlags(program=None):
 		# Otherwise they are the global flags and can be saved there.
 		if program:
 			if not global_program_use_flags_cache: global_program_use_flags_cache = dict()
+			if potentialflags: flags.intersection_update(potentialflags)
 			flags = frozenset(flags)
 			global_program_use_flags_cache[program] = flags
 			return flags
 		else:
 			global_use_flags_cache = frozenset(flags)
 	return global_use_flags_cache
+
+def potentialFlags(recipedir):
+	global global_program_potential_flags_cache
+	if not global_program_potential_flags_cache:
+		global_program_potential_flags_cache = dict()
+	if recipedir in global_program_potential_flags_cache:
+		return global_program_potential_flags_cache[recipedir]
+	import re
+	potentialflags = set()
+	flagre = re.compile('.*\[([^]]+)\].*')
+	for depfile in (recipedir+'/Resources/Dependencies', recipedir+'/Resources/BuildDependencies'):
+		if os.path.exists(depfile):
+			for dep in open(depfile):
+				m = flagre.match(dep)
+				if m:
+					potentialflags.update(m.group(1).split(','))
+	global_program_potential_flags_cache[recipedir] = potentialflags
+	return potentialflags
 
 def mergeFlags(flagSet, iterable, program=None):
 	"""Merges all the flag specifications from iterable into the set flagSet, relative to program if specified. Calls modifyFlagSetFromSpec for each element."""
@@ -106,6 +140,9 @@ enabled, and false otherwise. -v will output a message as well.
 
 If only program is specified, or `UseFlags` is called alone, output the set
 of flags enabled for that program or overall.
+
+program may be the path to a recipe directory to include only flags actually
+used by prog.
 """)
 		exit()
 	program = None
@@ -115,6 +152,7 @@ of flags enabled for that program or overall.
 	if len(args) < 2:
 		for flag in flags:
 			sys.stdout.write(flag + '\n')
+		exit(0)
 	# Otherwise, test whether the flag is enabled and set the return code
 	# accordingly. If -v was given, also output "<flag> on|off"
 	else:
