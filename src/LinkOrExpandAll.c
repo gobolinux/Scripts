@@ -122,7 +122,8 @@ inline static void string_set(char* buffer, int len, ...) {
 }
 
 inline static bool report_conflict(char *name) {
-   if (strstr(name, "/CVS/Root") || 
+   if (strstr(name, "/.svn/") ||
+       strstr(name, "/CVS/Root") || 
        strstr(name, "/CVS/Repository") || 
        strstr(name, "/CVS/Entries")) {
        return false;
