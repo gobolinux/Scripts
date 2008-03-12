@@ -177,8 +177,6 @@ acat Atool
 accc TORCS
 accept CUPS
 aclocal Automake
-aclocal-1.10 Automake
-aclocal-1.9 Automake
 aconnect ALSA-Utils
 acpi_listen Acpid
 acpid Acpid
@@ -311,8 +309,6 @@ autoexpect Expect
 autoheader Autoconf
 autom4te Autoconf
 automake Automake
-automake-1.10 Automake
-automake-1.9 Automake
 automount AutoFS
 autopasswd Expect
 autopoint Gettext
@@ -660,7 +656,6 @@ e2label E2FSProgs
 e2pall TeTeX
 earth OpenMotif
 easy_install Setuptools
-easy_install-2.5 Setuptools
 ebb TeTeX
 ebrowse Emacs
 echo CoreUtils
@@ -675,7 +670,6 @@ egroupwarewizard KDE-PIM
 eject Eject
 elvtune Util-Linux
 emacs Emacs
-emacs-22.1 Emacs
 emacsclient Emacs
 embedjs KDE-Bindings
 emerald Emerald
@@ -847,9 +841,6 @@ fxload FxLoad
 g++ GCC
 g3topbm Netpbm
 gawk Gawk
-gawk-3.1.4 Gawk
-gawk-3.1.5 Gawk
-gawk-3.1.6 Gawk
 gc Graphviz
 gcc GCC
 gccbug GCC
@@ -909,11 +900,8 @@ gftp-gtk GFTP
 gftp-text GFTP
 gftype TeTeX
 ghc GHC
-ghc-6.6.1 GHC
 ghc-pkg GHC
-ghc-pkg-6.6.1 GHC
 ghci GHC
-ghci-6.6.1 GHC
 ghcprof GHC
 gif2epsn Giflib
 gif2ps Giflib
@@ -945,9 +933,7 @@ giftogd2 GD
 giftopnm Netpbm
 gifwedge Giflib
 gimp Gimp
-gimp-2.2 Gimp
 gimp-remote Gimp
-gimp-remote-2.2 Gimp
 gimptool-2.0 Gimp
 git Git
 git-add Git
@@ -1330,8 +1316,6 @@ i686-pc-linux-gnu TeTeX
 i686-pc-linux-gnu-c++ GCC
 i686-pc-linux-gnu-g++ GCC
 i686-pc-linux-gnu-gcc GCC
-i686-pc-linux-gnu-gcc-3.4.4 GCC
-i686-pc-linux-gnu-gcc-4.1.2 GCC
 ical2vcal KDE-PIM
 icc2ps LCMS
 icclink LCMS
@@ -2329,6 +2313,7 @@ openal-config OpenAL
 openoffice.org2.3 OpenOffice
 openoffice.org2.3-printeradmin OpenOffice
 openssl OpenSSL
+openttd OpenTTD
 openvt KBD
 opera Opera
 opl2ofm TeTeX
@@ -2986,14 +2971,9 @@ scim-config-agent Scim
 scim-panel-kde KDE-Libs
 scim-setup Scim
 scons SCons
-scons-0.97 SCons
-scons-time SCons
-scons-time-0.97 SCons
 sconsign SCons
-sconsign-0.97 SCons
 scp OpenSSH
 screen Screen
-screen-4.0.2 Screen
 script Util-Linux
 scrollkeeper-config Scrollkeeper
 scrollkeeper-extract Scrollkeeper
@@ -3517,7 +3497,6 @@ wx-config WxPython WxWidgets
 wxcopy WindowMaker
 wxpaste WindowMaker
 wxrc WxPython WxWidgets
-wxrc-2.8 WxPython WxWidgets
 wzd-config WzdFTPd
 wzdftpd WzdFTPd
 x11perf Xorg
@@ -3684,6 +3663,7 @@ xsetwacom Linuxwacom
 xslt-config LibXSLT
 xsltproc LibXSLT
 xsm Xorg
+xspim Spim
 xstdcmap Xorg
 xsubpp Perl
 xsw XSW
@@ -3739,8 +3719,6 @@ zmore Gzip
 znew Gzip
 zonetab2pot.py KDE-SDK
 zsh ZSH
-zsh-4.2.6 ZSH
-zsh-4.3.4 ZSH
 zsnes ZSNES
 zsoelim Groff
 zzcat ZzipLib
