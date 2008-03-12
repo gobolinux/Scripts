@@ -234,10 +234,13 @@ static bool belongs_to_same_app(char* realold, char* realnew) {
       appold++;
       appnew++;
    }
-   char* slash = strchr(appold, '/');
-   if (!slash) return false;
+   char* slashold = strchr(appold, '/');
+   char* slashnew = strchr(appnew, '/');
+   if (!slashold || !slashnew) return false;
+   if ((slashold-appold) != (slashnew-appnew))
+      return false;
    // case-insensitive
-   if (strncasecmp(appold, appnew, slash - appold) == 0)
+   if (strncasecmp(appold, appnew, slashold - appold) == 0)
       return true;
    return false;
 }
