@@ -3,9 +3,14 @@
 Import Directories
 
 function Run_PostInstall() {
-   local app_name app_ver sandbox_list map_list
-   Parameters "$@" app_name app_ver sandbox_list map_list
+   local app_name app_ver sandbox_list map_list chroot_dir
+   Parameters "$@" app_name app_ver sandbox_list map_list chroot_dir
 
+   unset chroot_cmd
+   if [ "$chroot_dir" ]
+   then
+	  local chroot_cmd="chroot $chroot_dir"
+   fi
    local program_dir=`Get_Dir runtime "$app_name" "$app_ver"`
    local program_set=`Get_Dir runtimeSettings "$app_name" "$app_ver"`
    local rw_dest="${program_dir}/.PostInstall_Root"
@@ -18,16 +23,16 @@ function Run_PostInstall() {
    [ "$map_list" = "" ] || local map_options="--map $map_list"
 
    Log_Normal "Running PostInstall for $app_name"
-   Assert_Dir $rw_dest
+   Assert_Dir "$chroot_dir/$rw_dest"
    target="$program_dir" settings_target="$program_set" \
-       UnionSandbox --writedir "$rw_dest" --directory "$program_dir"  \
+       $chroot_cmd UnionSandbox --writedir "$rw_dest" --directory "$program_dir" \
        $sandbox_options $map_options -- ${program_dir}/Resources/PostInstall
 
    #Postprocess $rw_dest
    Log_Normal "Postprocessing PostInstall changes."
-   local leftovers=`(cd $rw_dest; find *) 2>/dev/null`
+   local leftovers=`(cd "$chroot_dir/$rw_dest"; find *) 2>/dev/null`
    [ "$leftovers" ] && Log_Normal "PostInstall tried to change:\n$leftovers"
-   Quiet rmdir $rw_dest
+   Quiet rmdir "$chroot_dir/$rw_dest"
 }
 
 
