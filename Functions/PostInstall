@@ -19,7 +19,8 @@ function Run_PostInstall() {
 
    Log_Normal "Running PostInstall for $app_name"
    Assert_Dir $rw_dest
-   UnionSandbox --writedir "$rw_dest" --directory "$program_dir"  \
+   target="$program_dir" settings_target="$program_set" \
+       UnionSandbox --writedir "$rw_dest" --directory "$program_dir"  \
        $sandbox_options $map_options -- ${program_dir}/Resources/PostInstall
 
    #Postprocess $rw_dest
