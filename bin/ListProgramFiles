@@ -51,4 +51,6 @@ Boolean "null" && printcommand="-print0" || printcommand="-print"
 
 find ${programpath} \( -path "CVS" \
       -or -path "*/CVS" \
+      -or -path ".svn" \
+      -or -path "*/.svn" \
       -or -path "${programpath}Resources/SettingsBackup*" \) -prune -or ${type} ${printcommand}
