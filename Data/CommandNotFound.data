@@ -2971,6 +2971,7 @@ scim-config-agent Scim
 scim-panel-kde KDE-Libs
 scim-setup Scim
 scons SCons
+scons-time SCons
 sconsign SCons
 scp OpenSSH
 screen Screen
