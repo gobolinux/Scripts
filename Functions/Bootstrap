@@ -6,6 +6,7 @@ function Create_Filesystem_Tree() {
    #
    root="$1"
    superuser="$2"
+   usesystemindex="$3"
 
    function create_dir() {
       [ -d "$1" ] || mkdir -p "$1"
@@ -14,41 +15,48 @@ function Create_Filesystem_Tree() {
       true
    }
 
-   create_dir $root
-   create_dir $root/System/Links/Executables
-   create_dir $root/System/Links/Environment
-   create_dir $root/System/Links/Libraries
-   create_dir $root/System/Links/Headers
-   create_dir $root/System/Links/Manuals/info
-   create_dir $root/System/Links/Shared
+   if [ "$usesystemindex" ]
+   then
+      create_dir $root/System/Index/bin
+      create_dir $root/System/Index/sbin
+      create_dir $root/System/Index/lib
+      create_dir $root/System/Index/include
+      create_dir $root/System/Index/share
+      create_dir $root/System/Index/man/info
+      variabledir="System/Index/var"
+   else
+      create_dir $root/System/Links/Executables
+      create_dir $root/System/Links/Libraries
+      create_dir $root/System/Links/Headers
+      create_dir $root/System/Links/Shared
+      create_dir $root/System/Links/Manuals/info
+      variabledir="System/Variable"
+   fi
    create_dir $root/System/Links/Tasks
+   create_dir $root/System/Links/Environment
    create_dir $root/System/Settings
-   create_dir $root/System/Variable
-   create_dir $root/System/Variable/tmp 0 a+wt
-   create_dir $root/System/Variable/log
-   create_dir $root/System/Variable/mail
-   create_dir $root/System/Variable/run
-   create_dir $root/System/Variable/lock
-   create_dir $root/System/Variable/spool
-   create_dir $root/System/Variable/cache
-   create_dir $root/System/Variable/empty 0 0755
-   create_dir $root/System/Variable/lib
-   create_dir $root/System/Variable/lib/misc
+   create_dir $root/$variabledir/log
+   create_dir $root/$variabledir/tmp 0 a+wt
+   create_dir $root/$variabledir/log
+   create_dir $root/$variabledir/mail
+   create_dir $root/$variabledir/run
+   create_dir $root/$variabledir/lock
+   create_dir $root/$variabledir/spool
+   create_dir $root/$variabledir/cache
+   create_dir $root/$variabledir/empty 0 0755
+   create_dir $root/$variabledir/lib
+   create_dir $root/$variabledir/lib/misc
    create_dir $root/System/Kernel
    create_dir $root/System/Kernel/Boot
    create_dir $root/System/Kernel/Objects
    create_dir $root/System/Kernel/Modules
    create_dir $root/System/Kernel/Devices
    create_dir $root/System/Kernel/Status
-   create_dir $root/Users
    create_dir $root/Users/$superuser
-   create_dir $root/Files
-   create_dir $root/Files/Compile
    create_dir $root/Files/Compile/Archives
    create_dir $root/Files/Compile/Sources
    create_dir $root/Files/Compile/Store
    create_dir $root/Depot
-   create_dir $root/Mount
    create_dir $root/Mount/.Pivot
    create_dir $root/Mount/CD-ROM
    create_dir $root/Mount/GoboLinux
@@ -67,31 +75,48 @@ function Create_Filesystem_Tree() {
       true
    }
 
-   create_link System/Kernel/Objects    $root/sys
-   create_link System/Kernel/Devices    $root/dev
-   create_link System/Kernel/Status     $root/proc
-   create_link System/Variable          $root/var
-   create_link System/Variable/tmp      $root/tmp
-   create_link System/Links/Libraries   $root/lib
-   create_link System/Settings          $root/etc
-   create_link System/Links/Executables $root/bin
-   create_link System/Links/Executables $root/sbin
-   create_link System/Kernel/Boot       $root/boot
-   create_link Mount                    $root/mnt
-   create_link Mount/Media              $root/media
-   create_link Files                    $root/srv
-
-   create_link /System/Kernel/Modules $root/System/Links/Libraries/modules
-
-   create_link .                            $root/usr/X11R6
-   create_link .                            $root/usr/local
-   create_link ../System/Links/Executables  $root/usr/bin
-   create_link ../System/Links/Headers      $root/usr/include
-   create_link ../System/Links/Libraries    $root/usr/lib
-   create_link ../System/Links/Manuals      $root/usr/man
-   create_link ../System/Links/Executables  $root/usr/sbin
-   create_link ../System/Links/Shared       $root/usr/share
-   create_link ../Manuals                   $root/System/Links/Shared/man
+   if [ "$usesystemindex" ]
+   then
+      create_link System/Index/lib            $root/lib
+      create_link System/Index/bin            $root/bin
+      create_link System/Index/sbin           $root/sbin
+      create_link ../System/Index/bin         $root/usr/bin
+      create_link ../System/Index/include     $root/usr/include
+      create_link ../System/Index/lib         $root/usr/lib
+      create_link ../System/Index/man         $root/usr/man
+      create_link ../System/Index/sbin        $root/usr/sbin
+      create_link ../System/Index/share       $root/usr/share
+      create_link ../../System/Index/man      $root/usr/share/man
+      # compatibility links
+      create_link ../../System/Index/bin      $root/System/Links/Executables
+      create_link ../../System/Index/lib      $root/System/Links/Libraries
+      create_link ../../System/Index/share    $root/System/Links/Shared
+      create_link ../System/Index/var         $root/System/Variable
+   else
+      create_link System/Links/Libraries      $root/lib
+      create_link System/Links/Executables    $root/bin
+      create_link System/Links/Executables    $root/sbin
+      create_link ../System/Links/Executables $root/usr/bin
+      create_link ../System/Links/Executables $root/usr/sbin
+      create_link ../System/Links/Headers     $root/usr/include
+      create_link ../System/Links/Libraries   $root/usr/lib
+      create_link ../System/Links/Manuals     $root/usr/man
+      create_link ../System/Links/Shared      $root/usr/share
+      create_link ../Manuals                  $root/System/Links/Shared/man
+   fi
+   create_link $variabledir                $root/var
+   create_link $variabledir/tmp            $root/tmp
+   create_link System/Kernel/Objects       $root/sys
+   create_link System/Kernel/Devices       $root/dev
+   create_link System/Kernel/Status        $root/proc
+   create_link System/Settings             $root/etc
+   create_link System/Kernel/Boot          $root/boot
+   create_link Mount                       $root/mnt
+   create_link Mount/Media                 $root/media
+   create_link Files                       $root/srv
+   create_link /System/Kernel/Modules      $root/System/Links/Libraries/modules
+   create_link .                           $root/usr/X11R6
+   create_link .                           $root/usr/local
 }
 
 function Create_Device_Nodes() {
