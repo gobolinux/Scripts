@@ -144,8 +144,8 @@ function expand_dirs()
    local difftype file
 
    while read difftype file; do
-      if Is_Directory "$file" && Is_Nonempty_Directory "$file" || Quiet expr match "$file" '.*CVS'; then
-         find "$file" -type f | grep -v "/CVS/" |sed "s/^/$difftype /"
+      if Is_Directory "$file" && Is_Nonempty_Directory "$file" || Quiet expr match "$file" '.*.svn' || Quiet expr match "$file" '.*CVS'; then
+         find "$file" -type f | grep -v "/CVS|.svn/" |sed "s/^/$difftype /"
       else
          echo "$difftype $file"
       fi
@@ -161,14 +161,14 @@ function list_diffs()
 
    if Is_Directory Settings && ! Is_Directory $version/Resources/Defaults/Settings; then
 
-      find Settings -name '*CVS' -prune -o -print \
+      find Settings -name '*CVS' -or -name '*.svn' -prune -o -print \
          | sed 's,^,del: ,'\
          | cat -n\
          | sed 's/^ \{4\}//;s/   / /'
 
    elif ! Is_Directory Settings && Is_Directory $version/Resources/Defaults/Settings; then
 
-      find $version/Resources/Defaults/Settings -name '*CVS' -prune -o -print \
+      find $version/Resources/Defaults/Settings -name '*CVS' -or -name '*.svn' -prune -o -print \
          | sed 's,^,new: ,'\
          | cat -n\
          | sed 's/^ \{4\}//;s/   / /'
@@ -184,6 +184,7 @@ function list_diffs()
             s,Only in \(Settings[^:]*\): \(.*\),del: \1/\2,
             s,Files \([^ ]*\) and.*differ,mod: \1,'\
          | expand_dirs\
+         | grep -v '.svn/' \
          | cat -n\
          | sed "s/^ \{4\}//;s/   / /"
    fi
@@ -198,7 +199,7 @@ function files_differ()
 
 function dirs_differ()
 {
-   Quiet diff -x CVS -wr "$1" "$2"
+   Quiet diff -x CVS -x .svn -wr "$1" "$2"
 }
 
 function merge_and_edit()
@@ -612,14 +613,14 @@ function update_files()
 curdir="$pdir/Settings"
 defaultdir="$pdir/$version/Resources/Defaults/Settings"
 
-if find "$curdir" -not -type d -and -not -path "*CVS/*" &> /dev/null
+if find "$curdir" -not -type d -and -not -path "*CVS/*" -and -not -path "*.svn/*" &> /dev/null
 then
    has_current=yes;
 else
    has_current=no;
 fi
 
-if find "$defaultdir" -not -type d -and -not -path "*CVS/*" &> /dev/null
+if find "$defaultdir" -not -type d -and -not -path "*CVS/*" -and -not -path "*.svn/*" &> /dev/null
 then
    has_default=yes;
 else
