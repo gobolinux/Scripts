@@ -133,7 +133,12 @@ unset envcachefile
 # CommandNotFound support. Defined as separate functions to ease the use of other precmd() functions
 # in ~/.zshrc. Behaviour can be disabled by unsetting or redefining precmd().
 function CommandNotFound_preexec() {
-   command="${1%% *}"
+   # Trim back to the command itself, chopping off everything until
+   # a space, pipe, or redirect.
+   command="${1%%[|>< ]*}"
+   # If there's an = in the first word (i.e. an environment variable
+   # set on the command line), just ignore this command completely.
+   [ "$command" != "${command%%\=*}" ] && command=""
 }
 
 function CommandNotFound_precmd() {
