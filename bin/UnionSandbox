@@ -24,10 +24,6 @@ directories higher in the hierarchy than '.' may produce unexpected results.
 It may also confuse symbolic links that flow through the sandbox.
 "
 
-# Are these used anymore?  They're not used by SandboxInstall
-#Add_Option_Boolean "o" "original" "Restore original owners."
-#Add_Option_Entry "r" "restore" "Restore ownership to <entry>."
-
 Add_Option_Entry "w" "writedir" "The dir where writes outside sandbox are written."
 Add_Option_Entry "d" "directory" "The program should be run at <entry>. "\
 "This path should be either absolute, or relative to the sandbox root."
