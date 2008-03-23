@@ -122,7 +122,7 @@ then
    done
 fi
 
-allowed=".$expandsandbox:$installPackageDir/$version:$packageDir/Settings:$packageDir/Variable"
+allowed=".$expandsandbox:$installPackageDir/$version:$packageDir/Settings"
 Is_Entry "add-allowed" && allowed="$allowed:$(Entry "add-allowed")"
 Is_Entry "unmanaged-files" && eval $(Split_String "unmanagedarray" "$(Entry "unmanaged-files")" ":")
 Log_Verbose "Sandbox options:"
