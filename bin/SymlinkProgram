@@ -124,7 +124,10 @@ fi
 if [ "$(Arg 2)" ]
 then
    vdir="$goboPrograms/$package/$(Arg 2)"
-   Is_Directory "$vdir" || Die "There is no version $(Arg 2) for package $(Arg 1)."
+   if ! Is_Directory "$vdir"
+   then
+      Die "There is no version $(Arg 2) for package $(Arg 1). Available versions are:\n$(Installed_Versions $package)"
+   fi
    [ "$version" != "$(Arg 2)" ] && ln -sfn `basename "$vdir"` "$current"
    version="$(Arg 2)"
 fi
