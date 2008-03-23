@@ -7,6 +7,7 @@ Import OptionParser
 Import Process
 Import String
 Import Requirements
+Import Versions
 
 helpOnNoArguments=yes
 scriptDescription="Link a program from the ${goboPrograms} hierarchy in the ${goboSystem} tree."
@@ -126,7 +127,7 @@ then
    vdir="$goboPrograms/$package/$(Arg 2)"
    if ! Is_Directory "$vdir"
    then
-      Die "There is no version $(Arg 2) for package $(Arg 1). Available versions are:\n$(Installed_Versions $package)"
+      Die "There is no version $(Arg 2) for package $(Arg 1). Available versions are:\n$(All_Versions $package)"
    fi
    [ "$version" != "$(Arg 2)" ] && ln -sfn `basename "$vdir"` "$current"
    version="$(Arg 2)"

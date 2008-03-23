@@ -5,6 +5,7 @@ Import File
 Import GoboLinux
 Import Log
 Import OptionParser
+Import Versions
 
 ### Options ###################################################################
 
@@ -31,13 +32,13 @@ else versionnumber=`Get_Version "$programname" "Current"`
 fi
 if [ -z "${versionnumber}" ]
 then
-   Die "No current version found and no version specified. Available versions are:\n$(Installed_Versions "$programname")"
+   Die "No current version found and no version specified. Available versions are:\n$(All_Versions "$programname")"
 fi
 prefix="${goboPrograms}/$programname/$versionnumber"
 
 if ! Is_Directory "$prefix"
 then
-   Die "$programname version $versionnumber was not found. Available versions are:\n$(Installed_Versions "$programname")"
+   Die "$programname version $versionnumber was not found. Available versions are:\n$(All_Versions "$programname")"
 fi
 
 Log_Normal "Disabling ${programname}, version ${versionnumber}."
