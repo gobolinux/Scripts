@@ -53,7 +53,7 @@ function RealPath {
 List_To_Array "sandbox" bindmounts
 bindmounts=(`Map RealPath "${bindmounts[@]}"`)
 List_To_Array "map" mapmounts
-
+    
 # Preset cmd status
 result=0
 
@@ -68,16 +68,19 @@ function cleanup() {
         Quiet popd
     fi
 
-    # Unmount everythin under $sandbox_mp
-    cat /proc/mounts |tac |cut -d' ' -f2 | grep $sandbox_mp | sort -r | \
-    while read mp
-    do
-        umount $mp
-    done
-
-    # Clean up unionfs mountpoints
-    For_Each unionSandbox 'Quiet rmdir ${sandbox_mp}${each}
-        Quiet rmdir ${sandbox_rw}${each} '
+    # Clean up mountpoints
+    For_Each_Reverse mapmounts '
+       rhs=$(echo $each | cut -d= -f2)
+       umount ${sandbox_mp}$rhs || echo "Error unmounting ${sandbox_mp}${rhs}"
+       '
+    For_Each_Reverse bindmounts '
+       umount ${sandbox_mp}${each} || echo "Error unmounting ${sandbox_mp}${each}"
+       '
+    For_Each_Reverse unionSandbox '
+       umount ${sandbox_mp}${each} || echo "Error unmounting ${sandbox_mp}${each}"
+       Quiet rmdir ${sandbox_mp}${each}
+       Quiet rmdir ${sandbox_rw}${each}
+       '
 
     # Clean up legacy links
     rm -rf ${sandbox_mp}/usr
@@ -111,7 +114,6 @@ function mount_union() {
     dir=$1
     Assert_Dir ${sandbox_mp}${dir}
     Assert_Dir ${sandbox_rw}${dir}
-	[ ! -h ${goboDevices}/root ] && ln -s / ${goboDevices}/root
     uniondirs=`echo "${sandbox_rw}${dir}=rw:${dir}=ro" | sed "s,$unionfsPackageDir=ro,$unionfsPackageDir=rw,g"`
     mount -t unionfs -o dirs=$uniondirs none ${sandbox_mp}${dir}
     [ "$?" = "0" ] || sandbox_die "Unable to mount unionfs"
@@ -121,16 +123,15 @@ trap "sandbox_die 'Interrupted...'" SIGHUP SIGINT SIGTERM
 
 Log_Verbose "Preparing the sandbox..."
 
+if [ ! -h ${goboDevices}/root ]
+then ln -s / ${goboDevices}/root
+fi
+
 # Mount unionfs
 
 # unionfs doesn't follow bind-mounts, so we must mount everyone sitted on the top of /Programs
 bindprograms="`cat /proc/mounts | grep " /Programs" | grep -v union_mp.tmp | cut -d' ' -f2 | sed 's,.*Area-.*\(/\)\(.*/\)\(.*/\)\(.*\),/\2\3\4,g'`"
 unionSandbox=( ${unionSandbox[@]} $bindprograms )
-
-# check if we have a bind-mount from the host's /Files/Compile
-if `cat /proc/mounts | grep -q " /Files/Compile"`
-then unionSandbox=( ${unionSandbox[@]} /Files/Compile )
-fi
 if [ "$goboIndex" ]
 then unionSandbox=( ${unionSandbox[@]} "$goboIndex" )
 fi
@@ -138,7 +139,7 @@ For_Each unionSandbox 'mount_union $each'
 
 # Bind mount writable areas
 error=false
-For_Each bindmounts 'mount -o bind $each ${sandbox_mp}/${each}; [ "$?" = "0" ] || error=true'
+For_Each bindmounts 'mkdir -p ${sandbox_mp}/${each}; mount -o bind $each ${sandbox_mp}/${each}; [ "$?" = "0" ] || error=true'
 [ "$error" = "false" ] || sandbox_die "Unable to mount writable areas in chroot"
 
 error=false
