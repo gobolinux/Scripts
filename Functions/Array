@@ -60,6 +60,18 @@ function For_Each() {
    '
 }
 
+function For_Each_Reverse() {
+   local arrayname="$1"
+   local lambda="$2"
+   eval '
+      for index in `seq $(( ${#'"$arrayname"'[@]}-1 )) -1 0`
+	  do
+		 each="${'"$arrayname"'[index]}"
+         '"$lambda"'
+	  done
+   '
+}
+
 function Map() {
    local fun="$1"
    shift
