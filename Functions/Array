@@ -72,6 +72,26 @@ function For_Each_Reverse() {
    '
 }
 
+# Usage: Zip array1 var1 array2 var2 array3 var3 ...
+function Zip() {
+   local lambda="$1"
+   shift 1
+   arrayname="$1"
+   eaches=
+   while [ "$1" ]
+   do
+      eaches="$eaches $2="'"${'"$1"'[index]}";'
+      shift 2
+   done
+   eval '
+      for index in `seq 0 $(( ${#'"$arrayname"'[@]} - 1 ))`
+      do
+         '"$eaches"'
+         '"$lambda"'
+      done
+   '
+}
+
 function Map() {
    local fun="$1"
    shift
