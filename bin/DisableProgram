@@ -29,10 +29,16 @@ if [ "$(Arg 2)" ]
 then versionnumber="$(Arg 2)"
 else versionnumber=`Get_Version "$programname" "Current"`
 fi
-[ -z "${versionnumber}" ] && Die "No current version found and no version specified."
+if [ -z "${versionnumber}" ]
+then
+   Die "No current version found and no version specified. Available versions are:\n$(Installed_Versions "$programname")"
+fi
 prefix="${goboPrograms}/$programname/$versionnumber"
 
-Is_Directory "$prefix" || Die "$programname version $versionnumber was not found."
+if ! Is_Directory "$prefix"
+then
+   Die "$programname version $versionnumber was not found. Available versions are:\n$(Installed_Versions "$programname")"
+fi
 
 Log_Normal "Disabling ${programname}, version ${versionnumber}."
 

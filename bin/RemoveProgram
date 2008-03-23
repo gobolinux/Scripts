@@ -25,14 +25,18 @@ Verify_Superuser
 appname=$(Arg 1)
 appver=$(Arg 2)
 [ "${appname}" ] || Die "Argument missing: specify the program name."
-[ "${appver}" ] || Die "Argument missing: specify the program version."
+if ! [ "${appver}" ]
+then
+   Die "Argument missing: specify the program version.\nAvailable versions are:\n$(Installed_Versions "$appname")"
+fi
 
 program=`GuessProgramCase ${appname} ${appver}`
 version=${appver}
 
 if [ ! -d ${goboPrograms}/${program}/${version} ]
 then
-   Die "${program} ${version} not found at ${goboPrograms}"
+   [ ! -d "${goboPrograms}/${program}" ] && Die "${program} not found in ${goboPrograms}"
+   Die "${program} ${version} not found in ${goboPrograms}. Available versions:\n$(Installed_Versions "$appname")"
 fi
 
 Log_Terse "Removing $program, version $version."
