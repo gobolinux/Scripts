@@ -88,6 +88,14 @@ then
 fi
 }
 
+function Rebuild_Font_Cache() {
+if Executable_Exists_In_Path "fc-cache"
+then
+   Log_Normal "Updating font cache..."
+   fc-cache
+fi
+}
+
 function Uninstall_GConf_Schemas() {
    Parameters "$@" application_name
    if Executable_Exists_In_Path "gconftool-2"

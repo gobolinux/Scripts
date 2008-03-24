@@ -46,6 +46,7 @@ filesdir=$(Get_System_Paths "${goboPrograms}/${program}/${version}")
 
 Is_Real_Nonempty_Directory "${goboPrograms}/${program}/${version}/Shared/mime/packages" && rebuildmimedb=true
 Is_Real_Nonempty_Directory "${goboPrograms}/${program}/${version}/Shared/applications" && rebuilddesktopdb=true
+Is_Real_Nonempty_Directory "${goboPrograms}/${program}/${version}/Shared/fonts" && rebuildfontcache=true
 Is_Real_Nonempty_Directory "${goboPrograms}/${program}/Settings/gconf/schemas" && Uninstall_GConf_Schemas "$program"
 
 Log_Normal "Removing ${goboPrograms}/${program}/${version}..."
@@ -87,6 +88,7 @@ echo "$filesdir" | RemoveBroken || Log_Error "Couldn't cleanup links."
 #yes | RebuildLinks -n
 [ "${rebuildmimedb}" = "true" ] && Rebuild_MIME_Database
 [ "${rebuilddesktopdb}" = "true" ] && Rebuild_Desktop_Database
+[ "${rebuildfontcache}" = "true" ] && Rebuild_Font_Cache
 
 Gen_Env_Cache
 
