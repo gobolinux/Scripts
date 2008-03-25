@@ -5,7 +5,6 @@ Exec "Cleaning up any stale lock files..."     eval "find $goboVariable/{run,loc
 Exec "Mounting system filesystems..."          mount -a -t sysfs
 Exec "Starting Udev..."                        Udev Start
 
-#Daemon                                        /System/Links/Executables/sshd -D
 Daemon                                        klogd -n
 Daemon                                        syslogd -n -m 0
 
@@ -26,6 +25,7 @@ Exec "Removing one-time boot settings..."     rm -f $goboSettings/nologin /fastb
 
 #Exec "Starting PCMCIA daemon..."             PCMCIA Start
 Exec "Initializing network..."                Network Start
+#Exec "Starting ssh daemon..."		      OpenSSH Start
 Exec "Mounting network file systems..."       mount -a -t nfs,smbfs,cifs
 #Exec "Loading sound settings..."              Alsactl Start
 Exec "Starting message bus..."                MessageBus Start
