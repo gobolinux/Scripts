@@ -137,7 +137,7 @@ then
          found=$(FindPackage $noweb $pkgType ${name})
          if [ "${found}" ]
          then
-            Ask_Continue "Installing ${found}"
+            [ ! "$batch" ] && Ask_Continue "Installing ${found}"
             InstallPackage ${unmanaged} ${noinstall} ${nosymlink} ${nosigncheck} ${keep} ${batch} "${found}"
          else
             Die_With $errorNotFound "Package for ${name} not found."
