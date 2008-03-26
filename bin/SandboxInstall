@@ -19,7 +19,7 @@ Normally you'll want to use Compile(1) instead.
 "
 Add_Option_Entry "t" "target" "Makefile target to be used." "install"
 Add_Option_Entry "f" "makefile" "Specify which makefile to use." "Makefile"
-Add_Option_Entry "m" "make" "Use the given variant of make (ie: cmake). Use in recipe_type={makefile,configure}" "make"
+Add_Option_Entry "m" "make" "Use the given variant of make (ie: cmake). Use in recipe_type={makefile,configure}" "ColorMake"
 Add_Option_Entry "c" "command" "Use the given command instead of make (ie: python). Options --target and --makefile are then ignored."
 Add_Option_Entry "a" "add-allowed" "Specify additional allowed directories or files. Colon separated list."
 Add_Option_Entry "u" "unmanaged-files" "Specify allowed directories or files, which should be handled as unmanaged. Colon separated list."
