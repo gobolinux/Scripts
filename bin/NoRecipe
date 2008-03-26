@@ -2,7 +2,7 @@
 . ScriptFunctions
 Import GoboLinux
 
-ParseConf Compile.conf
+Parse_Conf Compile.conf
 cat <<EOF
 NoRecipe 1.0a - check for installed packages which need recipes
  (Copyright 2004 MJ Ray. Released under GNU GPL v2.)
