@@ -283,6 +283,10 @@ function List_Options() {
    exit 0
 }
 
+function Get_Parsed_Options() {
+   echo "${savedOptions[@]}"
+}
+
 function Parse_Options() {
    Add_Argument "$0"
 
