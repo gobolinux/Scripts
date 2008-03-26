@@ -50,13 +50,13 @@ function Is_GoboLinux_Recipe() {
 
 function Is_Empty_Directory() {
    local anyfiles
-   anyfiles=$(ls "$1" 2> /dev/null)
+   anyfiles=$(ls -A "$1" 2> /dev/null)
    ! test "$anyfiles"
 }
 
 function Is_Nonempty_Directory() {
    local anyfiles
-   anyfiles=$(ls "$1" 2> /dev/null)
+   anyfiles=$(ls -A "$1" 2> /dev/null)
    [ -d "$1" -a -n "$anyfiles" ]
 }
 
