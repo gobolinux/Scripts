@@ -276,7 +276,7 @@ if [ "$goboIndex" ]
 then args=(`echo ${args[@]} | sed "s,$programdir,$goboIndex,g"`)
 fi
 
-"$configureprogram" "${configure_options[@]}" "${args[@]}" >&$normalFD 2>&1 | Color_Output configure
+"$configureprogram" "${configure_options[@]}" "${args[@]}" 2>&1 | Color_Output configure >&$normalFD
 if [ "${PIPESTATUS[0]}" != 0 ]
 then Die "configure failed."
 fi
