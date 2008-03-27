@@ -630,7 +630,7 @@ function Verify_Superuser() {
          # Revalidate password for another 5 mins.
          $sudo_validate
          # Run with superuser's HOME.
-         exec $sudo_exec -H SUDO_OK=1 $0 "${savedOptions[@]}"
+         exec $sudo_exec -H env SUDO_OK=1 $0 "${savedOptions[@]}"
       fi
    fi
 }
@@ -643,7 +643,7 @@ function Release_Superuser() {
       # Revalidate password for another 5 mins.
       $sudo_validate
       # Run with superuser's HOME.
-      exec sudo -u "$SUDO_USER" -H SUDO_OK=1 $0 "${savedOptions[@]}"
+      exec $sudo_exec -u "$SUDO_USER" -H env SUDO_OK=1 $0 "${savedOptions[@]}"
    fi
 }
 

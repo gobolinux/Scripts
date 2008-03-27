@@ -3,7 +3,7 @@
 # If user runs script with sudo respawn as current user
 if [ -n "$SUDO_USER" -a -z "$SUDO_OK" ]
 then
-   exec sudo -u "$SUDO_USER" -H SUDO_OK=1 "$0" "${@}"
+   exec sudo -u "$SUDO_USER" -H env SUDO_OK=1 $0 "${@}"
 fi
 
 . GoboPath
