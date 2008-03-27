@@ -81,7 +81,8 @@ function Previous_Version() {
 #     All_Versions Scripts
 function All_Versions() {
    Parameters "$@" program
-   if Is_Directory $program
+   program=$(GuessProgramCase "$program")
+   if Is_Directory "$program"
    then local basedir="$program"
    else local basedir="$goboPrograms/$program"
    fi

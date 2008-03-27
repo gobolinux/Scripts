@@ -27,7 +27,7 @@ appver=$(Arg 2)
 [ "${appname}" ] || Die "Argument missing: specify the program name."
 if ! [ "${appver}" ]
 then
-   Die "Argument missing: specify the program version.\nAvailable versions are:\n$(All_Versions $(GuessProgramCase "$appname"))"
+   Die "Argument missing: specify the program version.\nAvailable versions are:\n$(All_Versions "$appname")"
 fi
 
 program=`GuessProgramCase ${appname} ${appver}`
