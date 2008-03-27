@@ -134,11 +134,13 @@ unset envcachefile
 # in ~/.zshrc. Behaviour can be disabled by unsetting or redefining precmd().
 function CommandNotFound_preexec() {
    # Trim back to the command itself, chopping off everything until
-   # a space, pipe, or redirect.
-   command="${1%%[|>< ]*}"
+   # a space, pipe, redirect, semicolon or ampersand.
+   command="${1%%[|>< ;&]*}"
    # If there's an = in the first word (i.e. an environment variable
    # set on the command line), just ignore this command completely.
-   [ "$command" != "${command%%\=*}" ] && command=""
+   # Do the same when there's something weird with a variable name,
+   # escapes, or quoting. They probably know what they're doing.
+   [ "$command" != "${command%%[\$=\\\"\']*}" ] && command=""
 }
 
 function CommandNotFound_precmd() {
