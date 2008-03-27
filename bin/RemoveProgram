@@ -27,7 +27,7 @@ appver=$(Arg 2)
 [ "${appname}" ] || Die "Argument missing: specify the program name."
 if ! [ "${appver}" ]
 then
-   Die "Argument missing: specify the program version.\nAvailable versions are:\n$(All_Versions "$appname")"
+   Die "Argument missing: specify the program version.\nAvailable versions are:\n$(All_Versions $(GuessProgramCase "$appname"))"
 fi
 
 program=`GuessProgramCase ${appname} ${appver}`
@@ -36,7 +36,7 @@ version=${appver}
 if [ ! -d ${goboPrograms}/${program}/${version} ]
 then
    [ ! -d "${goboPrograms}/${program}" ] && Die "${program} not found in ${goboPrograms}"
-   Die "${program} ${version} not found in ${goboPrograms}. Available versions:\n$(All_Versions "$appname")"
+   Die "${program} ${version} not found in ${goboPrograms}. Available versions:\n$(All_Versions "$program")"
 fi
 
 Log_Terse "Removing $program, version $version."
