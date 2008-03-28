@@ -61,12 +61,11 @@ def DescribeProgram(p, vr='', descriptionsPaths=[], mode='terminal', updateall=F
 		urls = getGoboVariable('descriptionsSources', global_describeprogram_conf, True)
 		for j in range(len(urls)):
 			url = string.join(urls[j].split('/')[:-1], '/') + '/'+ "AllDescriptions.tar.bz2"
-			ret = os.system("bash -c 'wget "+url+" -O /tmp/AllDescriptions.tar.bz2'")
+			ret = bash('wget "+url+" -O /tmp/AllDescriptions.tar.bz2"', 'v')
 			if ret != 0:
 				print 'Failed to download '+url
 				continue
-			os.system('cd '+localpath+'; tar xvfj /tmp/AllDescriptions.tar.bz2')
-			os.system('rm /tmp/AllDescriptions.tar.bz2')
+			bash('cd '+localpath+'; tar xvfj /tmp/AllDescriptions.tar.bz2; rm /tmp/AllDescriptions.tar.bz2')
 		return ''
 
 	expandendDescriptionsPaths = descriptionsPaths

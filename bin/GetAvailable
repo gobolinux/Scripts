@@ -60,15 +60,15 @@ def downloadFiles(files, force=False, hook=None, message=''):
 	global downloadedCount
 	downloadedCount = 0
 	def doDownload(url, localfile, timeout=10):
-		has_wget = not os.system('bash -c \'wget --help &> /dev/null\'')
+		has_wget = not bash('wget --help &> /dev/null', 'v')
 		if has_wget:
-			p = os.popen('bash -c \'wget --help | grep "no-check-certificate"\'')
+			p = bash('wget --help | grep "no-check-certificate"')
 			if p.readline():
 				wget_cmd = 'wget --no-check-certificate'
 			else:
 				wget_cmd = 'wget'
-			cmd = 'bash -c \'%s --timeout=%d --tries=1 --quiet %s -O "%s" && touch "%s" || rm -f "%s"\''%(wget_cmd, timeout, url, localfile, localfile, localfile)
-			os.system(cmd)
+			cmd = '%s --timeout=%d --tries=1 --quiet %s -O "%s" && touch "%s" || rm -f "%s"'%(wget_cmd, timeout, url, localfile, localfile, localfile)
+			bash(cmd)
 		else:
 			try:
 				urllib.urlretrieve(url, localfile)
