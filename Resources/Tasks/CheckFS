@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # File system check.
 # Adapted from Linux From Scratch by Hisham Muhammad
