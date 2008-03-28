@@ -122,7 +122,7 @@ def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False,
 				if os.access(cachedep, os.R_OK):
 					return [ cachedep ]
 
-				err = os.system("bash -c 'tar xvfj %s -O %s/%s/Resources/Dependencies 2> /dev/null > %s'"%(u,p,v,cachedep))
+				err = bash("tar xvfj %s -O %s/%s/Resources/Dependencies 2> /dev/null > %s"%(u,p,v,cachedep), mode='v')
 				if err == 0:
 					return [ cachedep ]
 				else:
@@ -159,7 +159,7 @@ def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False,
 				temp = u.split('/')
 				dependency_u = string.join(temp[:-1]+['dependencies']+[temp[-1][:-len('.tar.bz2')]],'/')
 				if not dependency_u in global_not_found_cache:
-					err = os.system("bash -c 'wget --timeout="+global_wget_timeout+" -q -O "+cachedep+" "+dependency_u+"'")
+					err = bash("wget --timeout="+global_wget_timeout+" -q -O "+cachedep+" "+dependency_u+"", mode='v')
 					if err == 0:
 						return [ cachedep ]
 					else:
