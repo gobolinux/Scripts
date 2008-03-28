@@ -62,8 +62,8 @@ def downloadFiles(files, force=False, hook=None, message=''):
 	def doDownload(url, localfile, timeout=10):
 		has_wget = not bash('wget --help &> /dev/null', 'v')
 		if has_wget:
-			p = bash('wget --help | grep "no-check-certificate"')
-			if p.readline():
+			has_cert_support = bash('wget --help | grep "no-check-certificate"')
+			if has_cert_support:
 				wget_cmd = 'wget --no-check-certificate'
 			else:
 				wget_cmd = 'wget'
