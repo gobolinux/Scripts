@@ -508,13 +508,11 @@ def ConvertRecipeToBinary(p, v, r, t, u):
 	goboPrograms = getGoboVariable('goboPrograms')
 	ret = ''
 	for rule in rules:
-		cmd="""/bin/bash -c '
-. ScriptFunctions
+		cmd="""
+source ScriptFunctions
 Import GoboLinux
-Get_Version %s Current'"""%rule['program']
-		f = os.popen(cmd)
-		installed_version = f.read().strip()
-		f.close()
+Get_Version %s Current"""%rule['program']
+		installed_version = bash(cmd)
 		ret += rule['program'] + ' >= ' + installed_version
 		if rule['hiver']:
 			ret += ', ' + (rule['hiincluded'] and '<= ' or '< ') + rule['hiver']
