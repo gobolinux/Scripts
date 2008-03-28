@@ -1,6 +1,22 @@
 #!/bin/sh (source)
 
+#
 # Functions to handle Resources/Requirements
+#
+# File syntax:
+#
+# required_groups=(
+#    "groupname [gid=<num>]"
+#    ...
+# )
+#
+# required_users=(
+#    "username [home=<homedir>] [groups=<groups>] [uid=<num>]"
+#    ...
+# )
+#
+# When supplied, <num> must be in the range 1..99
+#
 
 function Process_Requirements_File() {
    local reqfile="$1/Resources/Requirements"
