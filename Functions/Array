@@ -72,7 +72,7 @@ function For_Each_Reverse() {
    '
 }
 
-# Usage: Zip array1 var1 array2 var2 array3 var3 ...
+# Usage: Zip lambda array1 var1 array2 var2 array3 var3 ...
 function Zip() {
    local lambda="$1"
    shift 1
