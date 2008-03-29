@@ -133,12 +133,3 @@ unset envcachefile
 # CommandNotFound code is in a separate file so it can be updated outside of
 # an UpdateSettings run.
 source "${goboPrefix}/Programs/Scripts/Current/Functions/CommandNotFound"
-# unset -f preexec will disable this functionality. These functions can also
-# be redefined in ~/.zshrc to change or disable the behaviour.
-function preexec() {
-   CommandNotFound_preexec $1
-}
-
-function precmd() {
-   CommandNotFound_precmd
-}
