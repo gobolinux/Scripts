@@ -10,8 +10,8 @@ function Create_Filesystem_Tree() {
 
    function create_dir() {
       [ -d "$1" ] || mkdir -p "$1"
-      [ "$2" ] && chown $2 "$1"
-      [ "$3" ] && chmod $3 "$1"
+      [ "$2" ] && $sudo_exec chown $2 "$1"
+      [ "$3" ] && $sudo_exec chmod $3 "$1"
       true
    }
 
@@ -129,13 +129,17 @@ function Create_Device_Nodes() {
    then mkfifo $root/System/Kernel/Devices/log
    fi
 
+   if ! [ -e $root/System/Kernel/Devices/fd ]
+   then ln -sf /System/Kernel/Status/self/fd $root/System/Kernel/Devices/
+   fi
+
    function create_node() {
       unset mode
       if [ "$5" ]
       then mode="-m$5"
       fi
       if ! [ -e "$root/System/Kernel/Devices/$1" ]
-      then mknod $root/System/Kernel/Devices/$1 $2 $3 $4 $mode
+      then $sudo_exec mknod $root/System/Kernel/Devices/$1 $2 $3 $4 $mode
       fi
       true
    }
