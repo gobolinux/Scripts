@@ -679,7 +679,11 @@ function Install_Unmanaged_Files() {
          mkdir -p "${dname}"
          Quiet cp -af "${sourcedir}/${line}" "${dname}/"
       done
-      grep -q "${goboModules}/${kernelversion}" "$unmanagedfilesfile" && depmod -ae ${kernelversion}
+      if grep -q "${goboModules}" "$unmanagedfilesfile"
+      then 
+         Log_Normal "Calculating kernel module dependencies..."
+         depmod -ae ${kernelversion}
+      fi
    fi
 }
 
@@ -708,7 +712,11 @@ function Uninstall_Unmanaged_Files() {
          fi
          Quiet rmdir "${dname}"
        done
-      grep -q "${goboModules}/${kernelversion}" "$unmanagedfilesfile" && depmod -ae ${kernelversion}
+      if grep -q "${goboModules}" "$unmanagedfilesfile"
+      then 
+         Log_Normal "Calculating kernel module dependencies..."
+         depmod -ae ${kernelversion}
+      fi
    fi
 }
 
