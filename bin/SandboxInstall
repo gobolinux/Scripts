@@ -7,6 +7,7 @@ Import OptionParser
 Import Process
 Import String
 Import Directories
+Import UnionFS
 
 helpOnNoArguments=yes
 scriptDescription="Runs 'make install', using a sandbox environment."
@@ -54,11 +55,11 @@ then
    if [ "$NO_UNIONFS" ]
    then
       Log_Terse "unionfs was bypassed with NO_UNIONFS. Fallback to FiboSandbox."
-   elif ! Quiet grep unionfs /proc/filesystems 
+   elif ! Union_Is_Supported
    then
       Log_Terse "unionfs is unavailable. Fallback to FiboSandbox."
    else
-      Log_Normal "unionfs is available. Using UnionSandbox."
+      Log_Normal "$(Union_Backend) is available. Using UnionSandbox."
       unionsandbox=yes
    fi
 fi
@@ -188,6 +189,7 @@ then
    if [ "$package" != "Python" -a -d Programs/Python ]
    then find Programs/Python -type f -name "*.pyc" -or -name "*.pyo" | xargs rm -f &> /dev/null
    fi
+   rm -f System/Settings/mtab
    rm -f System/Kernel/Devices/null
    rm -f System/Kernel/Devices/tty
    find -type d | xargs rmdir -p --ignore-fail-on-non-empty &> /dev/null
