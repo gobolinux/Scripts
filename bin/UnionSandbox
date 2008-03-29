@@ -9,6 +9,7 @@ Import GoboLinux
 Import Log
 Import OptionParser
 Import Process
+Import UnionFS
 
 ### Options ###################################################################
 
@@ -37,7 +38,8 @@ Parse_Conf Directories.conf
 Verify_Superuser
 
 [ "$1" ] || Die "Please specify a command to be executed inside the sandbox."
-[ `cat /proc/filesystems 2> /dev/null | grep unionfs |wc -l` = "0" ] && Die "unionfs is unavailabe on this system."
+Union_Is_Supported || Die "unionfs is unavailabe on this system."
+unionbackend=`Union_Backend`
 
 [ "${unionSandbox[0]}" = "" ] && Die "Please set unionSandbox in Settings/Scripts/Directories.conf"
 [ "$unionSandboxMP" = "" ] && Die "Please set unionSandboxMP in Settings/Scripts/Directories.conf"
@@ -69,6 +71,7 @@ function cleanup() {
     fi
 
     # Clean up mountpoints
+    umount "$sandbox_mp/$goboDevices"
     For_Each_Reverse mapmounts '
        rhs=$(echo $each | cut -d= -f2)
        umount ${sandbox_mp}$rhs || echo "Error unmounting ${sandbox_mp}${rhs}"
@@ -77,7 +80,7 @@ function cleanup() {
        umount ${sandbox_mp}${each} || echo "Error unmounting ${sandbox_mp}${each}"
        '
     For_Each_Reverse unionSandbox '
-       umount ${sandbox_mp}${each} || echo "Error unmounting ${sandbox_mp}${each}"
+       Union_Umount ${unionbackend} ${sandbox_mp}${each} || echo "Error unmounting ${sandbox_mp}${each}"
        Quiet rmdir ${sandbox_mp}${each}
        Quiet rmdir ${sandbox_rw}${each}
        '
@@ -115,7 +118,7 @@ function mount_union() {
     Assert_Dir ${sandbox_mp}${dir}
     Assert_Dir ${sandbox_rw}${dir}
     uniondirs=`echo "${sandbox_rw}${dir}=rw:${dir}=ro" | sed "s,$unionfsPackageDir=ro,$unionfsPackageDir=rw,g"`
-    mount -t unionfs -o dirs=$uniondirs none ${sandbox_mp}${dir}
+    Union_Mount "$unionbackend" "$uniondirs" "${sandbox_mp}${dir}"
     [ "$?" = "0" ] || sandbox_die "Unable to mount unionfs"
 }
 
@@ -162,10 +165,11 @@ Is_Entry_Set "directory" && newpwd=`Entry "directory"`
 echo "#!/bin/bash" >"${sandbox_mp}/.wrapper"
 echo "cd $newpwd" >>"${sandbox_mp}/.wrapper"
 Args_To_Array command >> "${sandbox_mp}/.wrapper"
+echo "mount -t tmpfs none $goboDevices" >> "${sandbox_mp}/.wrapper"
+echo "udevtrigger && udevsettle" >> "${sandbox_mp}/.wrapper"
 echo "exec \"\${command[@]}\"" >>"${sandbox_mp}/.wrapper"
 
 chmod a+x "${sandbox_mp}/.wrapper"
-
 
 # Run program in chrooted sandbox
 chroot $sandbox_mp /.wrapper
