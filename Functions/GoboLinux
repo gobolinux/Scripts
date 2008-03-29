@@ -669,6 +669,8 @@ print entry[0]
 
 function Install_Unmanaged_Files() {
    Parameters "$@" unmanagedfilesfile sourcedir
+   local kernelversion="`readlink $goboModules/Current 2> /dev/null`"
+   [ ! "$kernelversion" ] && kernelversion="$(uname -r)"
    if [ -f "$unmanagedfilesfile" ]
    then
       grep -E -v "^(\./|/|)Programs" "$unmanagedfilesfile" | while read line
@@ -677,12 +679,14 @@ function Install_Unmanaged_Files() {
          mkdir -p "${dname}"
          Quiet cp -af "${sourcedir}/${line}" "${dname}/"
       done
-      grep -q "${goboModules}/$(uname -r)" "$unmanagedfilesfile" && depmod -ae $(uname -r)
+      grep -q "${goboModules}/${kernelversion}" "$unmanagedfilesfile" && depmod -ae ${kernelversion}
    fi
 }
 
 function Uninstall_Unmanaged_Files() {
    Parameters "$@" unmanagedfilesfile interactive
+   local kernelversion="`readlink $goboModules/Current 2> /dev/null`"
+   [ ! "$kernelversion" ] && kernelversion="$(uname -r)"
    if [ -f "${unmanagedfilesfile}" ]
    then
       for line in $(grep -E -v "^(\./|/|)Programs" "$unmanagedfilesfile")
@@ -704,7 +708,7 @@ function Uninstall_Unmanaged_Files() {
          fi
          Quiet rmdir "${dname}"
        done
-      grep -q "${goboModules}/$(uname -r)" "$unmanagedfilesfile" && depmod -ae $(uname -r)
+      grep -q "${goboModules}/${kernelversion}" "$unmanagedfilesfile" && depmod -ae ${kernelversion}
    fi
 }
 
