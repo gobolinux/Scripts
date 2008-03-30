@@ -2,12 +2,22 @@
 # ZSH code for CommandNotFound support. Sourced from zshrc, but in a separate
 # file so it can be updated without going through the UpdateSettings process.
 
-# Defined as separate functions to ease the use of other precmd() functions
-# in ~/.zshrc. Behaviour can be disabled by unsetting or redefining precmd().
+# Defined as separate functions to ease the use of other precmd() functions in
+# ~/.zshrc. Behaviour can be disabled with `unset -f CommandNotFound_preexec`.
 function CommandNotFound_preexec() {
    # Trim back to the command itself, chopping off everything until
    # a space, pipe, redirect, semicolon or ampersand.
    command="${1%%[|>< ;&]*}"
+   # If you define this variable to point to a tool like "kexec", you can
+   # automatically launch a file with its appropriate application just by
+   # typing its name. A little hacky, but effective.
+   if [ "$CNF_OPEN_COMMAND" -a -e "$command" ]
+   then
+      if ! whence -- "$command" >& /dev/null
+      then
+         $CNF_OPEN_COMMAND $command && exec zsh
+      fi
+   fi
    # If there's an = in the first word (i.e. an environment variable
    # set on the command line), just ignore this command completely.
    # Do the same when there's something weird with a variable name,
