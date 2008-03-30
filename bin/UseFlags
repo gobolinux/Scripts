@@ -25,7 +25,7 @@ def UseFlags(program=None):
 	"""Return the set of flags enabled for program"""
 	global global_use_flags_cache, global_program_use_flags_cache
 	potentialflags = set()
-	if program.startswith('/'):
+	if program and program.startswith('/'):
 		catch = False
 		recipedir = str(program)
 		components = os.path.split(recipedir)
@@ -130,10 +130,10 @@ if __name__ == '__main__':
 	args = sys.argv[1:]
 	# "verbose" mode applies when a program AND flag are given: it will output
 	# a message as well as setting the return code
-	if '-v' == args[0]:
+	if args and '-v' == args[0]:
 		verbose = True
 		args = args[1:]
-	elif '--help' == args[0]:
+	elif args and '--help' == args[0]:
 		sys.stdout.write("""
 UseFlags
 Usage: UseFlags [-v] [<program> [<flag-to-test>]]
