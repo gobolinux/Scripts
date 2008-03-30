@@ -5,6 +5,7 @@
 # Defined as separate functions to ease the use of other precmd() functions in
 # ~/.zshrc. Behaviour can be disabled with `unset -f CommandNotFound_preexec`.
 function CommandNotFound_preexec() {
+   setopt localoptions shwordsplit
    # Trim back to the command itself, chopping off everything until
    # a space, pipe, redirect, semicolon or ampersand.
    command="${1%%[|>< ;&]*}"
@@ -12,11 +13,11 @@ function CommandNotFound_preexec() {
    # "kfmclient exec", you can automatically launch a file with its
    # appropriate application just by typing its name. A little hacky, but
    # effective.
-   if [ "$CNF_OPEN_COMMAND" -a -e "$command" ]
+   if [ "$OPEN_COMMAND" -a -e "$command" ]
    then
       if ! whence -- "$command" >& /dev/null
       then
-         eval "$CNF_OPEN_COMMAND '$command'" && exec zsh
+         $OPEN_COMMAND "$command" && exec zsh
       fi
    fi
    # If there's an = in the first word (i.e. an environment variable
