@@ -26,17 +26,17 @@
 #endif
 
 void multiprogrammessage(char * executable, char * program, char * program2) {
-	printf("The program '%s' is not currently installed.\nIt is available in the following packages:\n", executable);
-	printf(" %s, %s", program, program2);
+	fprintf(stderr, "The program '%s' is not currently installed.\nIt is available in the following packages:\n", executable);
+	fprintf(stderr, " %s, %s", program, program2);
 	while (program2 = strtok(NULL, " "))
-		printf(", %s", program2);
+		fprintf(stderr, ", %s", program2);
 	// The last program will include the newline in it, no need to be explicit
-	printf("You can install one of these by typing (for example):\n InstallPackage %s\nor\n Compile %s\n", program, program);
+	fprintf(stderr, "You can install one of these by typing (for example):\n InstallPackage %s\nor\n Compile %s\n", program, program);
 }
 
 void singleprogrammessage(char * executable, char * program) {
-	printf("The program '%s' is not currently installed.\nYou can install it by typing:\n", executable);
-	printf(" InstallPackage %sor\n Compile %s", program, program);
+	fprintf(stderr, "The program '%s' is not currently installed.\nYou can install it by typing:\n", executable);
+	fprintf(stderr, " InstallPackage %sor\n Compile %s", program, program);
 }
 
 int foundexecutable(char * executable, char * target) {
@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
 	
 	fp = fopen(DATAFILE, "r");
 	if (binsearch(fp, argv[1], 0, st.st_size)) {
-		printf("The program '%s' is not currently installed, and no known package contains it.\n", argv[1]);
+		fprintf(stderr, "The program '%s' is not currently installed, and no known package contains it.\n", argv[1]);
 		fclose(fp);
 		return 1;
 	}
