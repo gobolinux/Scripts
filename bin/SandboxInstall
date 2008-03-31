@@ -184,6 +184,7 @@ then
    Log_Normal "Postprocessing Sandbox"
    Quiet pushd $sandbox_rw
    rm -rf System/Variable/tmp/{*,.*} &> /dev/null
+   rm -rf System/Kernel/Objects
    rm -rf Files/Compile/Sources
    rm -f Programs/Glibc/Settings/ld.so.cache
    if [ "$package" != "Python" -a -d Programs/Python ]
