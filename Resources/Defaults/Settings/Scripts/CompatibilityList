@@ -14,3 +14,5 @@ JRE: JDK Sun-JDK IBM-JDK Sun-JRE IBM-JRE
 JDK: Sun-JDK IBM-JDK
 Giflib: LibUngif
 LibUngif: Giflib
+Xorg: Xorg-Lib
+Xorg-Lib: Xorg
