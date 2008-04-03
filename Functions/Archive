@@ -1,0 +1,151 @@
+#!/bin/bash (source)
+
+# Functions for archive unpacking and listing
+
+Get_Archive_Format() {
+   Parameters "$@" archive
+   format=$(echo "${archive}" | sed -r \
+   -e "s/.*\.(tar\.bz|tbz)$/tarbzip/" \
+   -e "s/.*\.(tar\.bz2|tbz2)$/tarbzip2/" \
+   -e "s/.*\.(tar\.gz|tgz)$/targzip/" \
+   -e "s/.*\.(tar\.lzma|tar.7z)$/lzma/" \
+   -e "s/.*\.(tar\.Z)$/tarcompress/" \
+   -e "s/.*\.bz$/bzip/" \
+   -e "s/.*\.bz2$/bzip2/" \
+   -e "s/.*\.gz$/gzip/" \
+   -e "s/.*\.tar$/tar/" \
+   -e "s/.*\.(lzma|7z)$/lzma/" \
+   -e "s/.*\.Z$/compress/" \
+   -e "s/.*\.zip$/zip/" \
+   -e "s/.*\.cpio$/cpio/")
+   if [ "${format}" == "${file}" ]
+   then
+      format=$(file --mime --uncompress --brief "${archive}" | sed -r \
+         -e "s/.*application\/x-tar \(application\/x-gzip\)/targzip/" \
+         -e "s/.*application\/x-tar \(application\/x-bzip\)/tarbzip/" \
+         -e "s/.*application\/x-tar \(application\/x-bzip2\)/tarbzip2/" \
+         -e "s/.*application\/x-tar \(application\/x-lzma\)/tarlzma/" \
+         -e "s/.*application\/x-gzip(\)|\W*)$/gzip/" \
+         -e "s/.*application\/x-bzip(\)|\W*)$/bzip/" \
+         -e "s/.*application\/x-bzip2(\)|\W*)$/bzip2/" \
+         -e "s/.*application\/x-lzma(\)|\W*)$/lzma/" \
+         -e "s/.*application\/x-zip(\)|\W*)$/zip/" \
+         -e "s/.*application\/x-cpio(\)|\W*)$/cpio/")
+   fi
+   echo "${format}"
+}
+
+needs_archiver() {
+   Parameters "$@" format archiver
+   Executable_Exists_In_Path ${archiver} || {
+      Log_Verbose "Format ${format} requires ${archiver}"
+      return 1
+   }
+}
+
+Unpack_Archive() {
+   # Unfortunatly Parameters can't assign the "tail"
+   #Parameters "$@" archive targetdirectory force files
+   archive=$1; shift;
+   targetdirectory=$1; shift;
+   force=$1; shift;
+   files="${@}"
+   [ -n "${targetdirectory}" ] &&  mkdir -p "${targetdirectory}"
+   case `Get_Archive_Format "${archive}"` in
+   tarbzip)
+      ( needs_archiver "tar+bzip" bunzip && needs_archiver "tar+bzip" tar ) || return 2
+      bunzip --keep --decompress --stdout "${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      ;;
+   tarbzip2)
+      ( needs_archiver "tar+bzip2" bunzip2 && needs_archiver "tar+bzip2" tar ) || return 2
+      bunzip2 --keep --decompress --stdout "${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      ;;
+   targzip)
+      ( needs_archiver "tar+gzip" gunzip && needs_archiver "tar+gzip" tar ) || return 2
+      gunzip --decompress --stdout "${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      ;;
+   tarlzma)
+      ( needs_archiver "tar+lzma" lzma && needs_archiver "tar+lzma" tar ) || return 2
+      lzma --stdout --decompress --keep "${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      ;;
+   tarcompress)
+      ( needs_archiver "tar+compress" compress && needs_archiver "tar+compress" tar ) || return 2
+      tar --extract -Z --verbose --file "${archive}" ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      ;;
+   bzip) 
+      needs_archiver "bzip" bunzip || return 2
+      bunzip --decompress --keep --stdout "${archive}" > "${targetdirectory}/${archive%%.bz}"
+      ;;
+   bzip2)
+      needs_archiver "bzip2" bunzip2 || return 2
+      bunzip2 --decompress --keep --stdout "${archive}" > "${targetdirectory}/${archive%%.bz2}"
+      ;;
+   gzip)
+      needs_archiver "gzip" gzip || return 2
+      gunzip --decompress --keep --stdout "${archive}" > "${targetdirectory}/${archive%%.gz}"
+      ;;
+   tar)
+      needs_archiver "tar" tar || return 2
+      tar --extract --verbose --file "${archive}" ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      ;; 
+   lzma)
+      needs_archiver "lzma" lzma || return 2
+      lzma --decompress --keep --stdout "${archive}" > "${targetdirectory}/${archive%%.lzma}"
+      ;;
+   cpio)
+      needs_archiver "cpio" cpio || return 2
+      cpio --extract --make-directories ${force:+--unconditional} -I "${archive}" ${files:+--pattern-file=<(echo "${files[@]}" | sed 's/\ /\n/g')}
+      ;;
+   zip)
+      needs_archiver "zip" unzip || return 2
+      unzip ${force:+-o} "${archive}" ${files:+${files[@]}} ${targetdirectory:+-d "${targetdirectory}"}
+      ;;
+   *)
+      Log_Error "Unknown format: ${archive}"
+      return 3
+      ;;
+   esac
+}
+
+List_Archive_Files() {
+   Parameters "$@" archive verbose
+   case `Get_Archive_Format "${archive}"` in
+   tarbzip)
+      bunzip --keep --decompress --stdout | tar --list
+      ;;
+   tarbzip2)
+      bunzip2 --keep --decompress --stdout "${archive}" | tar --list
+      ;;
+   targzip)
+      gunzip --decompress --stdout "${archive}" | tar --list
+      ;;
+   tarlzma)
+      lzma --stdout --decompress --keep "${archive}" | tar --list
+      ;;
+   tarcompress)
+      tar --list -Z --file "${archive}"
+      ;;
+   bzip)
+      echo $(basename "${archive}") | sed -e "s/\(.*\)\.bz$/\1/"
+      ;;
+   bzip2)
+      echo $(basename "${archive}") | sed -e "s/\(.*\)\.bz2$/\1/"
+      ;;
+   gzip)
+      gunzip --list --stdout "${archive}"
+      ;;
+   tar)
+      tar --list --file "${archive}"
+      ;;
+   lzma)
+      echo $(basename "${archive}") | sed -e "s/\(.*\)\.lzma$/\1/"
+      ;;
+   cpio)
+      cpio --list -I "${archive}"
+      ;;
+   zip)
+      unzip -Z -1 "${archive}"
+      ;;
+   esac
+}
+
