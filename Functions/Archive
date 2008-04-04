@@ -2,9 +2,9 @@
 
 # Functions for archive unpacking and listing
 
-Get_Archive_Format() {
+function Get_Archive_Format() {
    Parameters "$@" archive
-   format=$(echo "${archive}" | sed -r \
+   local format=$(Downcase "${archive}" | sed -r \
    -e "s/.*\.(tar\.bz|tbz)$/tarbzip/" \
    -e "s/.*\.(tar\.bz2|tbz2)$/tarbzip2/" \
    -e "s/.*\.(tar\.gz|tgz)$/targzip/" \
@@ -35,7 +35,7 @@ Get_Archive_Format() {
    echo "${format}"
 }
 
-needs_archiver() {
+function needs_archiver() {
    Parameters "$@" format archiver
    Executable_Exists_In_Path ${archiver} || {
       Log_Verbose "Format ${format} requires ${archiver}"
@@ -43,13 +43,13 @@ needs_archiver() {
    }
 }
 
-Unpack_Archive() {
+function Unpack_Archive() {
    # Unfortunatly Parameters can't assign the "tail"
    #Parameters "$@" archive targetdirectory force files
-   archive=$1; shift;
-   targetdirectory=$1; shift;
-   force=$1; shift;
-   files="${@}"
+   local archive=$1; shift;
+   local targetdirectory=$1; shift;
+   local force=$1; shift;
+   local files="${@}"
    [ -n "${targetdirectory}" ] &&  mkdir -p "${targetdirectory}"
    case `Get_Archive_Format "${archive}"` in
    tarbzip)
@@ -107,7 +107,7 @@ Unpack_Archive() {
    esac
 }
 
-List_Archive_Files() {
+function List_Archive_Files() {
    Parameters "$@" archive verbose
    case `Get_Archive_Format "${archive}"` in
    tarbzip)
