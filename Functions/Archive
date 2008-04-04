@@ -8,8 +8,8 @@ Get_Archive_Format() {
    -e "s/.*\.(tar\.bz|tbz)$/tarbzip/" \
    -e "s/.*\.(tar\.bz2|tbz2)$/tarbzip2/" \
    -e "s/.*\.(tar\.gz|tgz)$/targzip/" \
-   -e "s/.*\.(tar\.lzma|tar.7z)$/lzma/" \
-   -e "s/.*\.(tar\.Z)$/tarcompress/" \
+   -e "s/.*\.tar\.(lzma|7z)$/tarlzma/" \
+   -e "s/.*\.tar\.Z$/tarcompress/" \
    -e "s/.*\.bz$/bzip/" \
    -e "s/.*\.bz2$/bzip2/" \
    -e "s/.*\.gz$/gzip/" \
