@@ -389,7 +389,6 @@ echo "You can now restart your session in order to enjoy GoboLinux Rootless. For
 echo "best results, consider using the zsh shell."
 echo ""
 echo "Commands recommended to be executed afterwards:"
-echo "  InstallPackage Atool"
 echo "  InstallPackage Compile"
 echo "  Compile Mtail"
 echo ""
