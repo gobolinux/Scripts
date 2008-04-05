@@ -6,6 +6,7 @@
 # Try to guess the most recent package version based on the version number
 
 import types, sys
+from PythonUtils import *
 
 def GuessLatest(versions, stableOnly=0, returnList=0) :
 	if not versions:
@@ -137,7 +138,7 @@ if __name__ == '__main__':
 		sys.exit(1)
 
 	if len(args) < 1:
-		print "Please pass at least one version number"
+		Log_Error("Please pass at least one version number","GuessLatest")
                 sys.exit(1)
 
 	r =  GuessLatest(args, just_stable, options.return_list)
