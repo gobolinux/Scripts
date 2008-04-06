@@ -15,4 +15,8 @@ JDK: Sun-JDK IBM-JDK
 Giflib: LibUngif
 LibUngif: Giflib
 Xorg: Xorg-Lib
+Xorg-Proto: Xorg
 Xorg-Lib: Xorg
+Xorg-Server: Xorg
+Xorg-Driver: Xorg
+Xorg-App: Xorg
