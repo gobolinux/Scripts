@@ -36,7 +36,7 @@ Boolean "verbose" && verbose="--verbose"
 
 Dir_Set Sandbox || Set_Boolean "no-sandbox"
 
-if ! Boolean "no-sandbox"
+if Dir_Set Sandbox
 then
    Is_Writable "$goboExecutables" || Verify_Superuser
 fi
