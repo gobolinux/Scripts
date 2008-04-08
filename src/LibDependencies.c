@@ -1,5 +1,5 @@
 /*
- * Resources/Dependencies parser for ViewFS.
+ * A generic Resources/Dependencies parser.
  * 
  * Copyright (C) 2008 Lucas C. Villa Real <lucasvr@gobolinux.org>
  *
@@ -15,7 +15,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <dirent.h>
-#include "list.h"
+#include "LinuxList.h"
 
 static char * const currentString = "Current";
 static char * const goboPrograms = "/Programs";
@@ -396,7 +396,6 @@ struct list_head *ParseDependencies(char *file, bool searchpackages, bool search
 			return NULL;
 		}
 		data->workbuf = buf;
-		//printf("[%s]\n", buf);
 
 		if (! ParseName(data) || AlreadyInList(head, data, file))
 			continue;
@@ -415,12 +414,8 @@ struct list_head *ParseDependencies(char *file, bool searchpackages, bool search
 			continue;
 		}
 
-		if (GetBestVersion(data, searchpackages, searchlocalprograms)) {
-		//	printf("Adding %s with restrictions ", data->depname);
-		//	PrintRestrictions(data);
-		//	printf("\n");
+		if (GetBestVersion(data, searchpackages, searchlocalprograms))
 			ListAppend(head, data);
-		}
 	}
 
 	fclose(fp);
@@ -475,9 +470,9 @@ int main(int argc, char **argv)
 		}
 		if (optind < argc)
 			depfile = argv[optind++];
-		if (! depfile || (! searchpackages && ! searchlocalprograms))
-			ShowUsage(argv[0], 1);
 	}
+	if (! depfile || (! searchpackages && ! searchlocalprograms))
+		ShowUsage(argv[0], 1);
 
 	head = ParseDependencies(depfile, searchpackages, searchlocalprograms);
 	if (! head)
