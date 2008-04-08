@@ -5,17 +5,7 @@
  *
  * Released under the GNU GPL version 2.
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <unistd.h>
-#include <limits.h>
-#include <libgen.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <dirent.h>
-#include "LinuxList.h"
+#include "libDependencies.h"
 
 static char * const currentString = "Current";
 static char * const goboPrograms = "/Programs";
@@ -421,65 +411,3 @@ struct list_head *ParseDependencies(char *file, bool searchpackages, bool search
 	fclose(fp);
 	return head;
 }
-
-#ifdef DEBUG
-#define _GNU_SOURCE
-#include <getopt.h>
-
-void ShowUsage(char *appname, int retval)
-{
-	printf("Syntax: %s <options> <Dependencies file>\n"
-			"Available options are:\n"
-			" -p, --packages          Search for Dependencies in the official packages repository\n"
-			" -l, --local-programs    Search for Dependencies in the local programs tree\n", appname);
-	exit(retval);
-}
-
-int main(int argc, char **argv)
-{
-	struct list_head *head;
-	struct list_data *data;
-	struct option options[] = {
-		{ "packages",       0, 0, 'p' },
-		{ "local-programs", 0, 0, 'l' },
-		{ 0, 0, 0, 0 },
-	};
-	char *depfile = NULL;
-	bool searchpackages = false;
-	bool searchlocalprograms = false;
-
-	while (true) {
-		int index;
-		int c = getopt_long(argc, argv, "plh", options, &index);
-		if (c == -1)
-			break;
-		switch (c) {
-			case 'h':
-				ShowUsage(argv[0], 0);
-			case 'p':
-				printf("Looking at the package store\n");
-				searchpackages = true;
-				break;
-			case 'l':
-				printf("Looking at the local programs tree\n");
-				searchlocalprograms = true;
-				break;
-			case '?':
-			default:
-				break;
-		}
-		if (optind < argc)
-			depfile = argv[optind++];
-	}
-	if (! depfile || (! searchpackages && ! searchlocalprograms))
-		ShowUsage(argv[0], 1);
-
-	head = ParseDependencies(depfile, searchpackages, searchlocalprograms);
-	if (! head)
-		return 1;
-	list_for_each_entry(data, head, list)
-		printf("Mounting %s\n", data->path);
-
-	return 0;
-}
-#endif
