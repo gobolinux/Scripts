@@ -222,7 +222,7 @@ then
    Log_Normal "Symlinking libraries..."
    link_directory "$current/lib" "$goboLibraries" && {
       Log_Normal "Updating library database (ldconfig)..."
-      Quiet ldconfig
+      [ -x $goboPrograms/Glibc/Current/sbin/ldconfig ] && Quiet $goboPrograms/Glibc/Current/sbin/ldconfig || Quiet ldconfig
       if [ -d "$current/lib" ]
       then
          Quiet pushd "$current/lib"
