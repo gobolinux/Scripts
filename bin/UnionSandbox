@@ -71,6 +71,7 @@ function cleanup() {
     fi
 
     # Clean up mountpoints
+    umount "$sandbox_mp/$goboStatus"
     umount "$sandbox_mp/$goboDevices"
     For_Each_Reverse mapmounts '
        rhs=$(echo $each | cut -d= -f2)
@@ -166,6 +167,7 @@ echo "#!/bin/bash" >"${sandbox_mp}/.wrapper"
 echo "cd $newpwd" >>"${sandbox_mp}/.wrapper"
 Args_To_Array command >> "${sandbox_mp}/.wrapper"
 echo "mount -t tmpfs none $goboDevices" >> "${sandbox_mp}/.wrapper"
+echo "mount -t proc none $goboStatus" >> "${sandbox_mp}/.wrapper"
 echo "udevtrigger && udevsettle" >> "${sandbox_mp}/.wrapper"
 echo "exec \"\${command[@]}\"" >>"${sandbox_mp}/.wrapper"
 
