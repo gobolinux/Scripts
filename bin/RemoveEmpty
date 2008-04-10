@@ -2,7 +2,6 @@
 
 . ScriptFunctions
 Import OptionParser
-Import Process
 Import File
 
 scriptDescription="remove all empty directories inside current (or a given) directory"

@@ -5,7 +5,6 @@ Import GoboLinux
 Import Log
 Import OptionParser
 Import File
-Import Process
 Import String
 
 ### Options ###################################################################

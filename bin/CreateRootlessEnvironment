@@ -263,7 +263,6 @@ PATH="${PATH}:${goboPrefix}/Programs/Scripts/Current/bin/"
 . ScriptFunctions
 Import Log
 Import GoboLinux
-Import Process
 Log_Normal "Gobo Rootless i686 has been installed."
 
 # Function to remove things in a pretty way

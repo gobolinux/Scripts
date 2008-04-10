@@ -6,7 +6,6 @@ source ScriptFunctions
 Import GoboLinux
 Import Log
 Import OptionParser
-Import Process
 
 ### Options ###################################################################
 

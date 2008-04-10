@@ -79,20 +79,17 @@ $sudo_exec rm -f "$FileHash_loc"
 $sudo_exec rm -f "$FileHash_sig"
 
 Log_Normal "Creating FileHash"
-Gen_FileHash "$prefix/$package/$version" "$FileHash_loc"
-Succeeded || exit 1
+Gen_FileHash "$prefix/$package/$version" "$FileHash_loc" || exit 1
 Boolean "no-signature" && exit 0
 
 # Check for gpg and keyring
 Can_Sign || exit 2
 
 Log_Normal "Signing FileHash"
-Sign_File "$FileHash_loc" "$FileHash_sig"
-if Failed
-then
+Sign_File "$FileHash_loc" "$FileHash_sig" || {
    Log_Error "Unable to sign"
    exit 3
-fi
+}
 
 if [ "$filepath" ]
 then

@@ -5,7 +5,6 @@ Import File
 Import GoboLinux
 Import Log
 Import OptionParser
-Import Process
 Import String
 Import Array
 Import Versions
@@ -133,7 +132,7 @@ then
       then grep -qi "^$package $version" "$f"
       else grep -qi "^$package " "$f"
       fi
-      if Succeeded
+      if [ "$?" -eq 0 ]
       then echo `Which_Package "$f"` `Which_Version "$f"`
       fi
    done

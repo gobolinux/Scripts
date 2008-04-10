@@ -3,7 +3,6 @@
 . ScriptFunctions
 Import File
 Import GoboLinux
-Import Process
 
 # XXX "Real vs. rootless" support
 if [ -x /bin/make ]
