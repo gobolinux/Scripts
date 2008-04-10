@@ -10,7 +10,6 @@
 Import GoboLinux
 Import File
 Import String
-Import Process
 
 # Gets the currently-installed version of the given program by reading the
 # 'Current' link. If the Current link doesn't exist, or if the program isn't
