@@ -272,11 +272,11 @@ else
 fi
 
 eval `Args_To_Array args 3`
-if [ "$goboIndex" ]
+if [ -n "$goboIndex" -a -n "$args" ]
 then args=(`echo ${args[@]} | sed "s,$programdir,$goboIndex,g"`)
 fi
 
-"$configureprogram" "${configure_options[@]}" "${args[@]}" 2>&1 | Color_Output configure >&$normalFD
+"$configureprogram" ${configure_options:+"${configure_options[@]}"} ${args:+"${args[@]}"} 2>&1 | Color_Output configure >&$normalFD
 if [ "${PIPESTATUS[0]}" != 0 ]
 then Die "configure failed."
 fi
