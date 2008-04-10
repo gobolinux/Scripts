@@ -1,18 +1,89 @@
 #!/bin/bash (source)
 
-Import String
+#######################################################################
+#
+# File: 
+#       OptionParser
+# Description:
+#       This file contains a bunch of shell functions used by gobo
+#       tools to handle and parse command line options and in a
+#       convenient way.
+#        
+#       A linguistic precision: we call options the -<something> and
+#       --<something> parameters you encounter in virtually every command
+#       line program, while arguments are the remaining parameters
+#       following options, that is, the actual arguments on which the
+#       program works. So for example:
+#
+#           MakeRecipe --no-web Foo 1.0 http://foo.bar
+#
+#       has one option and three arguments.
+# Usage:
+#       See each function's header for a detailed description of its
+#       usage.
+# 
+#######################################################################
 
-declare -a savedOptions
+Import String                      # strings handling
+
+declare -a savedOptions            # only used in Parse_Options
 #declare -a optionsShortList
 #declare -a optionsLongList
 #declare -a optionsDescriptionList
 #declare -a optionsTypeList
 #declare -a optionsStateList
+
 optionsListSize=0
 argumentsListSize=0
 parsedArguments=0
 
+#######################################################################
+#
+# Name: 
+#       Add_Option
+# Description:
+#       Adds an option, updating options arrays accordingly.
+#
+#       Options are stored using a number of arrays, one for every
+#       option's attribute. Every array has dimension equal to the
+#       number of options defined for the current script. Options'
+#       attributes are:
+#
+#          - type
+#          - short form
+#          - long form
+#          - description
+#          - default value
+#          - possible values
+#
+#       Also, an option can be of basically three types:
+#
+#          - Boolean
+#          - Entry
+#          - List
+#
+#       See each option's Add_ function header for a more detailed
+#       description.
+# Arguments:
+#       type        -- string : Option's type
+#       default     -- string : Option's default value
+#       short       -- char   : Option's shortening
+#       long        -- string : Option's full name
+#       description -- string : Option's description
+#       values      -- list   : Option's possible values
+# Output:
+#       none.
+# Return:
+#       none.
+# Usage:
+#       Add_Option <type> <default> <short> <long> <description> [<values>]
+# Example:
+#       Add_Option "Entry" "ask" "s" "same" "What to do when unpackaging over the same version." "keep remove ask cancel"
+#
+#######################################################################
+
 function Add_Option() {
+   # Some debug code
    local i
    if [ "$scriptDebug" = "on" ]
    then
@@ -23,53 +94,195 @@ function Add_Option() {
          fi
       done
    fi
+   
    optionsListSize=$[optionsListSize+1]
-   optionsTypeList[$optionsListSize]="$1"
-   optionsStateList[$optionsListSize]="$2"
-   optionsShortList[$optionsListSize]="$3"
-   optionsLongList[$optionsListSize]="$4"
-   optionsDescriptionList[$optionsListSize]="$5"
-   optionsValidStateList[$optionsListSize]="$6"
+   
+   # Add the option's attributes to our arrays.
+   optionsTypeList[$optionsListSize]="$1"        # type
+   optionsStateList[$optionsListSize]="$2"       # default value
+   optionsShortList[$optionsListSize]="$3"       # shortening 
+   optionsLongList[$optionsListSize]="$4"        # full name
+   optionsDescriptionList[$optionsListSize]="$5" # description
+   optionsValidStateList[$optionsListSize]="$6"  # possible values
 }
+
+#######################################################################
+#
+# Name: 
+#       Add_Option_Boolean
+# Description:
+#       Adds an option of type boolean.
+#
+#       A boolean option has only two possible values: 'on' and 'off',
+#       which respectively map to 'true' and 'false'. In fact, everything
+#       else than 'on' means 'false'.
+#       Since its values are fixed, there is no need to specify a list
+#       of possible values. Furthermore, they don't have a default value
+#       because they're evaluated at 'false' by default.
+#       They should be set using the dedicated function Set_Boolean.
+# Arguments:
+#       short       -- char   : Option's shortening
+#       long        -- string : Option's full name
+#       description -- string : Option's description
+# Output:
+#       none.
+# Return:
+#       none.
+# Usage:
+#       Add_Option_Boolean <short> <long> <description>
+# Example:
+#       Add_Option_Boolean "d" "display" "Informative output only. Do not actually kill any process."
+#
+#######################################################################
 
 function Add_Option_Boolean() {
    Add_Option "Boolean" "" "$@"
 }
 
+#######################################################################
+#
+# Name:
+#       Add_Option_Entry
+# Description:
+#       Adds a full option entry.
+#
+#       An option of this type can assume only one value at a time,
+#       chosen among the pool of possible values.
+# Arguments:
+#       short       -- char   : Option's shortening
+#       long        -- string : Option's full name
+#       description -- string : Option's description
+#       default     -- string : Option's default value
+#       values      -- list   : Option's possible values
+# Output:
+#       none.
+# Return:
+#       none.
+# Usage:
+#       Add_Option_Entry <short> <long> <description> [<default> [<values>]]
+# Example:
+#       Add_Option_Entry "s" "same" "What to do when unpackaging over the same version." "ask" "keep remove ask cancel"
+#
+#######################################################################
+
 function Add_Option_Entry() {
+
+   # We can add entry options without a default value, in which case
+   # they don't have a list of possible values either.
    if [ "$4" ]
    then Add_Option "Entry" "$4" "$1" "$2" "$3" "$5"
    else Add_Option "Entry" "#@unset@#" "$1" "$2" "$3"
    fi 
 }
 
+#######################################################################
+#
+# Name: 
+#       Add_Option_List
+# Description:
+#       Adds an option of type list.
+#
+#       This is an option which can take a list of values instead of
+#       a single one.
+#       Note that list options are free to be anything, so they don't
+#       have any possible value defined.
+# Arguments:
+#       short       -- char   : Option's shortening
+#       long        -- string : Option's full name
+#       description -- string : Option's description
+#       default     -- string : Option's default value
+# Output:
+#       none.
+# Return:
+#       none.
+# Usage:
+#       Add_Option_List <shor> <long> <description> [<default>]
+# Example:
+#       Add_Option_List "s" "sandbox" "Colon-separated list of areas where the restricted user has write access to." "."
+#
+#######################################################################
+
 function Add_Option_List() {
+
+   # We can add list options without a default value.
    if [ "$4" ]
    then Add_Option "List" "$4" "$1" "$2" "$3"
    else Add_Option "List" "#@unset@#" "$1" "$2" "$3"
    fi 
 }
 
+#######################################################################
+#
+# Name: 
+#       Add_Argument
+# Description:
+#       Adds a new argument to our array of arguments.
+# Arguments:
+#       value -- string : The argument to be added
+# Output:
+#       none.
+# Return:
+#       none.
+# Usage:
+#       Add_Argument <value>
+# Example:
+#       Add Argument
+#
+#######################################################################
+
 function Add_Argument() {
    argumentsList[$argumentsListSize]="$1"
    argumentsListSize=$[argumentsListSize+1]
 }
 
-# Usage:   eval `Args_To_Array <array_name> [<from> [<to>]]`
-# Example: eval `Args_To_Array myArray 5`
-#          Returns an array called myArray containing Args 5 and up.
-# Example: eval `Args_To_Array myArray`
-#          Returns an array called myArray with all non-option arguments.
+#######################################################################
+#
+# Name:
+#       Args_To_Array
+# Description:
+#       Converts a space separated string of arguments to a bash array.
+#
+#       If the start (end) position is not specified, the array will
+#       start at the first (will end at the last) one.
+# Arguments:
+#       name -- string : Array's name
+#       from -- number : The argument to start from
+#       to   -- number : The argument to end to
+# Output:
+#       array : A bash array, starting from <from> and ending at <to>,
+#               in the format <name>=("arg<from>" "arg2" ... "arg<to>").
+# Return: 
+#       none.
+# Notes:
+#       Please note that this function only works on the arguments array, not
+#       taking into consideration options.
+#       Also note that this function is supposed to be evaluated, rather than
+#       being used directly.
+# Usage:
+#       eval `Args_To_Array <name> [<from> [<to>]]`
+# Example:
+#       eval `Args_To_Array myArray 5`
+#       Returns an array called myArray containing Args 5 and up.
+# Example:
+#       eval `Args_To_Array myArray`
+#       Returns an array called myArray with all non-option arguments.
+#
+#######################################################################
+
 function Args_To_Array() {
    name="$1"
-   if [ "$2" ]
+   
+   if [ "$2" ]  # start argument
    then start="$2"
    else start=1
    fi
-   if [ "$3" ]
+   
+   if [ "$3" ]  # end argument
    then length="$3"
    else length=$[argumentsListSize-1]
    fi
+   
+   # Print out the array.
    echo -n "$name=("
    for (( i=$start ; i<=$length ; i++ ))
    do
@@ -78,28 +291,95 @@ function Args_To_Array() {
    echo ")"
 }
 
+#######################################################################
+#
+# Name:
+#       Arg
+# Description:
+#       Returns the argument at the specified position.
+# Arguments:
+#       position -- number : Argument's position
+# Output:
+#       string : The argument at <position>, if in bounds, or an empty
+#                string otherwise.
+# Return:
+#       none.
+# Usage:
+#       Arg <position>
+# Example:
+#       Arg 3
+#
+#######################################################################
+
 function Arg() {
    if [ -z "$1" ]
    then Die "You need to specify which argument"
    fi
+
+   # Bounds check: 0 <= <position> < argumentsListSize.
    if [ $1 -lt 0 ] || [ $1 -ge $argumentsListSize ]
    then echo ""
    else echo "${argumentsList[$1]}"
    fi
 }
 
+#######################################################################
+#
+# Name:
+#       Number_Of_Arguments
+# Description:
+#       Prints the number of arguments.
+# Arguments:
+#       none.
+# Output:
+#       number : The number of arguments.
+# Return:
+#       none.
+# Usage:
+#       Number_Of_Arguments
+#
+#######################################################################
+
 function Number_Of_Arguments() {
    # $0 isn't considered an argument
    echo $[$argumentsListSize-1]
 }
 
+#######################################################################
+#
+# Name:
+#       Entry
+# Description:
+#       Checks whether a specific option of type 'Entry' exists in our list.
+# Arguments:
+#       name -- char/string : Option's shortening/full name
+# Output:
+#       string : The option's value.
+# Return:
+#       0 : The option exists.
+#       1 : The option exists without a value.
+#       2 : The option doesn't exist.
+# Usage:
+#       Entry <name>
+# Example:
+#       Entry "same"
+# Example:
+#       Entry "s"
+#
+#######################################################################
+
 function Entry() {
    local i
+   
+   # Loop through options.
    for i in `seq $optionsListSize`
    do
       if [ "$1" = "${optionsShortList[i]}" -o "$1" = "${optionsLongList[i]}" ]
       then
+         # We've found the option we're looking for, either its
+         # shortening or its full name.
          value="${optionsStateList[i]}"
+         
          if [ "$value" = "#@unset@#" ]
          then return 1
          else
@@ -108,33 +388,96 @@ function Entry() {
          fi
       fi
    done
+   # No option found.
    return 2
 }
 
+#######################################################################
+#
+# Name:
+#       Is_Entry_Set
+# Description:
+#       Checks whether the specified Entry option has a default value.
+# Arguments:
+#       name -- char/string : Option's shortening/full name
+# Output:
+#       none.
+# Return:
+#       0 : The option has a default value.
+#       1 : The option has no default value.
+#       2 : The option doesn't exist.
+# Usage:
+#       Is_Entry_Set <name>
+# Example:
+#       Is_Entry_Set "same"
+# Example:
+#       Is_Entry_Set "s"
+#
+#######################################################################
+
 function Is_Entry_Set() {
+   # Quiet suppresses output.
    Quiet Entry "$@"
 }
 
+#######################################################################
+#
+# Name:
+#       Is_Entry
+# Description:
+#       Checks whether it exists an Entry option with the specified
+#       name-value pair. The value can also be empty, in which case
+#       the option just has to exist.
+# Arguments:
+#       option  -- string : Option's name
+#       compare -- string : Option's value
+# Output:
+#       none.
+# Return:
+#       0 : The <option>-<compare> pair exists, or <option> has a
+#           default value.
+#       1 : The <option>-<compare> pair doesn't exist, or <option>
+#           has no default value.
+#       2 : <option> doesn't exist.
+# Usage:
+#       Is_Entry <option> [<compare>]
+# Example:
+#       Is_Entry "same" "ask"
+#
+# Example:
+#       Is_Entry "s" "ask"
+#
+#######################################################################
+
 function Is_Entry() {
+   # Name the first two parameters 'option' and 'compare'.
    Parameters "$@" option compare
+   
    local i
    if Is_Empty "$compare"
    then
+      # We don't want the option's value to be compared. Just search
+      # for an option with that name.
       Quiet Entry "$1"
       return $?
    fi
 
+   # Loop through options.
    for i in `seq $optionsListSize`
    do
       if [ "$option" = "${optionsShortList[i]}" -o "$option" = "${optionsLongList[i]}" ]
       then
+         # We've found the option we're looking for, either its
+         # shortening or its full name.
          value="${optionsStateList[i]}"
+         
          if [ "$value" = "$compare" ]
          then return 0
          else return 1
          fi
       fi
    done
+   # No option found.
    return 2
 }
 
@@ -149,27 +492,84 @@ function Forward_Boolean_Entry() {
    fi
 }
 
+#######################################################################
+#
+# Name:
+#       Boolean
+# Description:
+#       Checks if the specified boolean option exists and is active.
+# Arguments:
+#       name -- char/string : Option's shortening/full name
+# Ouput:
+#       none.
+# Return:
+#       0 : The option is active.
+#       1 : The option isn't active.
+#       2 : The option doesn't exist.
+# Usage:
+#       Boolean <name>
+# Example:
+#       Boolean "no-web"
+#
+#######################################################################
+
 function Boolean() {
    local i
+   
+   # Loop through options.
    for i in `seq $optionsListSize`
    do
       if [ "$1" = "${optionsShortList[i]}" -o "$1" = "${optionsLongList[i]}" ]
       then
+         # We've found the option we're looking for, either its
+         # shortening or its full name.
          if [ "${optionsStateList[i]}" = "on" ]
          then return 0
          else return 1
          fi
       fi
    done
+   # No option found.
    return 2
 }
 
+#######################################################################
+#
+# Name:
+#       Set_Boolean
+# Description:
+#       Set a boolean option to 'on' or 'off', as specified by the argument.
+#       Defaults to 'on' when no argument is present.
+# Arguments:
+#       name  -- char/string : Option's shortening/full name
+#       value -- string : Option's value.
+# Output:
+#       none.
+# Return:
+#       0 : The option was set correctly.
+#       2 : The option doesn't exist.
+# Notes:
+#       Note that, in fact, every other string other than 'on' will be
+#       interpreted as false by scripts.
+# Usage:
+#       Set_Boolean [<value>]
+# Example:
+#       Set_Boolean "batch" "on"
+# Example:
+#       Set_Boolean "batch"
+#
+#######################################################################
+
 function Set_Boolean() {
    local i
+   
+   # Loop through options.
    for i in `seq $optionsListSize`
    do
       if [ "$1" = "${optionsShortList[i]}" -o "$1" = "${optionsLongList[i]}" ]
       then
+         # We've found the option we're looking for, either its
+         # shortening or its full name.
          if [ "$2" ]
          then optionsStateList[i]="$2"
          else optionsStateList[i]="on"
@@ -177,19 +577,59 @@ function Set_Boolean() {
          return 0
       fi
    done
+   # No option found.
    return 2
 }
+
+#######################################################################
+#
+# Name:
+#       Show_Version
+# Description:
+#       Prints out a short "version" message.
+# Arguments:
+#       none.
+# Output:
+#       string : A short "version" message, consisting of name, version
+#                and credits for the script.
+# Return:
+#       none.
+# Usage:
+#       Show_Version
+#
+#######################################################################
 
 function Show_Version() {
    echo "$scriptName $scriptVersion"
    echo
+   # Credits might not exist.
    [ "$scriptCredits" ] && echo "$scriptCredits"
    exit 0
 }
 
+#######################################################################
+#
+# Name:
+#       Show_Help
+# Description:
+#       Prints out a short help.
+# Arguments:
+#       none.
+# Output:
+#       string : The script's help.
+# Return:
+#       0 : Everything went fine.
+# Usage:
+#       Show_Help
+#
+#######################################################################
+
 function Show_Help() {
    {
       local i
+
+      # Use the right commands and format when the help must be
+      # converted to man.
       if [ "$HELP2MAN" ]
       then
          local H2Mn=-n
@@ -199,30 +639,44 @@ function Show_Help() {
          local H2Mtab="    "
          local H2Mnotes="Notes:"
       fi
+      
+      # Print out a little description for the script,
+      # together with the usage.
       [ "$scriptDescription" ] && echo "$scriptDescription"
       echo
       echo -e "Usage: $scriptName $scriptUsage"
       echo
       echo "Options:"
+      
+      # Loop through options.
       for i in `seq $optionsListSize`
       do
+         # Indent and print the shortening, if any.
          echo -n "   "
          if [ ! -z "${optionsShortList[i]}" ]
          then
             echo -n " -${optionsShortList[i]}"
          fi
+         
+         # Put a comma to separate shortening and full name, if any.
          if [ ! -z "${optionsShortList[i]}" -a ! -z "${optionsLongList[i]}" ]
          then
             echo -n ","
          fi
+         
+         # Print the full name, if any.
          if [ ! -z "${optionsLongList[i]}" ]
          then
             echo -n " --${optionsLongList[i]}"
          fi
+         
+         # Different formats for different types of options.
          case "${optionsTypeList[i]}" in
          "Entry")
-            echo $H2Mn " <entry>"
-            echo -e "        ${optionsDescriptionList[i]}"
+            echo $H2Mn " <entry>"                          # synopsis
+            echo -e "        ${optionsDescriptionList[i]}" # description
+            
+            # Print out possible values, if any.
             if [ -n "${optionsValidStateList[i]}" ]
             then
                echo -n "        Valid entries are:"
@@ -232,6 +686,8 @@ function Show_Help() {
                done
                echo
             fi
+            
+            # Print out default value, if any.
             if [ "${optionsStateList[i]}" != "#@unset@#" ]
             then
                echo "        The default value is '${optionsStateList[i]}'."
@@ -239,8 +695,10 @@ function Show_Help() {
             $H2Mecho
             ;;
          "List")
-            echo $H2Mn " <entry>[:<entry>...]"
-            echo -e "        ${optionsDescriptionList[i]}"
+            echo $H2Mn " <entry>[:<entry>...]"             # synopsis
+            echo -e "        ${optionsDescriptionList[i]}" # description
+            
+            # Print out default value, if any.
             if [ "${optionsStateList[i]}" != "#@unset@#" ]
             then
                echo "        The default value is '${optionsStateList[i]}'."
@@ -249,31 +707,55 @@ function Show_Help() {
             ;;
          "Boolean")
             echo $H2Mn ""
-            echo -e "        ${optionsDescriptionList[i]}"
+            echo -e "        ${optionsDescriptionList[i]}" # description
             $H2Mecho
             ;;
          esac # esac is ridiculous.
       done
       echo
+      
+      # Print out notes for this script, if any.
       if [ "$scriptNotes" ]
       then
          echo "$H2Mnotes"
-         echo "$H2Mtab$scriptNotes"
+         echo "$H2Mtab$scriptNotes" # indentation
          echo
       fi
+      
+      # Print out examples for this script, if any.
       if [ "$scriptExample" ]
       then
          echo "Examples:"
          $H2Mecho
+         # Read every line of the example and print it indented.
          echo -e "$scriptExample" | while read line; do echo -e "$H2Mtab$scriptName $line"; done
          echo
       fi
-   } | fmt -sw "$COLUMNS"
+   } | fmt -sw "$COLUMNS" # format the help to be displayed inside $COLUMNS columns.
    exit 0
 }
 
+#######################################################################
+#
+# Name:
+#       List_Options
+# Description:
+#       Prints the list of options, in the format:
+#       -<shortening> --<full name>
+# Arguments:
+#       none.
+# Output:
+#       string : A list of the script's options.
+# Return:
+#       0 : Everything went fine.
+# Usage:
+#       List_Options
+#
+#######################################################################
+
 function List_Options() {
    local i
+   
    for ((i=1; i <= optionsListSize; i++))
    do
       echo -n "-${optionsShortList[i]} --${optionsLongList[i]} "
@@ -282,27 +764,72 @@ function List_Options() {
    exit 0
 }
 
+#######################################################################
+#
+# Name:
+#       Get_Parsed_Options
+# Description:
+#       Prints options passed to the script.
+# Arguments:
+#       none.
+# Output:
+#       list : Options passed to the script.
+# Return:
+#       none.
+# Usage:
+#       Get_Parsed_Options
+#
+#######################################################################
+
 function Get_Parsed_Options() {
    echo "${savedOptions[@]}"
 }
 
-function Parse_Options() {
-   Add_Argument "$0"
+#######################################################################
+#
+# Name:
+#       Parse_Options
+# Description:
+#       The actual parser. It parses options and arguments
+#       passed when invoking a script.
+# Arguments:
+#       $@ -- list : The list of parameters to be parsed, as passed to
+#                    the script.
+# Output:
+#       none.
+# Return:
+#       0 : Everything went fine.
+#       1 : Unknown option.
+# Usage:
+#       Parse_Options "$@"
+#
+#######################################################################
 
+function Parse_Options() {
+   # Make our array of arguments consistent with bash arrays numbering,
+   # which starts from 0.
+   # Otherwise parsedArguments[0] would be $1.
+   Add_Argument "$0"
+   
+   # Initially save all parameters as options.
    savedOptions=("$@")
-   # loop through all arguments
+   
+   # Loop through parameters.
    for (( i = 1; i <= $# ; i++ ))
    do
-      eval option=\${${i}}
+      # Get the current parameter.
+      eval option=\${${i}} 
       unknownOption=true
       if [ "${option:0:1}" = "-" ]
-      then # we have an option
+      # We have a possible option (-<something>)
+      then
          if [ "${option:1:1}" = "-" ]
-         then # a double dash so it should be a long option
+         # A double dash, so it should be a long option (--<something>)
+         then
             if [ -z "${option:2:1}" ]
             then
-               # it's a lonely double dash '--'.
-               # Consume all and stop parsing.
+               # It's a lonely double dash '--'. Take the rest as
+               # arguments and stop parsing.
                for (( j = i+1; j <= $# ; j++ ))
                do
                   eval option=\${${j}}
@@ -312,99 +839,116 @@ function Parse_Options() {
             fi
             if echo "$option" | grep -q = -
             then
-               # argument assignment with =
+               # Value assignment with =.
                opt=${option%%\=*}
             else
                opt=${option}
             fi
             export parsedArguments=$[parsedArguments+1]
 
-            # Go through the list of available options
+            # Loop through options.
             for j in `seq $optionsListSize`
             do
                if [ "$opt" = "--${optionsLongList[j]}" ]
                then
-                  # we found a valid (known) option
+                  # We've found a valid (known) option
                   unknownOption=false
                   case "${optionsTypeList[j]}" in
                   "Boolean")
+                     # Boolean options must be activated.
                      optionsStateList[j]="on"
                      ;;
                   "Entry"|"List")
                      if echo "$option" | grep -q = -
                      then
-                        # long option value assignment with =
+                        # Long option value assignment with =.
                         val=${option#*=}
                      else
-                        # else use next argument as value for the option
+                        # Else use next argument as value for the option.
                         i=$[i+1]
                         eval val=\${$i}
                         export parsedArguments=$[parsedArguments+1]
                      fi
                      if [ -n "${optionsValidStateList[j]}" ]
                      then
+                        # Not all values can be assigned to this option.
                         for avail in ${optionsValidStateList[j]}
                         do
                            if [ "${avail}" == "${val}" ]
                            then
+                              # The value is valid, add it to the array
+                              # and exit the loop.
                               optionsStateList[j]="${val}"
                               break 2
                            fi
                         done
+                        # The value is not valid, unfortunately.
                         Log_Error "Unknown entry '${val}' for option ${opt}"
                         exit 2
                      else
+                        # Whichever value is ok
                         optionsStateList[j]="${val}"
                      fi
                      ;;
                   esac
                   break
-               fi
-            done
+               fi # valid option
+            done # loop through options
+            
             if $unknownOption
             then
                Log_Error "Unknown option: $opt"
                exit 1
             fi
          else # double dash
-            # go through the string of short options
+            
+            # This is basically the same as before.
+            
+            # Loop through short options.
             for (( k = 1; k < ${#option} ; k++ ))
             do
                unknownOption=true
-               opt=${option:$k:1} # the character number k in the string
+               opt=${option:$k:1} # the k-th character in the string
+               
+               # Loop through available options.
                for j in `seq $optionsListSize`
                do
                   if [ "$opt" = "${optionsShortList[j]}" ]
                   then
-                     # we found a valid (known) option
+                     # We've found a valid (known) option.
                      unknownOption=false
                      case "${optionsTypeList[j]}" in
                      "Boolean")
+                        # Boolean options must be activated.
                         optionsStateList[j]="on"
                         break
                         ;;
                      "Entry"|"List")
                         if [ ! -z "${option:$[k+1]:1}" ]
                         then
-                           # if option is entry and next character in string isn't empty
-                           # use the rest of the string as value for the option
+                           # If option is Entry and the next character in string
+                           # isn't empty, use the rest of the string as value
+                           # for the option.
                            val=${option:$[k+1]:${#option}}
                         else
-                           # else use next option as value
+                           # Else use next parameter as value for the option.
                            i=$[i+1]
                            eval val=\$$i
                            export parsedArguments=$[parsedArguments+1]
                         fi
                         if [ -n "${optionsValidStateList[j]}" ]
                         then
+                           # Not all values can be assigned to this option.
                            for avail in ${optionsValidStateList[j]}
                            do
                               if [ "${avail}" == "${val}" ]
                               then
+                                 # The value is valid, add it to the array.
                                  optionsStateList[j]="${val}"
                                  break 3
                               fi
                            done
+                           # The value's not valid, unfortunately.
                            Log_Error "Unknown entry '${val}' for option ${opt}"
                            exit 2
                         else
@@ -413,8 +957,9 @@ function Parse_Options() {
                         fi
                         ;;
                      esac
-                  fi
-               done
+                  fi # valid option
+               done # loop through options
+               
                if $unknownOption
                then
                   Log_Error "Unknown option: -$opt"
@@ -422,12 +967,15 @@ function Parse_Options() {
                fi
             done
             export parsedArguments=$[parsedArguments+1]
-         fi
-      else # dash found
+         fi # dash found
+      else
+         # The parameter isn't an option.
          Add_Argument "$option"
       fi
    done
    
+   # These options are common to every script, so check for them directly
+   # after parsing.
    if Boolean "help"
    then Show_Help
    fi
@@ -445,6 +993,7 @@ function Parse_Options() {
    fi
 }
 
-Add_Option_Boolean "h" "help" "Shows this help."
+# Options for this parser.
+Add_Option_Boolean "h" "help" "Show this help."
 Add_Option_Boolean "" "version" "Show program version."
 Add_Option_Boolean "v" "verbose" "Enable verbose mode."
