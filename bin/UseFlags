@@ -14,7 +14,8 @@
 from PythonUtils import getGoboVariable
 import sys, os.path
 
-# A frozen set of the global set of flags (program=None, or any program with no special flags specified)
+# A frozen set of the global set of flags (program=None, or any program with
+# no special flags specified)
 global_use_flags_cache = None
 # A dict of program=>set of flags for each program that has been evaluated
 global_program_use_flags_cache = None
@@ -38,9 +39,10 @@ def UseFlags(program=None):
 		potentialflags = potentialFlags(recipedir)
 					
 	# When program is specified and a cached set is available, use it.
-	if program and global_program_use_flags_cache and program in global_program_use_flags_cache:
+	if (program and global_program_use_flags_cache and program in
+		global_program_use_flags_cache):
 		return global_program_use_flags_cache[program]
-	# When a program is *not* specified and a cached global set exists, use it.
+	# When a program is *not* specified and a cached global set exists, use it
 	elif global_use_flags_cache is not None and not program:
 		return global_use_flags_cache
 	# Otherwise, generate the set of flags now.
@@ -49,23 +51,26 @@ def UseFlags(program=None):
 		goboPrograms = getGoboVariable('goboPrograms')
 		flags = set()
 		# Import default use flags
-		if os.path.exists(goboPrograms + '/Scripts/Current/Data/SystemUseFlags.conf'):
-			f = open(goboPrograms + '/Scripts/Current/Data/SystemUseFlags.conf')
-			mergeFlags(flags, f, program)
+		if os.path.exists(goboPrograms +
+		'/Scripts/Current/Data/SystemUseFlags.conf'):
+			f = open(goboPrograms +
+				'/Scripts/Current/Data/SystemUseFlags.conf')
+			_mergeFlags(flags, f, program)
 			f.close()
 		# Import site-specific use flags
 		if os.path.exists(goboSettings + '/UseFlags.conf'):
 			f = open(goboSettings + '/UseFlags.conf')
-			mergeFlags(flags, f, program)
+			_mergeFlags(flags, f, program)
 			f.close()
-		# Flags set in the environment for a specific run of Compile are merged,
-		# and overwrite any previous specifications for the same flag.
+		# Flags set in the environment for a specific run of Compile are
+		# merged, and overwrite any previous specifications for the same flag.
 		if 'USE' in os.environ:
-			mergeFlags(flags, os.environ['USE'].split(), program)
-		# If program is specified, the flags should be saved in the program cache.
-		# Otherwise they are the global flags and can be saved there.
+			_mergeFlags(flags, os.environ['USE'].split(), program)
+		# If program is specified, the flags should be saved in the program
+		# cache. Otherwise they are the global flags and can be saved there.
 		if program:
-			if not global_program_use_flags_cache: global_program_use_flags_cache = dict()
+			if not global_program_use_flags_cache:
+				global_program_use_flags_cache = dict()
 			if potentialflags: flags.intersection_update(potentialflags)
 			flags = frozenset(flags)
 			global_program_use_flags_cache[program] = flags
@@ -83,7 +88,8 @@ def potentialFlags(recipedir):
 	import re
 	potentialflags = set()
 	flagre = re.compile('.*\[([^]]+)\].*')
-	for depfile in (recipedir+'/Resources/Dependencies', recipedir+'/Resources/BuildDependencies'):
+	for depfile in (recipedir+'/Resources/Dependencies',
+					recipedir+'/Resources/BuildDependencies'):
 		if os.path.exists(depfile):
 			for dep in open(depfile):
 				m = flagre.match(dep)
@@ -95,20 +101,26 @@ def potentialFlags(recipedir):
 	global_program_potential_flags_cache[recipedir] = potentialflags
 	return potentialflags
 
-def mergeFlags(flagSet, iterable, program=None):
-	"""Merges all the flag specifications from iterable into the set flagSet, relative to program if specified. Calls modifyFlagSetFromSpec for each element."""
+def _mergeFlags(flagSet, iterable, program=None):
+	"""Merges all the flag specifications from iterable into the set flagSet,
+	relative to program if specified. Calls _modifyFlagSetFromSpec for each
+	element."""
 	for spec in iterable:
-		modifyFlagSetFromSpec(spec.strip(), flagSet, program)
+		_modifyFlagSetFromSpec(spec.strip(), flagSet, program)
 		
-def modifyFlagSetFromSpec(specStr, flagSet, program=None):
+def _modifyFlagSetFromSpec(specStr, flagSet, program=None):
 	"""Update the set flagSet with the flag specification in specStr
 	Flag specifications are of the form [-+][a-z0-9]+|-*
-	Each flag specification may have a list of programs after it to which it applies. This list of programs can be separated by spaces or semicolons (space is preferred, semicolon is available for the USE environment variable's sake)."""
+	Each flag specification may have a list of programs after it to which it
+	applies. This list of programs can be separated by spaces or semicolons
+	(space is preferred, semicolon is available for the USE environment
+	variable's sake)."""
 	
 	# specComponents[0] wil be initialised with the flag itself, and [1:] will
 	# contain the list of programs it applies to.
 	specComponents = []
-	# Split by semicolons if present, to allow program-specific specifications in USE: USE="-bar;baz +foo;baz"
+	# Split by semicolons if present, to allow program-specific specifications
+	# in USE: USE="-bar;baz +foo;baz"
 	if ';' in specStr: specComponents = specStr.split(';')
 	# Otherwise, split by any whitespace.
 	else: specComponents = specStr.split()
@@ -117,7 +129,8 @@ def modifyFlagSetFromSpec(specStr, flagSet, program=None):
 	
 	# Apply this specification iff there is no program list, or there is and
 	# the given program is in it.
-	if len(specComponents) == 1 or (program and program in specComponents[1:]):
+	if len(specComponents) == 1 or (program
+		and program in specComponents[1:]):
 		if flagSpec == '-*': flagSet.clear()
 		elif flagSpec[0] == '-': flagSet.discard(flagSpec[1:])
 		elif flagSpec[0] == '+': flagSet.add(flagSpec[1:])
