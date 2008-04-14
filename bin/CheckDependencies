@@ -635,7 +635,7 @@ if __name__ == '__main__':
 		try:
 			if not sys.argv[1:]:
 				sys.argv[1:] = [ '--help' ]
-			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:l:p:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'quiet-progress', 'no-compatlist', 'cross-compile', 'file=', 'help', 'local-dirs=', 'gobo-programs'])
+			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:l:p:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'quiet-progress', 'no-compatlist', 'cross-compile', 'file=', 'help', 'local-dirs=', 'gobo-programs', 'no-prompt'])
 		except getopt.GetoptError, detail:
 			print sys.argv[0].split('/')[-1]+': '+str(detail)
 			sys.exit(1)
@@ -691,6 +691,8 @@ if __name__ == '__main__':
 				depfile = a
 			elif o == '--local-dirs' :
 				localdirs = a.split(',')
+			elif o == '--no-prompt' :
+				ask_if_install = None # This is a bit of a hack.
 			elif o in ['--gobo-programs', '-p']:
 				goboPrograms = a
 			elif o in ['--help', '-h']:
@@ -740,6 +742,8 @@ Options:
 
  -B
  --no-blacklist       Do not skip packages listed at Dependencies.blacklist
+
+ --no-prompt          Do not prompt to install anything
 
  --quiet-progress     Do not show progress indicator
 
