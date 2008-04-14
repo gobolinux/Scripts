@@ -113,15 +113,15 @@ def _modifyFlagSetFromSpec(specStr, flagSet, program=None):
 	Flag specifications are of the form [-+][a-z0-9]+|-*
 	Each flag specification may have a list of programs after it to which it
 	applies. This list of programs can be separated by spaces or semicolons
-	(space is preferred, semicolon is available for the USE environment
+	(space is preferred, @ is available for the USE environment
 	variable's sake)."""
 	
 	# specComponents[0] wil be initialised with the flag itself, and [1:] will
 	# contain the list of programs it applies to.
 	specComponents = []
-	# Split by semicolons if present, to allow program-specific specifications
-	# in USE: USE="-bar;baz +foo;baz"
-	if ';' in specStr: specComponents = specStr.split(';')
+	# Split by strudels if present, to allow program-specific specifications
+	# in USE: USE="-bar@baz +foo@baz"
+	if '@' in specStr: specComponents = specStr.split('@')
 	# Otherwise, split by any whitespace.
 	else: specComponents = specStr.split()
 	
