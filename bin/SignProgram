@@ -96,6 +96,8 @@ then
    Log_Normal "Re-packing signed $filepath ..."
    $sudo_exec mv $filepath $filepath.bk
    $sudo_exec tar -cjf $filepath -C$prefix $package/$version || Die "Error re-packing $filepath ($package $version)"
+   $sudo_exec chown --reference=$filepath.bk $filepath
+   $sudo_exec chmod --reference=$filepath.bk $filepath
    $sudo_exec rm -f $filepath.bk
    $sudo_exec rm -rf $prefix/$package
 fi
