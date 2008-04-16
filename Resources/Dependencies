@@ -1,1 +1,23 @@
-Glibc 2.3.2
+Bash
+Bzip2 # Archive
+CoreUtils
+DiffUtils # UpdateSettings
+File # Archive and CreateRootlessEnvironment
+FindUtils
+Fuse # UnionSandbox with FUSE
+Gawk
+Grep
+Gzip # Archive
+LZMA-Utils # Archive
+MkTemp
+Mtail # ColorMake
+Patch # UpdateSettings
+Perl # mkinitrd.pl
+Python
+Sed
+Sudo
+Tar # Archive
+Udev # UnionSandbox with FUSE
+UnionFS-Fuse # UnionSandbox with FUSE
+Unzip # Archive
+Util-Linux # sandboxes (mount)
