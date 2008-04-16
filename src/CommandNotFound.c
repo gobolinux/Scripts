@@ -26,22 +26,27 @@
 #endif
 
 void multiprogrammessage(char * executable, char * program, char * program2) {
-	fprintf(stderr, "The program '%s' is not currently installed.\nIt is available in the following packages:\n", executable);
+	fprintf(stderr, "The program '%s' is not currently installed.\n"
+	                "It is available in the following packages:\n",
+	                executable);
 	fprintf(stderr, " %s, %s", program, program2);
 	while (program2 = strtok(NULL, " "))
 		fprintf(stderr, ", %s", program2);
 	// The last program will include the newline in it, no need to be explicit
-	fprintf(stderr, "You can install one of these by typing (for example):\n InstallPackage %s\nor\n Compile %s\n", program, program);
+	fprintf(stderr, "You can install one of these by typing (for example):\n"
+                    " InstallPackage %s\nor\n Compile %s\n",
+                    program, program);
 }
 
 void singleprogrammessage(char * executable, char * program) {
-	fprintf(stderr, "The program '%s' is not currently installed.\nYou can install it by typing:\n", executable);
+	fprintf(stderr, "The program '%s' is not currently installed.\n"
+	                "You can install it by typing:\n", executable);
 	fprintf(stderr, " InstallPackage %sor\n Compile %s", program, program);
 }
 
 int foundexecutable(char * executable, char * target) {
 	// As the message output is different for multiple-program entries, read
-	// to check whether there is more than one and pass the data on accordingly
+	// to check whether there's more than one and pass the data on accordingly
 	char * program = strtok(NULL, " ");
 	char * program2 = strtok(NULL, " ");
 	if (NULL != program2)
@@ -55,7 +60,8 @@ int linsearch(FILE * fp, char * target, int lo, int hi) {
 	char entry [BUFLEN];
 	char * executable;
 	fseek(fp, lo, SEEK_SET);
-	// Unless we're right at the beginning, we're probably in the middle of a line, so skip it
+	// Unless we're right at the beginning, we're probably in the middle of a
+	// line, so skip it.
 	if (0 != lo)
 		fgets(entry, BUFLEN, fp);
 	// Perform a linear search from here to the upper bound of the range, and
@@ -71,11 +77,11 @@ int linsearch(FILE * fp, char * target, int lo, int hi) {
 }
 
 int binsearch(FILE * fp, char * target, int lo, int hi) {
-	int mid = lo + (hi-lo)/2;
+	int mid = lo + (hi - lo) / 2;
 	char entry [BUFLEN];
 	char * executable;
 	// Switch to a linear search when we're getting close, for the edge cases
-	if (hi-lo<LINEAR_SEARCH_THRESHOLD)
+	if (hi - lo < LINEAR_SEARCH_THRESHOLD)
 		return linsearch(fp, target, lo, hi);
 
 	// Jump to our current midpoint
@@ -98,18 +104,22 @@ int binsearch(FILE * fp, char * target, int lo, int hi) {
 int main(int argc, char **argv) {
 	FILE * fp;
 	if ((argc < 2) || (0 == strcmp("--help", argv[1]))) {
-		puts("Usage: CommandNotFound <command>\nIntended to be run automatically from shell hooks.");
+		puts("Usage: CommandNotFound <command>\n"
+		     "Intended to be run automatically from shell hooks.");
 		return 0;
 	}
 	// Stat for the filesize to initialise the binary search
 	struct stat st;
 	if (stat(DATAFILE, &st))
-		// If the file doesn't exist or isn't readable for some reason, just quit.
+		// If the file doesn't exist or isn't readable for some reason,
+		// just quit.
 		return 1;
 	
 	fp = fopen(DATAFILE, "r");
 	if (binsearch(fp, argv[1], 0, st.st_size)) {
-		fprintf(stderr, "The program '%s' is not currently installed, and no known package contains it.\n", argv[1]);
+		fprintf(stderr, "The program '%s' is not currently installed, and "
+		                "no known package contains it.\n",
+		                argv[1]);
 		fclose(fp);
 		return 1;
 	}
