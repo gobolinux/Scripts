@@ -677,7 +677,7 @@ function Install_Unmanaged_Files() {
       do
          local dname=$(dirname "${goboPrefix}/$line")
          mkdir -p "${dname}"
-         Quiet cp -af "${sourcedir}/${line}" "${dname}/"
+         Quiet cp -a "${sourcedir}/${line}" "${dname}/"
       done
       if grep -q "${goboModules}" "$unmanagedfilesfile"
       then 
