@@ -3,7 +3,7 @@
 # Gives information about the state of use flags
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -14,8 +14,8 @@
 from PythonUtils import getGoboVariable
 import sys, os.path
 
-# A frozen set of the global set of flags (program=None, or any program with
-# no special flags specified)
+# A frozen set of the global set of flags (program=None, or any program
+# with no special flags specified)
 global_use_flags_cache = None
 # A dict of program=>set of flags for each program that has been evaluated
 global_program_use_flags_cache = None
@@ -102,19 +102,23 @@ def potentialFlags(recipedir):
 	return potentialflags
 
 def _mergeFlags(flagSet, iterable, program=None):
-	"""Merges all the flag specifications from iterable into the set flagSet,
-	relative to program if specified. Calls _modifyFlagSetFromSpec for each
-	element."""
+	"""Merges all the flag specifications from iterable into the set
+	   flagSet, relative to program if specified. Calls
+	   _modifyFlagSetFromSpec for each element.
+	   """
 	for spec in iterable:
 		_modifyFlagSetFromSpec(spec.strip(), flagSet, program)
-		
+
 def _modifyFlagSetFromSpec(specStr, flagSet, program=None):
-	"""Update the set flagSet with the flag specification in specStr
-	Flag specifications are of the form [-+][a-z0-9]+|-*
-	Each flag specification may have a list of programs after it to which it
-	applies. This list of programs can be separated by spaces or semicolons
-	(space is preferred, @ is available for the USE environment
-	variable's sake)."""
+	"""Update the set flagSet with the flag specification in specStr.
+	   
+	   Flag specifications are of the form [-+][a-z0-9]+|-*
+	   
+	   Each flag specification may have a list of programs after it to
+	   which it applies. This list of programs can be separated by
+	   spaces or @ signs (space is preferred, @ is available for the
+	   USE environment variable's sake).
+	   """
 	
 	# specComponents[0] wil be initialised with the flag itself, and [1:] will
 	# contain the list of programs it applies to.
