@@ -11,7 +11,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import sys, os, os.path
+import sys
+import os
+import os.path
+
 from PythonUtils import getGoboVariable
 
 goboPrograms = getGoboVariable('goboPrograms')
@@ -24,22 +27,27 @@ if os.path.exists(path) and os.path.getsize(path) > 0:
 
 def out(s):
 	sys.stdout.write(s)
+
 def eout(s):
 	sys.stderr.write(s)
 
 changes = 0
 programs = os.listdir(goboPrograms)
 for prog in programs:
-	# Skip various problematic entries: local or non-installable program entries, renames and case changes
-	if "LocalScripts" == prog or 'LiveCD' == prog or 'Installer' == prog or 'LibUngif' == prog or 'Koffice' == prog or 'ESP-GhostScript' == prog:
+	# Skip various problematic entries: local or non-installable
+	# program entries, renames and case changes
+	if ("LocalScripts" == prog or 'LiveCD' == prog or 'Installer' == prog or
+		'LibUngif' == prog or 'Koffice' == prog or 'ESP-GhostScript' == prog):
 		continue
 	# Cover both executable directories
 	for dtype in ('bin', 'sbin'):
 		# Not all programs have executables
 		try:
-			executables = os.listdir('%s/%s/Current/%s' % (goboPrograms, prog, dtype))
+			executables = os.listdir('%s/%s/Current/%s' %
+			                         (goboPrograms, prog, dtype))
 			for ex in executables:
-				if os.path.isdir('%s/%s/Current/%s/%s' % (goboPrograms, prog, dtype, ex)):
+				if os.path.isdir('%s/%s/Current/%s/%s' %
+					             (goboPrograms, prog, dtype, ex)):
 					continue
 				if "." == ex[0] or "CVS" == ex or ex.endswith("~"):
 					continue
@@ -52,15 +60,16 @@ for prog in programs:
 						if vers.replace('.', '').isdigit():
 							continue
 					commands[ex] = []
-					eout("Adding executable %s\n"%(ex))
+					eout("Adding executable %s\n" % (ex))
 				if not prog in commands[ex]:
 					commands[ex].append(prog)
 					changes += 1
-					eout("Adding program %s for executable %s\n"%(prog, ex))
+					eout("Adding program %s for executable %s\n" % (prog, ex))
 		except OSError:
 			pass
 
-eout("Completed scan with %i change%s.\n"%(changes, changes!=1 and 's' or ''))
+eout("Completed scan with %i change%s.\n" %
+     (changes, changes != 1 and 's' or ''))
 if changes == 0:
 	eout("Nothing to do. No data saved.\n")
 	exit()
@@ -73,14 +82,17 @@ try:
 		sys.stdout = open(target, 'w')
 		eout("Will save data to %s\n"%(target))
 except IOError:
-	eout("No target supplied or target is not writable. Will dump to stdout.\n")
-	eout("Use AugmentCommandNotFoundDatabase <target file> to save to a file.\n")
-	eout("<target file> defaults to %s\n"%(path))
+	eout("No target supplied or target is not writable. "
+	     "Will dump to stdout.\n")
+	eout("Use AugmentCommandNotFoundDatabase <target file> "
+	     "to save to a file.\n")
+	eout("<target file> defaults to %s\n" % (path))
 	if sys.stdout.isatty():
 		eout("Press enter to continue...\n")
 		sys.stdin.readline()
 
-# Output data in sorted order so it's deterministic and amenable to short diffs when maintained in CVS.
+# Output data in sorted order so it's deterministic and amenable to
+# short diffs when maintained in SVN.
 executables = sorted(commands.keys())
 for ex in executables:
 	out(ex + ' ')
