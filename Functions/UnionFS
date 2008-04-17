@@ -1,4 +1,4 @@
-#!/bin/bash (source)
+	#!/bin/bash (source)
 
 # unionImplementation is defined in Scripts/Directories.conf
 
@@ -7,7 +7,7 @@ function Union_Backend() {
    for union in "${unionImplementations[@]}"
    do
       case "$union" in
-         "funionfs") grep -q "fuse" /proc/filesystems && fusermount -V &> /dev/null ;;
+         "funionfs") grep -q "fuse" /proc/filesystems && funionfs -V &> /dev/null ;;
          "unionfs") grep -q "unionfs" /proc/filesystems ;;
          "unionfs-fuse") grep -q "fuse" /proc/filesystems && unionfs -V &> /dev/null ;;
       esac
