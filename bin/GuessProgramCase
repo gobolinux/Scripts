@@ -41,7 +41,7 @@ look_in() {
       echo $program
    else 
       pushd $dir &> /dev/null
-      ds=`find . -maxdepth 1 -iname "$program" | cut -b3-`
+      ds=`find . -maxdepth 1 -iname "$program" 2> /dev/null | cut -b3-`
       popd &> /dev/null
       
       if [ `echo $ds | wc -w` = "1" ]
