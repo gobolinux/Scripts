@@ -29,6 +29,7 @@ CommandNotFound Scripts
 Compile Compile
 CompileProgram Scripts
 CompressAndBuildISO BuildLiveCD
+ContributeRecipe Compile
 ControlPanel Sun-JDK
 CreateInitRD Scripts
 CreatePackage Scripts

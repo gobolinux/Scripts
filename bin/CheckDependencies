@@ -115,7 +115,7 @@ def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False,
 			return [ localdep ]
 
 	elif t == 'local_package':
-		if not u or os.access(u, os.R_OK):
+		if not u or not os.access(u, os.R_OK):
 			ret = FindPackage(p, v, r, types=[t], availables=global_available_packages_cache, accessWeb=not noWeb)
 			if ret:
 				p,v,r,t,u = ret[0]
