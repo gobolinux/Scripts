@@ -48,6 +48,10 @@ function config_accepts_prefix() {
    grep -- "--prefix" "$configureprogram" &> /dev/null
 }
 
+function config_accepts_sysconfdir() {
+   grep -- "--sysconfdir" "$configureprogram" &> /dev/null
+}
+
 function build_change() {
    echo "/-L/!s/"$1"/"$2"/g;"
 }
@@ -261,11 +265,17 @@ then
       )
       cp -f ${goboSettings}/Compile/Cross/$cross_cache_file .
    fi
-elif config_accepts_prefix
+elif config_accepts_prefix && config_accepts_sysconfdir
 then
    Log_Normal "Non-autoconf configure script detected (accepts --prefix)."
    configure_options=(
       --prefix="$configureprefix"
+      --sysconfdir="$configuresettings"
+   )
+elif config_accepts_prefix
+then
+   configure_options=(
+      "${configure_options[@]}"
    )
 else
    configure_options=()
