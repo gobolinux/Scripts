@@ -265,18 +265,19 @@ then
       )
       cp -f ${goboSettings}/Compile/Cross/$cross_cache_file .
    fi
-elif config_accepts_prefix && config_accepts_sysconfdir
+elif config_accepts_prefix
 then
    Log_Normal "Non-autoconf configure script detected (accepts --prefix)."
    configure_options=(
       --prefix="$configureprefix"
-      --sysconfdir="$configuresettings"
    )
-elif config_accepts_prefix
-then
-   configure_options=(
-      "${configure_options[@]}"
-   )
+   if config_accepts_sysconfdir
+   then
+      configure_options=(
+         "${configure_options[@]}"
+         --sysconfdir="$configuresettings"
+      )
+   fi
 else
    configure_options=()
 fi
