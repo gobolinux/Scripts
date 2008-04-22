@@ -50,7 +50,7 @@ else
 fi
 if [ "$preexec_functions" ]
 then
-   precmd_functions=( "${preexec_functions[@]:#CommandNotFound_preexec}" )
+   preexec_functions=( "${preexec_functions[@]:#CommandNotFound_preexec}" )
 else
    preexec_functions=( preexec CommandNotFound_preexec )
 fi
