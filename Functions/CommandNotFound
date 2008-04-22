@@ -17,7 +17,9 @@ function CommandNotFound_preexec() {
    then
       if ! whence -- "$command" >& /dev/null
       then
-         $OPEN_COMMAND "$command" && exec zsh
+         # If it succeeds, suppress ZSH's default "command not found" message.
+         $OPEN_COMMAND "$command" && exec 2>/dev/null
+         command=
       fi
    fi
    # If there's an = in the first word (i.e. an environment variable
@@ -28,6 +30,7 @@ function CommandNotFound_preexec() {
 }
 
 function CommandNotFound_precmd() {
+   [ -z "$command" ] && [ "$OPEN_COMMAND" ] && exec 2>&1 # Restore stderr
    if [ $? -ne 0 ] && [ -n "$command" ]
    then
       whence -- "$command" >& /dev/null ||
