@@ -12,11 +12,10 @@ ifeq ($(IS_CYGWIN),yes)
    RM_EXE=-rm -f *.exe
 endif
 
-dynamic_exec = SuperUserName IsExecutable usleep LinkOrExpandAll List CommandNotFound
+dynamic_exec = SuperUserName IsExecutable usleep LinkOrExpandAll List CommandNotFound FindDependencies
 static_exec = RescueSymlinkProgram
-dynamic_libs = libDependencies
 
-all: $(dynamic_exec) $(static_exec) $(dynamic_libs)
+all: $(dynamic_exec) $(static_exec)
 
 install:
 	strip RescueSymlinkProgram
@@ -34,11 +33,6 @@ $(static_exec): %: %.c
 	@if [ -e "$@.exe" ]; then \
 		mv $@.exe $@; \
 	fi
-
-$(dynamic_libs): %: %.c
-	$(CC) $(MYFLAGS) -shared -Wl,-soname,$@.so.0.0.0 -o $@.so.0.0.0 $<; \
-	ln -sf $@.so.0.0.0 $@.so.0; \
-	ln -sf $@.so.0.0.0 $@.so \
 
 debug: MYCFLAGS = -g -DDEBUG
 debug: all
