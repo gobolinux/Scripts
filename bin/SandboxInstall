@@ -190,6 +190,7 @@ then
    if [ "$package" != "Python" -a -d Programs/Python ]
    then find Programs/Python -type f -name "*.pyc" -or -name "*.pyo" | xargs rm -f &> /dev/null
    fi
+   rm -f System/Settings/{passwd,passwd-,group,group-}
    rm -f System/Settings/mtab
    rm -f System/Kernel/Devices/null
    rm -f System/Kernel/Devices/tty
