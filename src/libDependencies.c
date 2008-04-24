@@ -5,10 +5,23 @@
  *
  * Released under the GNU GPL version 2.
  */
-#include "libDependencies.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <unistd.h>
+#include <limits.h>
+#include <libgen.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <dirent.h>
+#define _GNU_SOURCE
+#include <getopt.h>
+
+#include "LinuxList.h"
 
 static char * const currentString = "Current";
-static char * const goboPrograms = "/Programs";
+static char * goboPrograms;
 
 typedef enum {
 	GREATER_THAN,			// >
@@ -19,30 +32,46 @@ typedef enum {
 	LESS_THAN_OR_EQUAL,		// <=
 } operator_t;
 
+typedef enum {
+	LOCAL_PROGRAMS,
+	PACKAGE_STORE,
+	RECIPE_STORE,
+} repository_t;
+
 struct version {
 	char *version;			// version as listed in Resources/Dependencies
 	operator_t op;			// one of the operators listed above
 };
 
 struct parse_data {
-	char *workbuf;			// buffers the latest line read in Resources/Dependencies
+	char *workbuf;			// buffer from the latest line read in Resources/Dependencies
 	char *saveptr;			// strtok_r pointer for safe reentrancy
 	bool hascomma;			// cache if a comma was found glued together with the first version
 	char *depname;			// dependency name, as listed in Resources/Dependencies
 	struct version v1;		// first optional restriction operator
 	struct version v2;		// second optional restriction operator
 	char fversion[NAME_MAX];// final version after restrictions were applied.
+	char url[NAME_MAX];		// url to dependency, when using the FindPackage backend
 };
 
 struct list_data {
 	struct list_head list;	// link to the list on which we're inserted
-	char path[PATH_MAX];	// full path to dependency
+	char path[PATH_MAX];	// full url or path to dependency
+};
+
+struct search_options {
+	repository_t repository;
+	int help;
+	char *dependency;
+	char *depsfile;
 };
 
 bool MatchRule(char *candidate, struct version *v)
 {
 	if (*candidate == '.' || !strcmp(candidate, "Variable") || !strcmp(candidate, "Settings") || !strcmp(candidate, "Current"))
 		return false;
+	if (!v->version)
+		return true;
 	switch (v->op) {
 		case GREATER_THAN:
 			return strcmp(candidate, v->version) > 0 ? true : false;
@@ -77,7 +106,7 @@ bool GetCurrentVersion(struct parse_data *data)
 	snprintf(path, sizeof(path)-1, "%s/%s/Current", goboPrograms, data->depname);
 	ret = readlink(path, buf, sizeof(buf));
 	if (ret < 0) {
-		fprintf(stderr, "%s: %s, ignoring dependency.\n", path, strerror(errno));
+		fprintf(stderr, "WARNING: %s: %s, ignoring dependency.\n", path, strerror(errno));
 		return false;
 	}
 	buf[ret] = '\0';
@@ -97,7 +126,7 @@ char **GetVersionsFromReadDir(struct parse_data *data)
 	snprintf(path, sizeof(path)-1, "%s/%s", goboPrograms, data->depname);
 	dp = opendir(path);
 	if (! dp) {
-		fprintf(stderr, "%s: %s, ignoring dependency.\n", path, strerror(errno));
+		fprintf(stderr, "WARNING: %s: %s, ignoring dependency.\n", path, strerror(errno));
 		return NULL;
 	}
 	
@@ -123,17 +152,16 @@ char **GetVersionsFromReadDir(struct parse_data *data)
 	return versions;
 }
 
-char **GetVersionsFromList(struct parse_data *data)
+char **GetVersionsFromStore(struct parse_data *data, char *cmdline)
 {
-	char cmdline[PATH_MAX], buf[LINE_MAX];
+	char buf[LINE_MAX], url[LINE_MAX];
 	char **versions = NULL;
 	int num = 0;
 	FILE *fp;
 	
-	snprintf(cmdline, sizeof(cmdline), "FindPackage -t official_package --full-list %s", data->depname);
 	fp = popen(cmdline, "r");
 	if (! fp) {
-		fprintf(stderr, "%s: %s\n", cmdline, strerror(errno));
+		fprintf(stderr, "WARNING: %s: %s\n", cmdline, strerror(errno));
 		return NULL;
 	}
 
@@ -145,6 +173,7 @@ char **GetVersionsFromList(struct parse_data *data)
 		end = &buf[strlen(buf)-1];
 		if (*end == '\n')
 			*end = '\0';
+		strncpy(url, buf, sizeof(url));
 		name = basename(buf);
 		if (! name)
 			continue;
@@ -169,27 +198,100 @@ char **GetVersionsFromList(struct parse_data *data)
 			perror("realloc");
 			return NULL;
 		}
-		versions[num++] = strdup(version);
-		versions[num] = NULL;
+		/* use an empty character as separator from the version and the url */
+		versions[num] = (char *) calloc(strlen(version)+1+strlen(url)+1, sizeof(char));
+		memcpy(versions[num], version, strlen(version));
+		memcpy(versions[num]+strlen(version)+1, url, strlen(url));
+		versions[++num] = NULL;
 	}
 
 	pclose(fp);
 	return versions;
 }
 
-bool GetBestVersion(struct parse_data *data, bool searchpackages, bool searchlocalprograms)
+char **GetVersionsFromRecipeStore(struct parse_data *data)
 {
-	int i;
-	char *entry, latest[NAME_MAX];
-	char **versions = searchlocalprograms ? GetVersionsFromReadDir(data) : GetVersionsFromList(data);
+	char cmdline[PATH_MAX], buf[LINE_MAX], url[LINE_MAX];
+	char **versions = NULL;
+	int num = 0;
+	FILE *fp;
+	
+	snprintf(cmdline, sizeof(cmdline), "FindPackage -t recipe --full-list %s", data->depname);
+	fp = popen(cmdline, "r");
+	if (! fp) {
+		fprintf(stderr, "WARNING: %s: %s\n", cmdline, strerror(errno));
+		return NULL;
+	}
 
-	if (! versions)
+	while (! feof(fp)) {
+		char *name, *version, *end, *ptr;
+
+		if (! fgets(buf, sizeof(buf), fp))
+			break;
+		end = &buf[strlen(buf)-1];
+		if (*end == '\n')
+			*end = '\0';
+		strncpy(url, buf, sizeof(url));
+		name = basename(buf);
+		if (! name)
+			continue;
+
+		for (version=name; version < (end-1); version++) {
+			if (*version == '-' && *(version+1) == '-') {
+				version = version+2;
+				break;
+			}
+		}
+		for (ptr=version; ptr < (end-1); ptr++) {
+			if (*ptr == '-' && *(ptr+1) == '-') {
+				*ptr = '\0';
+				break;
+			}
+		}
+		if (num > 0 && !strcmp(versions[num-1], version))
+			continue;
+
+		versions = (char **) realloc(versions, (num+2) * sizeof(char*));
+		if (! versions) {
+			perror("realloc");
+			return NULL;
+		}
+		/* use an empty character as separator from the version and the url */
+		versions[num] = (char *) calloc(strlen(version)+1+strlen(url)+1, sizeof(char));
+		memcpy(versions[num], version, strlen(version));
+		memcpy(versions[num]+strlen(version)+1, url, strlen(url));
+		versions[++num] = NULL;
+	}
+
+	pclose(fp);
+	return versions;
+}
+bool GetBestVersion(struct parse_data *data, struct search_options *options)
+{
+	int i, latestindex = -1;
+	char *entry, **versions = NULL;
+	char latest[NAME_MAX], cmdline[PATH_MAX];
+	
+	if (options->repository == LOCAL_PROGRAMS) {
+		versions = GetVersionsFromReadDir(data);
+	} else if (options->repository == PACKAGE_STORE) {
+		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=official_package --full-list %s", data->depname);
+		versions = GetVersionsFromStore(data, cmdline);
+	} else if (options->repository == RECIPE_STORE) {
+		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=recipe --full-list %s", data->depname);
+		versions = GetVersionsFromStore(data, cmdline);
+	}
+
+	if (! versions) {
+		fprintf(stderr, "WARNING: no packages were found for dependency %s\n", data->depname);
 		return false;
+	}
 
 	memset(latest, 0, sizeof(latest));
 	for (i=0; versions[i]; i++) {
 		entry = versions[i];
 		if (MatchRule(entry, &data->v1) && RuleBestThanLatest(entry, latest)) {
+			latestindex = i;
 			strcpy(latest, entry);
 			continue;
 		}
@@ -206,6 +308,7 @@ bool GetBestVersion(struct parse_data *data, bool searchpackages, bool searchloc
 	for (i=0; versions[i]; i++) {
 		entry = versions[i];
 		if (MatchRule(entry, &data->v2) && RuleBestThanLatest(entry, latest)) {
+			latestindex = i;
 			strcpy(latest, entry);
 			continue;
 		}
@@ -216,18 +319,26 @@ bool GetBestVersion(struct parse_data *data, bool searchpackages, bool searchloc
 	data->fversion[sizeof(data->fversion)-1] = '\0';
 	strncpy(data->fversion, latest, sizeof(data->fversion)-1);
 out:
-	if (! latest[0])
-		fprintf(stderr, "No packages matching requirements were found, skipping dependency %s\n", data->depname);
+	if (! latest[0]) {
+		fprintf(stderr, "WARNING: No packages matching requirements were found, skipping dependency %s\n", data->depname);
+	} else if (options->repository == PACKAGE_STORE || options->repository == RECIPE_STORE) {
+		char *ptr = versions[latestindex] + strlen(versions[latestindex]) + 1;
+		strncpy(data->url, ptr, sizeof(data->url));
+	}
 	for (i=0; versions[i]; i++)
 		free(versions[i]);
 	free(versions);
 	return latest[0] ? true : false;
 }
 
-void ListAppend(struct list_head *head, struct parse_data *data)
+void ListAppend(struct list_head *head, struct parse_data *data, struct search_options *options)
 {
 	struct list_data *ldata = (struct list_data *) malloc(sizeof(struct list_data));
-	snprintf(ldata->path, sizeof(ldata->path), "%s/%s/%s", goboPrograms, data->depname, data->fversion);
+	if (options->repository == LOCAL_PROGRAMS) {
+		snprintf(ldata->path, sizeof(ldata->path), "%s/%s/%s", goboPrograms, data->depname, data->fversion);
+	} else {
+		snprintf(ldata->path, sizeof(ldata->path), "%s", data->url);
+	}
 	list_add_tail(&ldata->list, head);
 }
 
@@ -237,6 +348,7 @@ bool AlreadyInList(struct list_head *head, struct parse_data *data, char *depfil
 	if (list_empty(head))
 		return false;
 	list_for_each_entry(ldata, head, list) {
+		// XXX: fix 'Foo' / 'Foobar' false positives
 		if (strstr(ldata->path, data->depname)) {
 			printf("WARNING: '%s' is included twice in %s\n", data->depname, depfile);
 			return true;
@@ -295,9 +407,11 @@ void PrintRestrictions(struct parse_data *data)
 		printf(", %s %s", GetOperatorString(data->v2.op), data->v2.version);
 }
 
-bool ParseName(struct parse_data *data)
+bool ParseName(struct parse_data *data, struct search_options *options)
 {
 	data->depname = strtok_r(data->workbuf, " \t", &data->saveptr);
+	if (options->dependency && strcmp(data->depname, options->dependency))
+		return false;
 	return data->depname ? true : false;
 }
 
@@ -314,12 +428,17 @@ bool ParseVersion(struct parse_data *data, struct version *v)
 	return true;
 }
 
-bool ParseOperand(struct parse_data *data, struct version *v)
+bool ParseOperand(struct parse_data *data, struct version *v, struct search_options *options)
 {
 	char *ptr = strtok_r(NULL, " \t", &data->saveptr);
-	if (! ptr) {
-		// Only a program name without a version was supplied. Create symlinks for the View based on 'Current'.
+	if (! ptr && options->repository == LOCAL_PROGRAMS) {
+		// Only a program name without a version was supplied. Return version based on 'Current'.
 		return GetCurrentVersion(data);
+	} else if (! ptr) {
+		// Only a program name without a version was supplied. Take version from the most recent package available.
+		v->op = GREATER_THAN_OR_EQUAL;
+		v->version = NULL;
+		return true;
 	}
 	if (! strcmp(ptr, ">")) {
 		v->op = GREATER_THAN;
@@ -355,12 +474,12 @@ bool ParseComma(struct parse_data *data)
 	return strcmp(ptr, ",") == 0 ? true : false;
 }
 
-struct list_head *ParseDependencies(char *file, bool searchpackages, bool searchlocalprograms)
+struct list_head *ParseDependencies(struct search_options *options)
 {
 	int line = 0;
-	FILE *fp = fopen(file, "r");
+	FILE *fp = fopen(options->depsfile, "r");
 	if (! fp) {
-		fprintf(stderr, "%s: %s\n", file, strerror(errno));
+		fprintf(stderr, "WARNING: %s: %s\n", options->depsfile, strerror(errno));
 		return NULL;
 	}
 	struct list_head *head = (struct list_head *) malloc(sizeof(struct list_head));
@@ -387,27 +506,114 @@ struct list_head *ParseDependencies(char *file, bool searchpackages, bool search
 		}
 		data->workbuf = buf;
 
-		if (! ParseName(data) || AlreadyInList(head, data, file))
+		if (! ParseName(data, options) || AlreadyInList(head, data, options->depsfile)) {
+			free(data);
 			continue;
+		}
 
-		if (! ParseOperand(data, &data->v1))
+		if (! ParseOperand(data, &data->v1, options)) {
+			free(data);
 			continue;
+		}
 
 		if (! ParseComma(data)) {
-			if (GetBestVersion(data, searchpackages, searchlocalprograms))
-				ListAppend(head, data);
+			if (GetBestVersion(data, options))
+				ListAppend(head, data, options);
+			else
+				free(data);
 			continue;
 		}
 
-		if (! ParseOperand(data, &data->v2)) {
-			fprintf(stderr, "%s:%d: syntax error, ignoring dependency %s.\n", file, line, data->depname);
+		if (! ParseOperand(data, &data->v2, options)) {
+			fprintf(stderr, "WARNING: %s:%d: syntax error, ignoring dependency %s.\n", options->depsfile, line, data->depname);
+			free(data);
 			continue;
 		}
 
-		if (GetBestVersion(data, searchpackages, searchlocalprograms))
-			ListAppend(head, data);
+		if (GetBestVersion(data, options))
+			ListAppend(head, data, options);
+		else
+			free(data);
 	}
 
 	fclose(fp);
 	return head;
+}
+
+void usage(char *appname, int retval)
+{
+	fprintf(stderr, "Usage: %s [options] <Dependencies file>\n"
+			"Available options are:\n"
+			"  -d, --dependency=<dep>     Only process dependency 'dep' from the input file\n"
+			"  -r, --repository=<repo>    Specify which repository to use (local,package-store,recipe-store) [local]\n"
+			"  -h, --help                 This help\n", appname);
+	exit(retval);
+}
+
+int main(int argc, char **argv)
+{
+	int c, index;
+	struct list_head *deps;
+	struct search_options options;
+	char shortopts[] = "hd:r:";
+	struct option longopts[] = {
+		{"dependency",   1, NULL, 'd'},
+		{"repository",   1, NULL, 'r'},
+		{"help",         0, NULL, 'h'},
+		{0, 0, 0, 0}
+	};
+
+	goboPrograms = getenv("goboPrograms");
+	if (! goboPrograms) {
+		fprintf(stderr, "Please ensure to 'source GoboPath' before running this program.\n");
+		return 1;
+	}
+
+	memset(&options, 0, sizeof(options));
+	options.repository = LOCAL_PROGRAMS;
+
+	while ((c=getopt_long(argc, argv, shortopts, longopts, &index)) != -1) {
+		switch (c) {
+			case 0:
+			case '?':
+				break;
+			case 'd':
+				options.dependency = optarg;
+				break;
+			case 'r':
+				if (! strcasecmp(optarg, "package-store"))
+					options.repository = PACKAGE_STORE;
+				else if (! strcasecmp(optarg, "recipe-store"))
+					options.repository = RECIPE_STORE;
+				else if (! strcasecmp(optarg, "local"))
+					options.repository = LOCAL_PROGRAMS;
+				else {
+					fprintf(stderr, "Invalid value '%s' for --repository.\n", optarg);
+					usage(argv[0], 1);
+				}
+				break;
+			case 'h':
+				usage(argv[0], 0);
+				break;
+			default:
+				printf("invalid option '%c'\n", (int)c);
+				usage(argv[0], 1);
+		}
+	}
+
+	if (optind >= argc)
+		usage(argv[0], 1);
+
+	while (optind < argc) {
+		struct list_data *entry;
+		options.depsfile = argv[optind++];
+		//printf("*** %s ***\n", options.depsfile);
+		deps = ParseDependencies(&options);
+		if (!deps || list_empty(deps))
+			continue;
+		list_for_each_entry(entry, deps, list) {
+			printf("%s\n", entry->path);
+		}
+	}
+	return 0;
 }
