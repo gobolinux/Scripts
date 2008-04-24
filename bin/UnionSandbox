@@ -72,18 +72,21 @@ function cleanup() {
     # Clean up mountpoints
     umount "$sandbox_mp/$goboStatus"
     umount "$sandbox_mp/$goboDevices"
+    error=false
     For_Each_Reverse mapmounts '
        rhs=$(echo $each | cut -d= -f2)
-       umount ${sandbox_mp}$rhs || echo "Error unmounting ${sandbox_mp}${rhs}"
+       umount ${sandbox_mp}$rhs || { echo "Error unmounting ${sandbox_mp}${rhs}"; error=true; }
        '
     For_Each_Reverse bindmounts '
-       umount ${sandbox_mp}${each} || echo "Error unmounting ${sandbox_mp}${each}"
+       umount ${sandbox_mp}${each} || { echo "Error unmounting ${sandbox_mp}${each}"; error=true; }
        '
     For_Each_Reverse unionSandbox '
-       Union_Umount ${unionbackend} ${sandbox_mp}${each} || echo "Error unmounting ${sandbox_mp}${each}"
+       Union_Umount ${unionbackend} ${sandbox_mp}${each} || { echo "Error unmounting ${sandbox_mp}${each}"; error=true; }
        Quiet rmdir ${sandbox_mp}${each}
        Quiet rmdir ${sandbox_rw}${each}
        '
+    # Do not attempt to 'rm -rf' if some unmount failed.
+    [ "$error" = "true" ] && exit 1
 
     # Clean up legacy links
     rm -rf ${sandbox_mp}/usr
@@ -133,7 +136,7 @@ fi
 # Mount unionfs
 
 # unionfs doesn't follow bind-mounts, so we must mount everyone sitted on the top of /Programs
-bindprograms="`cat /proc/mounts | grep " /Programs" | grep -v union_mp.tmp | cut -d' ' -f2 | sed 's,.*Area-.*\(/\)\(.*/\)\(.*/\)\(.*\),/\2\3\4,g'`"
+bindprograms="`cat /proc/mounts | grep " /Programs\| /Files" | grep "Area-" | grep -v union_mp.tmp | cut -d' ' -f2 | sed 's,.*Area-.*\(/\)\(.*/\)\(.*/\)\(.*\),/\2\3\4,g'`"
 unionSandbox=( ${unionSandbox[@]} $bindprograms )
 if [ "$goboIndex" ]
 then unionSandbox=( ${unionSandbox[@]} "$goboIndex" )
