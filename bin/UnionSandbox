@@ -70,6 +70,14 @@ function cleanup() {
     fi
 
     # Clean up mountpoints
+
+    # unionfs-fuse keeps a few programs busy, so we need to make sure all ocurrences created by us are finished
+    for entry in $(ps xaw | awk {'print $1 " " $5'} | grep "unionfs" | grep ${sandbox_mp} | grep unionfs)
+    do
+       local pid=$(echo "$entry" | cut -d" " -f1)
+       local unionapp=$(echo $entry | cut -d" " -f2)
+       [ "$unionapp" = "unionfs" ] && echo "Killing pid $pid" && Quiet kill -9 $pid
+    done
     umount "$sandbox_mp/$goboStatus"
     umount "$sandbox_mp/$goboDevices"
     error=false
