@@ -220,6 +220,7 @@ if [ "$linklibraries" != "no" ]
 then
    Log_Normal "Symlinking libraries..."
    link_directory "$current/lib" "$goboLibraries" && {
+      Is_Real_Nonempty_Directory "${current}/lib/gtk-2.0" && Rebuild_GDK_Pixbuf_Loaders
       Log_Normal "Updating library database (ldconfig)..."
       [ -x $goboPrograms/Glibc/Current/sbin/ldconfig ] && Quiet $goboPrograms/Glibc/Current/sbin/ldconfig || Quiet ldconfig
       if [ -d "$current/lib" ]

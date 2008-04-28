@@ -86,6 +86,7 @@ Is_Real_Nonempty_Directory "${goboPrograms}/${programname}/Settings/gconf/schema
 Is_Real_Nonempty_Directory "${disabled}/Shared/applications" && Rebuild_Desktop_Database
 Is_Real_Nonempty_Directory "${disabled}/Shared/mime/packages" && Rebuild_MIME_Database
 Is_Real_Nonempty_Directory "${disabled}/Shared/fonts" && Rebuild_Font_Cache
+Is_Real_Nonempty_Directory "${disabled}/lib/gtk-2.0" && Rebuild_GDK_Pixbuf_Loaders
 Gen_Env_Cache
 
 
