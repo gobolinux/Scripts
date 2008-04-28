@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <ctype.h>
 #define _GNU_SOURCE
 #include <getopt.h>
 
@@ -66,6 +67,68 @@ struct search_options {
 	char *depsfile;
 };
 
+int VersionCmp(char *_candidate, char *_specified)
+{
+	char candidatestring[strlen(_candidate)+1];
+	char specifiedstring[strlen(_specified)+1];
+	strcpy(candidatestring, _candidate);
+	strcpy(specifiedstring, _specified);
+	char *candidate = candidatestring;
+	char *specified = specifiedstring;
+	int c, s, ret=0;
+
+	// for text-based versions just propagate retval from strcmp().
+	if (isalpha(candidate[0]) && isalpha(specified[0]))
+		return strcmp(candidate, specified);
+
+	while (*candidate && *specified) {
+		c = 0;
+		s = 0;
+		// consume strings until a '.' is found
+		while (c<strlen(candidate) && candidate[c] != '.')
+			c++;
+		while (s<strlen(specified) && specified[s] != '.')
+			s++;
+
+		if (c == 0 && s != 0)
+			return 1;
+		else if (c !=0 && s == 0)
+			return -1;
+		else if (c == 0 && s == 0)
+			return 0;
+
+		candidate[c] = 0;
+		specified[s] = 0;
+		if (strstr(candidate, "-r") || strstr(specified, "-r")) {
+			// compare 2 numbers where at least one of them has a revision string
+			char *cptr = strstr(candidate, "-");
+			char *sptr = strstr(specified, "-");
+			if (cptr)
+				*cptr = 0;
+			if (sptr)
+				*sptr = 0;
+			int a = atoi(candidate);
+			int b = atoi(specified);
+			ret = a == b ? 0 : (a > b) ? 1 : -1;
+			if (ret == 0) {
+				int revision_a = cptr ? atoi(cptr+2) : 0;
+				int revision_b = sptr ? atoi(sptr+2) : 0;
+				ret = revision_a == revision_b ? 0 : (revision_a > revision_b) ? 1 : -1;
+			}
+		} else {
+			// compare 2 numbers
+			int a = atoi(candidate);
+			int b = atoi(specified);
+			ret = a == b ? 0 : (a > b) ? 1 : -1;
+		}
+		if (ret > 0 || ret < 0)
+			break;
+		candidate = &candidate[++c];
+		specified = &specified[++s];
+	}
+	return ret;
+}
+
 bool MatchRule(char *candidate, struct version *v)
 {
 	if (*candidate == '.' || !strcmp(candidate, "Variable") || !strcmp(candidate, "Settings") || !strcmp(candidate, "Current"))
@@ -74,17 +137,17 @@ bool MatchRule(char *candidate, struct version *v)
 		return true;
 	switch (v->op) {
 		case GREATER_THAN:
-			return strcmp(candidate, v->version) > 0 ? true : false;
+			return VersionCmp(candidate, v->version) > 0 ? true : false;
 		case GREATER_THAN_OR_EQUAL:
-			return strcmp(candidate, v->version) >= 0 ? true : false;
+			return VersionCmp(candidate, v->version) >= 0 ? true : false;
 		case EQUAL: 
-			return strcmp(candidate, v->version) == 0 ? true : false;
+			return VersionCmp(candidate, v->version) == 0 ? true : false;
 		case NOT_EQUAL: 
-			return strcmp(candidate, v->version) != 0 ? true : false;
+			return VersionCmp(candidate, v->version) != 0 ? true : false;
 		case LESS_THAN: 
-			return strcmp(candidate, v->version) < 0 ? true : false;
+			return VersionCmp(candidate, v->version) < 0 ? true : false;
 		case LESS_THAN_OR_EQUAL:
-			return strcmp(candidate, v->version) <= 0 ? true : false;
+			return VersionCmp(candidate, v->version) <= 0 ? true : false;
 		default:
 			return false;
 	}
@@ -173,6 +236,10 @@ char **GetVersionsFromStore(struct parse_data *data, char *cmdline)
 		end = &buf[strlen(buf)-1];
 		if (*end == '\n')
 			*end = '\0';
+		if (buf[0] == '/') {
+			// FindPackage returned a local directory
+			continue;
+		}
 		strncpy(url, buf, sizeof(url));
 		name = basename(buf);
 		if (! name)
@@ -209,63 +276,6 @@ char **GetVersionsFromStore(struct parse_data *data, char *cmdline)
 	return versions;
 }
 
-char **GetVersionsFromRecipeStore(struct parse_data *data)
-{
-	char cmdline[PATH_MAX], buf[LINE_MAX], url[LINE_MAX];
-	char **versions = NULL;
-	int num = 0;
-	FILE *fp;
-	
-	snprintf(cmdline, sizeof(cmdline), "FindPackage -t recipe --full-list %s", data->depname);
-	fp = popen(cmdline, "r");
-	if (! fp) {
-		fprintf(stderr, "WARNING: %s: %s\n", cmdline, strerror(errno));
-		return NULL;
-	}
-
-	while (! feof(fp)) {
-		char *name, *version, *end, *ptr;
-
-		if (! fgets(buf, sizeof(buf), fp))
-			break;
-		end = &buf[strlen(buf)-1];
-		if (*end == '\n')
-			*end = '\0';
-		strncpy(url, buf, sizeof(url));
-		name = basename(buf);
-		if (! name)
-			continue;
-
-		for (version=name; version < (end-1); version++) {
-			if (*version == '-' && *(version+1) == '-') {
-				version = version+2;
-				break;
-			}
-		}
-		for (ptr=version; ptr < (end-1); ptr++) {
-			if (*ptr == '-' && *(ptr+1) == '-') {
-				*ptr = '\0';
-				break;
-			}
-		}
-		if (num > 0 && !strcmp(versions[num-1], version))
-			continue;
-
-		versions = (char **) realloc(versions, (num+2) * sizeof(char*));
-		if (! versions) {
-			perror("realloc");
-			return NULL;
-		}
-		/* use an empty character as separator from the version and the url */
-		versions[num] = (char *) calloc(strlen(version)+1+strlen(url)+1, sizeof(char));
-		memcpy(versions[num], version, strlen(version));
-		memcpy(versions[num]+strlen(version)+1, url, strlen(url));
-		versions[++num] = NULL;
-	}
-
-	pclose(fp);
-	return versions;
-}
 bool GetBestVersion(struct parse_data *data, struct search_options *options)
 {
 	int i, latestindex = -1;
@@ -286,7 +296,7 @@ bool GetBestVersion(struct parse_data *data, struct search_options *options)
 		fprintf(stderr, "WARNING: no packages were found for dependency %s\n", data->depname);
 		return false;
 	}
-
+	
 	memset(latest, 0, sizeof(latest));
 	for (i=0; versions[i]; i++) {
 		entry = versions[i];
