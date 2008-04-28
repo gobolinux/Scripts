@@ -35,6 +35,7 @@ typedef enum {
 
 typedef enum {
 	LOCAL_PROGRAMS,
+	LOCAL_DIRECTORY,
 	PACKAGE_STORE,
 	RECIPE_STORE,
 } repository_t;
@@ -65,6 +66,7 @@ struct search_options {
 	int help;
 	char *dependency;
 	char *depsfile;
+	char *searchdir;
 };
 
 int VersionCmp(char *_candidate, char *_specified)
@@ -215,7 +217,7 @@ char **GetVersionsFromReadDir(struct parse_data *data)
 	return versions;
 }
 
-char **GetVersionsFromStore(struct parse_data *data, char *cmdline)
+char **GetVersionsFromStore(struct parse_data *data, struct search_options *options, char *cmdline)
 {
 	char buf[LINE_MAX], url[LINE_MAX];
 	char **versions = NULL;
@@ -236,7 +238,7 @@ char **GetVersionsFromStore(struct parse_data *data, char *cmdline)
 		end = &buf[strlen(buf)-1];
 		if (*end == '\n')
 			*end = '\0';
-		if (buf[0] == '/') {
+		if (buf[0] == '/' && options->repository != LOCAL_DIRECTORY) {
 			// FindPackage returned a local directory
 			continue;
 		}
@@ -284,12 +286,15 @@ bool GetBestVersion(struct parse_data *data, struct search_options *options)
 	
 	if (options->repository == LOCAL_PROGRAMS) {
 		versions = GetVersionsFromReadDir(data);
+	} else if (options->repository == LOCAL_DIRECTORY) {
+		snprintf(cmdline, sizeof(cmdline), "bash -c \"ls %s/%s--*--*.tar.bz2 2> /dev/null\"", options->searchdir, data->depname);
+		versions = GetVersionsFromStore(data, options, cmdline);
 	} else if (options->repository == PACKAGE_STORE) {
 		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=official_package --full-list %s", data->depname);
-		versions = GetVersionsFromStore(data, cmdline);
+		versions = GetVersionsFromStore(data, options, cmdline);
 	} else if (options->repository == RECIPE_STORE) {
 		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=recipe --full-list %s", data->depname);
-		versions = GetVersionsFromStore(data, cmdline);
+		versions = GetVersionsFromStore(data, options, cmdline);
 	}
 
 	if (! versions) {
@@ -331,7 +336,7 @@ bool GetBestVersion(struct parse_data *data, struct search_options *options)
 out:
 	if (! latest[0]) {
 		fprintf(stderr, "WARNING: No packages matching requirements were found, skipping dependency %s\n", data->depname);
-	} else if (options->repository == PACKAGE_STORE || options->repository == RECIPE_STORE) {
+	} else if (options->repository != LOCAL_PROGRAMS) {
 		char *ptr = versions[latestindex] + strlen(versions[latestindex]) + 1;
 		strncpy(data->url, ptr, sizeof(data->url));
 	}
@@ -360,7 +365,7 @@ bool AlreadyInList(struct list_head *head, struct parse_data *data, char *depfil
 	list_for_each_entry(ldata, head, list) {
 		// XXX: fix 'Foo' / 'Foobar' false positives
 		if (strstr(ldata->path, data->depname)) {
-			printf("WARNING: '%s' is included twice in %s\n", data->depname, depfile);
+			fprintf(stderr, "WARNING: '%s' is included twice in %s\n", data->depname, depfile);
 			return true;
 		}
 	}
@@ -555,8 +560,12 @@ void usage(char *appname, int retval)
 	fprintf(stderr, "Usage: %s [options] <Dependencies file>\n"
 			"Available options are:\n"
 			"  -d, --dependency=<dep>     Only process dependency 'dep' from the input file\n"
-			"  -r, --repository=<repo>    Specify which repository to use (local,package-store,recipe-store) [local]\n"
-			"  -h, --help                 This help\n", appname);
+			"  -r, --repository=<repo>    Specify which repository to use: [local-programs]\n"
+			"        local-programs       look for packages under %s\n"
+			"        local-dir:<path>     look for packages/recipes under <path>\n"
+			"        package-store        look for packages in the package store\n"
+			"        recipe-store)        look for recipes in the recipe store\n"
+			"  -h, --help                 This help\n", appname, goboPrograms);
 	exit(retval);
 }
 
@@ -595,8 +604,13 @@ int main(int argc, char **argv)
 					options.repository = PACKAGE_STORE;
 				else if (! strcasecmp(optarg, "recipe-store"))
 					options.repository = RECIPE_STORE;
-				else if (! strcasecmp(optarg, "local"))
+				else if (! strcasecmp(optarg, "local-programs"))
 					options.repository = LOCAL_PROGRAMS;
+				else if (strstr(optarg, "local-dir:")) {
+					char *dir = strstr(optarg, ":") + 1;
+					options.repository = LOCAL_DIRECTORY;
+					options.searchdir = dir;
+				}
 				else {
 					fprintf(stderr, "Invalid value '%s' for --repository.\n", optarg);
 					usage(argv[0], 1);
@@ -606,7 +620,7 @@ int main(int argc, char **argv)
 				usage(argv[0], 0);
 				break;
 			default:
-				printf("invalid option '%c'\n", (int)c);
+				fprintf(stderr, "invalid option '%c'\n", (int)c);
 				usage(argv[0], 1);
 		}
 	}
