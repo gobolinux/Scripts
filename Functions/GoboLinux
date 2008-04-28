@@ -60,6 +60,14 @@ function Gen_Env_Cache() {
    echo -e "if [ \"\$unsetvars\" ]\nthen\n$unsetvars\nfi\n" >> "$cache"
 }
 
+function Rebuild_GDK_Pixbuf_Loaders() {
+if Executable_Exists_In_Path "gdk-pixbuf-query-loaders"
+then
+   loadersfile="${goboSettings}/gtk-2.0/gdk-pixbuf.loaders"
+   gdk-pixbuf-query-loaders | $sudo_exec dd of=${loadersfile}
+fi
+}
+
 function Rebuild_MIME_Database() {
 if Executable_Exists_In_Path "update-mime-database"
 then
