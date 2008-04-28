@@ -64,7 +64,7 @@ function Rebuild_GDK_Pixbuf_Loaders() {
 if Executable_Exists_In_Path "gdk-pixbuf-query-loaders"
 then
    loadersfile="${goboSettings}/gtk-2.0/gdk-pixbuf.loaders"
-   gdk-pixbuf-query-loaders | $sudo_exec dd of=${loadersfile}
+   gdk-pixbuf-query-loaders | $sudo_exec dd of=${loadersfile} 2> /dev/null
 fi
 }
 
