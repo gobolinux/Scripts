@@ -26,7 +26,7 @@ function CommandNotFound_preexec() {
    # set on the command line), just ignore this command completely.
    # Do the same when there's something weird with a variable name,
    # escapes, or quoting. They probably know what they're doing.
-   [ "$command" != "${command%%[\$=\\\"\'/]*}" ] && command=""
+   [ "$command" != "${command%%[\$~=\\\"\'/]*}" ] && command=""
 }
 
 function CommandNotFound_precmd() {
