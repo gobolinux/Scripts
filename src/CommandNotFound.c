@@ -66,7 +66,7 @@ int linsearch(FILE * fp, char * target, int lo, int hi) {
 		fgets(entry, BUFLEN, fp);
 	// Perform a linear search from here to the upper bound of the range, and
 	// hand off to foundexecutable() if the target is found.
-	while (ftell(fp) <= hi) {
+	while (ftell(fp) < hi) {
 		fgets(entry, BUFLEN, fp);
 		executable = strtok(entry, " ");
 		if (strcmp(executable, target) == 0)
