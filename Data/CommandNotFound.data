@@ -53,6 +53,7 @@ FetchArchive Compile
 FiboSandbox Scripts
 FilterColors Scripts
 FilterLines Scripts
+FindDependencies Scripts
 FindPackage Scripts
 FindQuick Scripts
 FixAttributes Scripts
@@ -106,6 +107,7 @@ MonitorWharf AfterStep
 MouseInfo ConfigTools
 MultiGrep Scripts
 NamingConventions Scripts
+NetInterfaces ConfigTools
 NewVersion Compile
 NoRecipe Scripts
 PackRecipe Compile
@@ -157,10 +159,12 @@ WinCommand AfterStep
 WinList AfterStep
 WinTabs AfterStep
 X Xorg
+Xdmx Xorg
 Xnest Xorg
 Xorg Xorg
 Xorgo Xorgo
 Xpm2Jpg AfterStep
+Xprt Xorg
 Xtest Xtest
 Xvfb Xorg
 [ CoreUtils
@@ -289,6 +293,7 @@ astile AfterStep
 asvector AfterStep
 asview AfterStep
 ata_id Udev
+ath_info Madwifi
 athchans Madwifi
 athctrl Madwifi
 athdebug Madwifi
@@ -601,6 +606,14 @@ dmesg Util-Linux
 dmp TeTeX
 dmraid Dmraid
 dmsetup Device-Mapper
+dmxaddinput Xorg
+dmxaddscreen Xorg
+dmxreconfig Xorg
+dmxresize Xorg
+dmxrminput Xorg
+dmxrmscreen Xorg
+dmxtodmx Xorg
+dmxwininfo Xorg
 dnsdomainname Net-Tools
 dnssec-keygen Bind
 dnssec-signzone Bind
@@ -900,10 +913,10 @@ gftp GFTP
 gftp-gtk GFTP
 gftp-text GFTP
 gftype TeTeX
-ghc GHC
-ghc-pkg GHC
-ghci GHC
-ghcprof GHC
+ghc GHC GHC-Bin
+ghc-pkg GHC GHC-Bin
+ghci GHC GHC-Bin
+ghcprof GHC GHC-Bin
 gif2epsn Giflib
 gif2ps Giflib
 gif2rgb Giflib
@@ -1276,7 +1289,7 @@ hal-lock HAL
 hal-set-property HAL
 hald HAL
 halt Sysvinit
-hasktags GHC
+hasktags GHC GHC-Bin
 hdifftopam Netpbm
 hdparm Hdparm
 head CoreUtils
@@ -1293,11 +1306,13 @@ hostid CoreUtils
 hostname CoreUtils Net-Tools
 hotplug Hotplug
 hotshot2calltree KDE-SDK
-hp2ps GHC
+hp2ps GHC GHC-Bin
+hpc GHC-Bin
 hpcdtoppm Netpbm
 hpftodit Groff
 hpijs Hpijs
-hsc2hs GHC
+hsc2hs GHC GHC-Bin
+hsc2hs-ghc GHC-Bin
 htcacheclean HTTPD
 htdbm HTTPD
 htdig HtDig
@@ -1519,6 +1534,7 @@ kbugbuster KDE-SDK
 kbuildsycoca KDE-Libs
 kbxutil GnuPG
 kcachegrind KDE-SDK
+kcalc KDE-Utils
 kcharselect KDE-Utils
 kchart KOffice
 kcheckpass KDE-Base
@@ -1899,6 +1915,7 @@ lneato Graphviz
 lnkforward KDE-Addons
 lnusertemp KDE-Libs
 loadkeys KBD
+loadndisdriver NDISwrapper
 loadunimap KBD
 locale Glibc
 localedef Glibc
@@ -1941,6 +1958,23 @@ lua Lua
 luac Lua
 luit Xorg
 lupdate Qt
+lvchange LVM2
+lvconvert LVM2
+lvcreate LVM2
+lvdisplay LVM2
+lvextend LVM2
+lvm LVM2
+lvmchange LVM2
+lvmdiskscan LVM2
+lvmdump LVM2
+lvmsadc LVM2
+lvmsar LVM2
+lvreduce LVM2
+lvremove LVM2
+lvrename LVM2
+lvresize LVM2
+lvs LVM2
+lvscan LVM2
 lwresd Bind
 lx200_16 KDE-Edu
 lx200autostar KDE-Edu
@@ -2190,6 +2224,8 @@ ncftpput NcFTP
 ncftpspooler NcFTP
 ncurses5-config Ncurses
 ndisasm Nasm
+ndiswrapper NDISwrapper
+ndiswrapper-buginfo NDISwrapper
 neato Graphviz
 neon-config Neon
 neotoppm Netpbm
@@ -2275,6 +2311,10 @@ ntpq NTP
 ntptime NTP
 ntptrace NTP
 ntsc-cc Xawtv
+nvidia-bug-report.sh Nvidia
+nvidia-installer Nvidia
+nvidia-settings Nvidia
+nvidia-xconfig Nvidia
 objcopy BinUtils
 objdump BinUtils
 objdump86 Bin86
@@ -2340,6 +2380,7 @@ oxdvi TeTeX
 pack200 Sun-JDK
 pack_cis Pcmcia-CS
 package_crystalsvg KDE-SDK
+pagein OpenOffice
 pal2rgb TIFF
 palette Icon
 palmtopnm Netpbm
@@ -2780,6 +2821,14 @@ purple-send-async Pidgin
 purple-url-handler Pidgin
 pv PV
 pv.sh ESP-Ghostscript GNU-Ghostscript Ghostscript
+pvchange LVM2
+pvcreate LVM2
+pvdisplay LVM2
+pvmove LVM2
+pvremove LVM2
+pvresize LVM2
+pvs LVM2
+pvscan LVM2
 pwcat Gawk
 pwck Shadow
 pwconv Shadow
@@ -2847,8 +2896,6 @@ readlink CoreUtils
 readprofile Util-Linux
 real_install CoreUtils
 realplay RealPlayer
-realplay.bak RealPlayer
-realplay.bin RealPlayer
 reboot Sysvinit
 recode-sr-latin Gettext
 record Xawtv
@@ -2935,8 +2982,8 @@ rumakeindex TeTeX
 run-with-aspell Aspell
 run_qtparted QtParted
 rundig HtDig
-runghc GHC
-runhaskell GHC
+runghc GHC GHC-Bin
+runhaskell GHC GHC-Bin
 runit Runit
 runit-init Runit
 runlevel Sysvinit
@@ -3130,6 +3177,7 @@ sshfs SSHFS
 startGroovy Groovy
 startGroovy.bat Groovy
 start_kdeinit KDE-Libs
+start_kdeinit_wrapper KDE-Libs
 startkde KDE-Base
 startup.jar Eclipse
 startx Xorg
@@ -3387,7 +3435,26 @@ v4lctl Xawtv
 v4ldriver KDE-Edu
 v4lphilips KDE-Edu
 vdir CoreUtils
+vdltodmx Xorg
 vftovp TeTeX
+vgcfgbackup LVM2
+vgcfgrestore LVM2
+vgchange LVM2
+vgck LVM2
+vgconvert LVM2
+vgcreate LVM2
+vgdisplay LVM2
+vgexport LVM2
+vgextend LVM2
+vgimport LVM2
+vgmerge LVM2
+vgmknodes LVM2
+vgreduce LVM2
+vgremove LVM2
+vgrename LVM2
+vgs LVM2
+vgscan LVM2
+vgsplit LVM2
 vi Vim
 vib Icon
 vidmode Util-Linux
@@ -3531,12 +3598,13 @@ xdeview UUDeview
 xditview Xorg
 xdm Xorg
 xdmshell Xorg
+xdmx Xorg
+xdmxconfig Xorg
 xdpr Xorg
 xdpyinfo Xorg
 xdriinfo Xorg
 xdt-autogen XFCE4-Dev-Tools
 xdvi TeTeX
-xdvi-motif.bin TeTeX
 xdvizilla TeTeX
 xedit Xorg
 xev Xorg
