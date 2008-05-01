@@ -49,7 +49,8 @@ for prog in programs:
 				if os.path.isdir('%s/%s/Current/%s/%s' %
 					             (goboPrograms, prog, dtype, ex)):
 					continue
-				if "." == ex[0] or "CVS" == ex or ex.endswith("~"):
+				if ("." == ex[0] or "CVS" == ex or ex.endswith("~")
+					or ex.endswith('.bin') or ex.endswith(".bak")):
 					continue
 				if not ex in commands:
 					(base, sep, vers) = ex.rpartition('-')
