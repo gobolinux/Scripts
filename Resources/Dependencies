@@ -13,6 +13,7 @@ MkTemp
 Mtail # ColorMake
 Patch # UpdateSettings
 Perl # mkinitrd.pl
+Procps # UnionSandbox (ps)
 Python
 Sed
 Sudo
