@@ -46,12 +46,7 @@ then
    prefix=$goboTemp
    [ -d $prefix/$package/$version ] && rm -rf $prefix/$package/$version
    Log_Normal "Unpacking $filepath at $prefix..."
-   tar -C$prefix -xvjf $filepath
-   if [ -w "$bn" ]
-   then
-      sudo_exec=""
-      sudo_validate=""
-   fi
+   $sudo_exec tar -C$prefix -xvjf $filepath || Die "Unpacking $filepath failed!"
    [ -d $prefix/$package/$version ] || Die "Error unpacking $filepath ($package $version)"
 else
    package=`GuessProgramCase $(Arg 1) $(Arg 2)`
