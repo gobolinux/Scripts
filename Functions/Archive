@@ -46,7 +46,8 @@ function needs_archiver() {
 function Unpack_Archive() {
    # Unfortunatly Parameters can't assign the "tail"
    #Parameters "$@" archive targetdirectory force files
-   local archive=$1; shift;
+   local archive=${1##*/};
+   local path=${1%/*}; shift;
    local targetdirectory=$1; shift;
    local force=$1; shift;
    local files="${@}"
@@ -54,54 +55,54 @@ function Unpack_Archive() {
    case `Get_Archive_Format "${archive}"` in
    tarbzip)
       ( needs_archiver "tar+bzip" bunzip && needs_archiver "tar+bzip" tar ) || return 2
-      bunzip --keep --decompress --stdout "${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      bunzip --keep --decompress --stdout "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
       ;;
    tarbzip2)
       ( needs_archiver "tar+bzip2" bunzip2 && needs_archiver "tar+bzip2" tar ) || return 2
-      bunzip2 --keep --decompress --stdout "${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      bunzip2 --keep --decompress --stdout "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
       ;;
    targzip)
       ( needs_archiver "tar+gzip" gunzip && needs_archiver "tar+gzip" tar ) || return 2
-      gunzip --decompress --stdout "${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      gunzip --decompress --stdout "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
       ;;
    tarlzma)
       ( needs_archiver "tar+lzma" lzma && needs_archiver "tar+lzma" tar ) || return 2
-      lzma --stdout --decompress --keep "${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      lzma --stdout --decompress --keep "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
       ;;
    tarcompress)
       ( needs_archiver "tar+compress" compress && needs_archiver "tar+compress" tar ) || return 2
-      tar --extract -Z --verbose --file "${archive}" ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      tar --extract -Z --verbose --file "${path}/${archive}" ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
       ;;
    bzip) 
       needs_archiver "bzip" bunzip || return 2
-      bunzip --decompress --keep --stdout "${archive}" > "${targetdirectory}/${archive%%.bz}"
+      bunzip --decompress --keep --stdout "${path}/${archive}" > "${targetdirectory}/${archive%%.bz}"
       ;;
    bzip2)
       needs_archiver "bzip2" bunzip2 || return 2
-      bunzip2 --decompress --keep --stdout "${archive}" > "${targetdirectory}/${archive%%.bz2}"
+      bunzip2 --decompress --keep --stdout "${path}/${archive}" > "${targetdirectory}/${archive%%.bz2}"
       ;;
    gzip)
       needs_archiver "gzip" gzip || return 2
-      gunzip --decompress --keep --stdout "${archive}" > "${targetdirectory}/${archive%%.gz}"
+      gunzip --decompress --stdout "${path}/${archive}" > "${targetdirectory}/${archive%%.gz}"
       ;;
    tar)
       needs_archiver "tar" tar || return 2
-      tar --extract --verbose --file "${archive}" ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      tar --extract --verbose --file "${path}/${archive}" ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
       ;; 
    lzma)
       needs_archiver "lzma" lzma || return 2
-      lzma --decompress --keep --stdout "${archive}" > "${targetdirectory}/${archive%%.lzma}"
+      lzma --decompress --keep --stdout "${path}/${archive}" > "${targetdirectory}/${archive%%.lzma}"
       ;;
    cpio)
       needs_archiver "cpio" cpio || return 2
-      cpio --extract --make-directories ${force:+--unconditional} -I "${archive}" ${files:+--pattern-file=<(echo "${files[@]}" | sed 's/\ /\n/g')}
+      cpio --extract --make-directories ${force:+--unconditional} -I "${path}/${archive}" ${files:+--pattern-file=<(echo "${files[@]}" | sed 's/\ /\n/g')}
       ;;
    zip)
       needs_archiver "zip" unzip || return 2
-      unzip ${force:+-o} "${archive}" ${files:+${files[@]}} ${targetdirectory:+-d "${targetdirectory}"}
+      unzip ${force:+-o} "${path}/${archive}" ${files:+${files[@]}} ${targetdirectory:+-d "${targetdirectory}"}
       ;;
    *)
-      Log_Error "Unknown format: ${archive}"
+      Log_Error "Unknown format: ${path}/${archive}"
       return 3
       ;;
    esac
