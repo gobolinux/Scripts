@@ -203,6 +203,7 @@ afterstepdoc AfterStep
 agetty Util-Linux
 airport OpenMotif
 akregator KDE-PIM
+albumart-qt Albumart
 aleph TeTeX
 alien Alien Perl-Alien
 allcm TeTeX
@@ -290,6 +291,7 @@ asscale AfterStep
 assistant Qt
 astext AfterStep
 astile AfterStep
+asunder Asunder
 asvector AfterStep
 asview AfterStep
 ata_id Udev
@@ -407,6 +409,7 @@ ccmake CMake
 ccmakedep Imake Xorg
 ccomps Graphviz
 cdda2wav CDRTools
+cddb_query LibCDDB
 cdparanoia Cdparanoia-III
 cdrdao CDRDAO
 cdrecord CDRTools
@@ -456,9 +459,11 @@ compare ImageMagick
 compile_et E2FSProgs
 composeglyphs A2PS
 composite ImageMagick
+config_data Perl-Module-Build
 conjure ImageMagick
 convert ImageMagick
 convertfonts WindowMaker
+corelist Perl-Module-CoreList
 cp CoreUtils
 cpack CMake
 cpan Perl
@@ -736,6 +741,7 @@ extensionproxy KDE-Base
 extract LibExtractor
 extractattr KDE-SDK
 extractrc KDE-SDK
+eyeD3 EyeD3
 eyuvtoppm Netpbm
 factor CoreUtils
 faillog Shadow
@@ -1167,6 +1173,7 @@ gphoto2-config LibGPhoto2
 gphoto2-port-config LibGPhoto2
 gpm GPM
 gpm-root GPM
+gpodder GPodder
 gprof BinUtils
 grandr GRandR
 grap2graph Groff
@@ -1220,28 +1227,28 @@ gst-complete GStreamer
 gst-complete-0.8 GStreamer
 gst-compprep GStreamer
 gst-compprep-0.8 GStreamer
-gst-feedback GStreamer
-gst-feedback-0.10 GStreamer
+gst-feedback GST-Core GStreamer
+gst-feedback-0.10 GST-Core GStreamer
 gst-feedback-0.8 GStreamer
-gst-inspect GStreamer
-gst-inspect-0.10 GStreamer
+gst-inspect GST-Core GStreamer
+gst-inspect-0.10 GST-Core GStreamer
 gst-inspect-0.8 GStreamer
-gst-launch GStreamer
-gst-launch-0.10 GStreamer
+gst-launch GST-Core GStreamer
+gst-launch-0.10 GST-Core GStreamer
 gst-launch-0.8 GStreamer
 gst-md5sum GStreamer
 gst-md5sum-0.8 GStreamer
 gst-register GStreamer
 gst-register-0.8 GStreamer
-gst-typefind GStreamer
-gst-typefind-0.10 GStreamer
+gst-typefind GST-Core GStreamer
+gst-typefind-0.10 GST-Core GStreamer
 gst-typefind-0.8 GStreamer
-gst-visualise-0.10 GStreamer
-gst-xmlinspect GStreamer
-gst-xmlinspect-0.10 GStreamer
+gst-visualise-0.10 GST-Plugins-Base GStreamer
+gst-xmlinspect GST-Core GStreamer
+gst-xmlinspect-0.10 GST-Core GStreamer
 gst-xmlinspect-0.8 GStreamer
-gst-xmllaunch GStreamer
-gst-xmllaunch-0.10 GStreamer
+gst-xmllaunch GST-Core GStreamer
+gst-xmllaunch-0.10 GST-Core GStreamer
 gst-xmllaunch-0.8 GStreamer
 gsx GNU-Ghostscript Ghostscript
 gtbl Groff
@@ -1419,6 +1426,7 @@ ioport Xorg
 ior-decode-2 ORBit2
 ipcrm Util-Linux
 ipcs Util-Linux
+iperf IPERF
 ipsec Openswan
 ipw3945d IPW3945d
 irb Ruby
@@ -1857,6 +1865,7 @@ last Sysvinit
 lastb Sysvinit
 lastlog Shadow
 latex TeTeX
+latex2html LaTeX2HTML
 lazy Lazy
 lbxproxy Xorg
 ld BinUtils
@@ -1986,7 +1995,18 @@ lynx Lynx
 lyx LyX Lyx
 lyxclient LyX
 lz MTools
+lzcat LZMA-Utils
+lzcmp LZMA-Utils
+lzdiff LZMA-Utils
+lzegrep LZMA-Utils
 lzf LibLZF
+lzfgrep LZMA-Utils
+lzgrep LZMA-Utils
+lzless LZMA-Utils
+lzma LZMA-Utils
+lzmadec LZMA-Utils
+lzmainfo LZMA-Utils
+lzmore LZMA-Utils
 m4 M4
 macptopbm Netpbm
 mag TeTeX
@@ -2343,6 +2363,10 @@ odvicopy TeTeX
 odvips TeTeX
 odvitype TeTeX
 ofm2opl TeTeX
+ogg123 Vorbis-Tools
+oggdec Vorbis-Tools
+oggenc Vorbis-Tools
+ogginfo Vorbis-Tools
 ogonkify A2PS
 oil-bugreport LibOIL
 oldfuser Psmisc
@@ -2598,6 +2622,7 @@ pinfo Pinfo
 ping InetUtils Netkit-Base
 pinky CoreUtils
 pivot_root Util-Linux
+pixeltool Qt
 pjtoppm Netpbm
 pk2bm TeTeX
 pkg-config Pkgconfig
@@ -2674,9 +2699,10 @@ pod2html Perl
 pod2latex Perl
 pod2man Perl
 pod2text Perl
-pod2usage Perl
-podchecker Perl
-podselect Perl
+pod2usage Perl Perl-Pod-Parser
+podchecker Perl Perl-Pod-Parser
+podselect Perl Perl-Pod-Parser
+podtohtml Perl-PodToHTML
 policytool Sun-JDK
 pooltype TeTeX
 populate-dock.sh Kiba-Dock
@@ -2779,7 +2805,7 @@ procinfo Procinfo
 profiles Samba
 progman Wine
 propwatch Xawtv
-prove Perl
+prove Perl Perl-Test-Harness
 proxymngr Xorg
 prune Graphviz
 pruneemptydirs KDE-SDK
@@ -2807,10 +2833,13 @@ pslatex TeTeX
 psmandup A2PS
 pspell-config Aspell
 psset A2PS
+pstoimg LaTeX2HTML
 pstopnm Netpbm
 pstree Psmisc
 pstree.x11 Psmisc
 pstruct Perl
+ptar Perl-Archive-Tar
+ptardiff Perl-Archive-Tar
 pth-config PTH
 ptx CoreUtils
 pumount Pmount
@@ -2850,10 +2879,15 @@ qalc LibQalculate
 qalculate Qalculate-KDE
 qalculate-kde Qalculate-KDE
 qcset QC-USB-Messenger
+qdbus Qt
+qdbuscpp2xml Qt
+qdbusviewer Qt
+qdbusxml2cpp Qt
 qm2ts Qt
 qmake Qt
 qmpdclient QMPDClient
 qrttoppm Netpbm
+qt3to4 Qt
 qtconfig Qt
 qtdoc KDE-SDK
 qtparted QtParted
@@ -2875,6 +2909,11 @@ raw2tiff TIFF
 raw_mouseinfo ConfigTools
 rawtopgm Netpbm
 rawtoppm Netpbm
+rbqtapi Qt4-QtRuby
+rbqtsh Qt4-QtRuby
+rbrcc Qt4-QtRuby
+rbuic4 Qt4-QtRuby
+rcc Qt
 rcp InetUtils
 rcs-checkin Emacs
 rcs2log CVS
@@ -3008,6 +3047,7 @@ sbase OpenOffice
 sbigccd KDE-Edu
 sbigtopgm Netpbm
 scalc OpenOffice
+scandeps.pl Perl-Module-ScanDeps
 scanpci Xorg
 sccmap Graphviz
 scdaemon GnuPG
@@ -3198,7 +3238,9 @@ sulogin Sysvinit
 sum CoreUtils
 superkaramba KDE-Utils
 svgakeymap SVGALib
+svk SVK
 svlogd Runit
+svm Perl-SVN-Mirror
 svn Subversion
 svn-clean KDE-SDK
 svn2dist KDE-SDK
@@ -3246,6 +3288,7 @@ taskcoach.pyw TaskCoach
 tbl Groff
 tcdialog TeTeX
 tclsh Tcl
+tclsh8.4 Tcl
 tclsh8.5 Tcl
 tdbbackup Samba
 tdbdump Samba
@@ -3270,6 +3313,7 @@ texconfig-sys TeTeX
 texdoc TeTeX
 texdoctk TeTeX
 texexec TeTeX
+texexpand LaTeX2HTML
 texfind TeTeX
 texfont TeTeX
 texhash TeTeX
@@ -3369,6 +3413,7 @@ udevsettle Udev
 udevtest Udev
 udevtrigger Udev
 uic Qt
+uic3 Qt
 uil Lesstif OpenMotif
 ul Util-Linux
 ulockmgr_server Fuse
@@ -3390,6 +3435,7 @@ units Units
 unix-lpr.sh ESP-Ghostscript GNU-Ghostscript Ghostscript
 unix_chkpwd Linux-PAM
 unlink CoreUtils
+unlzma LZMA-Utils
 unopkg OpenOffice
 unpack200 Sun-JDK
 unrar RAR
@@ -3434,6 +3480,7 @@ v4l-info Xawtv
 v4lctl Xawtv
 v4ldriver KDE-Edu
 v4lphilips KDE-Edu
+vcp Perl-VCP-Autrijus
 vdir CoreUtils
 vdltodmx Xorg
 vftovp TeTeX
@@ -3475,6 +3522,7 @@ visudo Sudo
 vmstat Procps
 vol_id Udev
 volname Eject
+vorbiscomment Vorbis-Tools
 vptovf TeTeX
 vte VTE
 w Procps
@@ -3534,6 +3582,7 @@ winicontoppm Netpbm
 winpopup-install.sh KDE-Network
 winpopup-send.sh KDE-Network
 wish Tk
+wish8.4 Tk
 wish8.5 Tk
 wkdemenu.pl WindowMaker
 wlanconfig Madwifi
@@ -3651,6 +3700,7 @@ xfwp Xorg
 xgamma Icon Xorg
 xgc Xorg
 xgettext Gettext
+xgettext.pl Perl-Locale-Maketext-Lexicon
 xglock Xlockmore
 xglyph T1Lib
 xhost Xorg
