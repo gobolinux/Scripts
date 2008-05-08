@@ -253,7 +253,7 @@ def getPackedLocalPackages(directory, d = None):
 	if directory and directory[-1] != '/':
 		directory = directory + '/'
 
-	if not d:
+	if d == None:
 		d = KeyInsensitiveDict()
 
 	if not os.path.isdir(directory):
@@ -285,7 +285,7 @@ def getVersionsFromList(file, d = None):
 		lines = f.readlines()
 		f.close()
 
-		if not d:
+		if d == None:
 			d = KeyInsensitiveDict()
 	except Exception, e:
 		Log_Terse("Cannot open %s - %s\nRemove it to have it rebuilt."%(file,str(e)),"GetAvailable")
@@ -304,7 +304,7 @@ def getVersionsFromPackagesList(file, path_prefix = '', d = None):
 	if path_prefix and path_prefix[-1] != '/':
 		path_prefix = path_prefix + '/'
 
-	if not d:
+	if d == None:
 		d = KeyInsensitiveDict()
 
 	try:
@@ -336,7 +336,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 	if 'recipe' in types:
 		compileRecipeDirs, getRecipeStores = getCompileOptions()
 
-	if not availables:
+	if availables == None:
 		availables = {}
 
 	if 'installed' in types:
