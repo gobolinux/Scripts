@@ -143,7 +143,7 @@ def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False,
 		# searches local recipes first
 		compileRecipeDirs, getRecipeStores = getCompileOptions()
 		for compileRecipeDir in compileRecipeDirs:
-			recipedir=compileRecipeDir+'/'+p+'/'+v+'/'
+			recipedir=compileRecipeDir+'/'+p+'/'+Join_Version_Revision(v,r)+'/'
 			if os.access(recipedir+'Recipe', os.R_OK):
 				if no_builddeps:
 					return [ recipedir+'/Resources/Dependencies' ]
