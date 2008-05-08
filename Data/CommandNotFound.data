@@ -1392,6 +1392,7 @@ imlib2_view Imlib2
 imlib_config IMLib
 import ImageMagick
 importasmenu AfterStep
+in.tftpd TFTP-HPA
 inb Xorg
 includemocs KDE-SDK
 indent Indent
@@ -3332,7 +3333,7 @@ textmode SVGALib
 texutil TeTeX
 tfmtodit Groff
 tftopl TeTeX
-tftp InetUtils
+tftp InetUtils TFTP-HPA
 tgatoppm Netpbm
 tgz MTools
 thinkjettopbm Netpbm
