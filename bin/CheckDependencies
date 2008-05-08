@@ -506,10 +506,13 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 # This function is used when mode == 'convert'
 #  simple implementation for now
 #
-def ConvertRecipeToBinary(p, v, r, t, u):
+def ConvertRecipeToBinary(p, v, r, t, u, depfile):
 	global global_dependencies_blacklist
 	global_dependencies_blacklist = []
-	rules = get_rules_for(p, v, r, t, u, noWeb=True, no_compatlist=True, no_builddeps=True)
+	if depfile:
+		rules = get_rules_of_files([depfile])
+	else:
+		rules = get_rules_for(p, v, r, t, u, noWeb=True, no_compatlist=True, no_builddeps=True)
 	goboPrograms = getGoboVariable('goboPrograms')
 	ret = ''
 	for rule in rules:
@@ -791,7 +794,7 @@ Examples of usage:
 		if mode == 'list':
 			print ListDependencies(p,v,r,t,u,types=types,recursive=recursive,hook=progress_hook,noWeb=noWeb,cross_compile=cross_compile, depfile=depfile, goboPrograms=goboPrograms, localdirs=localdirs)
 		elif mode == 'convert':
-			print ConvertRecipeToBinary(p,v,r,t,u),
+			print ConvertRecipeToBinary(p, v, r, t, u, depfile=depfile),
 		else:
 			rules, matches = get_all_dependencies_and_matches_for(p, v, r, t, u, types, mode=mode, recursive=recursive,
 			                     noWeb=noWeb, hook=progress_hook, add_self=add_self, ask_hook=ask_if_install,
