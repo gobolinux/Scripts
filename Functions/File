@@ -282,8 +282,9 @@ for line in sys.stdin:
          print line, 'has been modified!'
          errors+=1
    except:
-      print line, 'not found in hashfile'
-      errors+=1
+      if not os.path.islink(line):
+         print line, 'not found in hashfile'
+         errors+=1
 
 for missing in file_checksums:
    print missing, 'is missing'
