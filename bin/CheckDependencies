@@ -199,7 +199,7 @@ def interpret_dependency_line(line, t=None, cross_compile=False, flags=None):
 		if ((m.group(8) == 'cross' and not cross_compile) or (m.group(8) == '!cross' and cross_compile)):
 			return
 		# Group 9 is use flags
-		if m.group(9) and flags:
+		if m.group(9) and flags is not None:
 			# If none of the listed flags are enabled, skip this dependency
 			if not reduce(lambda inc,flag: inc and inc or flag in flags, m.group(9).split(','), False):
 				return
@@ -231,10 +231,9 @@ def interpret_dependency_line(line, t=None, cross_compile=False, flags=None):
 			if ((m.group(4) == 'cross' and not cross_compile) or (m.group(4) == '!cross' and cross_compile)):
 				return
 			# Group 5 is use flags
-			if m.group(5):
-				progFlags = UseFlags(m.group(1))
+			if m.group(5) and flags is not None:
 				# If none of the listed flags are enabled, skip this dependency
-				if not reduce(lambda inc,flag: inc and inc or flag in progFlags, m.group(5).split(','), False):
+				if not reduce(lambda inc,flag: inc and inc or flag in flags, m.group(5).split(','), False):
 					return
 
 			ret = {'program'    : m.group(1),
