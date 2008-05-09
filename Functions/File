@@ -143,7 +143,7 @@ function Gen_FileHash() {
    # Below may seem odd.  We can't just Verify_Superuser script because
    # gpg must run as normal user.
    Quiet pushd "$file_prefix"
-   $sudo_exec env SUDO_OK=1 ListProgramFiles --files "$file_prefix" | $sudo_exec python -c """#
+   $sudo_exec env SUDO_OK=1 ListProgramFiles --files --links "$file_prefix" | $sudo_exec python -c """#
 import sys, os, os.path, sha
 
 def sha1sum_string(data):
@@ -157,7 +157,7 @@ def sha1sum_file(filename):
    f.close()
    return sha1sum_string(data)
 
-print 'GoboLinux FileHash, version 2.0, SHA-1'
+print 'GoboLinux FileHash, version 2.1, SHA-1'
 
 for line in sys.stdin:
    line = line.split('\n')[0]
@@ -224,7 +224,7 @@ function Check_FileHash() {
    local rtn
    Quiet pushd "$prefix"
    $sudo_validate || sudo_exec=""
-   $sudo_exec ListProgramFiles --files "$prefix" | grep -v "$cleanhashfilename" | $sudo_exec python -c """#
+   $sudo_exec ListProgramFiles --files --links "$prefix" | grep -v "$cleanhashfilename" | $sudo_exec python -c """#
 import re, os, string, os.path, sys
 
 import sha
@@ -249,7 +249,10 @@ hashes = file(hashfile, 'r')
 lines = hashes.readlines()
 
 version = 1
-if lines[0] == 'GoboLinux FileHash, version 2.0, SHA-1\n':
+if lines[0] == 'GoboLinux FileHash, version 2.1, SHA-1\n':
+   version = 2.1
+   lines = lines[1:]
+elif lines[0] == 'GoboLinux FileHash, version 2.0, SHA-1\n':
    version = 2
    lines = lines[1:]
 elif lines[0].startswith('GoboLinux FileHash'):
@@ -270,9 +273,11 @@ for line in sys.stdin:
    try:
       line = line.split('\n')[0]
       good_sum = file_checksums[line]
+      if not good_sum:
+         raise Exception
       if version == 1:
          test_sum = sha1sum_file(line)
-      elif version == 2:
+      elif version >= 2:
          if os.path.islink(line):
             test_sum = sha1sum_string(os.readlink(line))
          else:
@@ -282,7 +287,7 @@ for line in sys.stdin:
          print line, 'has been modified!'
          errors+=1
    except:
-      if not os.path.islink(line):
+      if version == 2.1 or not os.path.islink(line):
          print line, 'not found in hashfile'
          errors+=1
 

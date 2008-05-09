@@ -11,7 +11,8 @@ scriptDescription="List files from a program in a 'clean' way, skipping some fil
 scriptCredits="Copyright (C) 2006. Released under the GNU GPL."
 helpOnNoArguments=yes
 scriptUsage="<program> [<version>] | <version_directory>"
-Add_Option_Boolean "f" "files" "List files only (equivalent to -type f in 'find')"
+Add_Option_Boolean "f" "files" "List files (equivalent to -xtype f in 'find')"
+Add_Option_Boolean "l" "links" "List links (equivalent to -type l in 'find')"
 Add_Option_Boolean "p" "path" "Return full path, including the programs directory"
 Add_Option_Boolean "n" "null" "Separate files with null instead of newline."
 Parse_Options "$@"
@@ -37,7 +38,14 @@ else
 fi
 
 unset type
-Boolean "files" && type="-xtype f"
+if Boolean "files" && Boolean "links"
+then type="( -type f -or -type l )"
+elif Boolean "files"
+then type="-xtype f"
+elif Boolean "links"
+then type="-type l"
+fi
+
 if Boolean "path"
 then
    cd "${programpath%/$program/$version}"
