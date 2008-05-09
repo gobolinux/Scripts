@@ -198,17 +198,21 @@ def interpret_dependency_line(line, t=None, cross_compile=False, flags=None):
 			return
 		if ((m.group(8) == 'cross' and not cross_compile) or (m.group(8) == '!cross' and cross_compile)):
 			return
+		activeflags = frozenset()
 		# Group 9 is use flags
 		if m.group(9) and flags is not None:
 			# If none of the listed flags are enabled, skip this dependency
-			if not reduce(lambda inc,flag: inc and inc or flag in flags, m.group(9).split(','), False):
+			activeflags = frozenset(m.group(9).split(',')).intersection(flags)
+			if not activeflags:
 				return
+			
 		ret = {'program'    : m.group(1),
 		       'loincluded' : True,
 		       'lover'      : '',
 		       'hiver'      : '',
 		       'hiincluded' : True,
-		       'optional'   : True }
+		       'optional'   : True,
+		       'activeflags': activeflags }
 		for i in [2, 5]:
 			op = m.group(i)
 			if not op:
@@ -230,10 +234,13 @@ def interpret_dependency_line(line, t=None, cross_compile=False, flags=None):
 				return
 			if ((m.group(4) == 'cross' and not cross_compile) or (m.group(4) == '!cross' and cross_compile)):
 				return
+
+			activeflags = frozenset()
 			# Group 5 is use flags
-			if m.group(5) and flags is not None:
+			if flags is not None and m.group(5):
+				activeflags = frozenset(m.group(5).split(',')).intersection(flags)
 				# If none of the listed flags are enabled, skip this dependency
-				if not reduce(lambda inc,flag: inc and inc or flag in flags, m.group(5).split(','), False):
+				if not activeflags:
 					return
 
 			ret = {'program'    : m.group(1),
@@ -241,7 +248,8 @@ def interpret_dependency_line(line, t=None, cross_compile=False, flags=None):
 			       'loincluded' : True,
 			       'hiver'      : '',
 			       'hiincluded' : False,
-			       'optional'   : True }
+			       'optional'   : True,
+			       'activeflags': activeflags}
 			if t == 'recipe':
 				ret['lover'] = ''
 		elif line.startswith('['):
