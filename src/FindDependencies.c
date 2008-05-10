@@ -64,6 +64,7 @@ struct list_data {
 struct search_options {
 	repository_t repository;
 	int help;
+	int quiet;
 	char *dependency;
 	char *depsfile;
 	char *searchdir;
@@ -298,7 +299,8 @@ bool GetBestVersion(struct parse_data *data, struct search_options *options)
 	}
 
 	if (! versions) {
-		fprintf(stderr, "WARNING: no packages were found for dependency %s\n", data->depname);
+		if (! options->quiet)
+			fprintf(stderr, "WARNING: no packages were found for dependency %s\n", data->depname);
 		return false;
 	}
 	
@@ -335,7 +337,8 @@ bool GetBestVersion(struct parse_data *data, struct search_options *options)
 	strncpy(data->fversion, latest, sizeof(data->fversion)-1);
 out:
 	if (! latest[0]) {
-		fprintf(stderr, "WARNING: No packages matching requirements were found, skipping dependency %s\n", data->depname);
+		if (! options->quiet)
+			fprintf(stderr, "WARNING: No packages matching requirements were found, skipping dependency %s\n", data->depname);
 	} else if (options->repository != LOCAL_PROGRAMS) {
 		char *ptr = versions[latestindex] + strlen(versions[latestindex]) + 1;
 		strncpy(data->url, ptr, sizeof(data->url));
@@ -527,6 +530,7 @@ struct list_head *ParseDependencies(struct search_options *options)
 		}
 
 		if (! ParseOperand(data, &data->v1, options)) {
+			fprintf(stderr, "WARNING: %s:%d: syntax error, ignoring dependency %s.\n", options->depsfile, line, data->depname);
 			free(data);
 			continue;
 		}
@@ -565,6 +569,7 @@ void usage(char *appname, int retval)
 			"        local-dir:<path>     look for packages/recipes under <path>\n"
 			"        package-store        look for packages in the package store\n"
 			"        recipe-store)        look for recipes in the recipe store\n"
+			"  -q, --quiet                Do not warn when a dependency is not found\n"
 			"  -h, --help                 This help\n", appname, goboPrograms);
 	exit(retval);
 }
@@ -574,10 +579,11 @@ int main(int argc, char **argv)
 	int c, index;
 	struct list_head *deps;
 	struct search_options options;
-	char shortopts[] = "hd:r:";
+	char shortopts[] = "hqd:r:";
 	struct option longopts[] = {
 		{"dependency",   1, NULL, 'd'},
 		{"repository",   1, NULL, 'r'},
+		{"quiet",        0, NULL, 'q'},
 		{"help",         0, NULL, 'h'},
 		{0, 0, 0, 0}
 	};
@@ -615,6 +621,9 @@ int main(int argc, char **argv)
 					fprintf(stderr, "Invalid value '%s' for --repository.\n", optarg);
 					usage(argv[0], 1);
 				}
+				break;
+			case 'q':
+				options.quiet = 1;
 				break;
 			case 'h':
 				usage(argv[0], 0);
