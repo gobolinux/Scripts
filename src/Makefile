@@ -19,7 +19,7 @@ all: $(dynamic_exec) $(static_exec)
 
 install:
 	strip RescueSymlinkProgram
-	mv $(dynamic_exec) $(static_exec) ../bin
+	cp -f $(dynamic_exec) $(static_exec) ../bin
 	chmod a+x ../bin/*
 
 $(dynamic_exec): %: %.c
