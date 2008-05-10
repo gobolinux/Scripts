@@ -14,13 +14,25 @@ endif
 
 dynamic_exec = SuperUserName IsExecutable usleep LinkOrExpandAll List CommandNotFound FindDependencies
 static_exec = RescueSymlinkProgram
+dynamic_targets = $(patsubst %,../bin/%,$(dynamic_exec))
+static_targets = $(patsubst %,../bin/%,$(static_exec))
+
+# first rule
+default: all
+
+.PHONY: install all defult
 
 all: $(dynamic_exec) $(static_exec)
+install: $(dynamic_targets) $(static_targets)
 
-install:
-	strip RescueSymlinkProgram
-	cp -f $(dynamic_exec) $(static_exec) ../bin
-	chmod a+x ../bin/*
+../bin/% : %
+	cp -f $< $@
+	chmod a+x $@
+
+../bin/RescueSymlinkProgram: RescueSymlinkProgram
+	cp -f $< $@
+	strip $@
+	chmod a+x $@
 
 $(dynamic_exec): %: %.c
 	$(CC) $(MYFLAGS) $< -o $@
