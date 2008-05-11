@@ -363,11 +363,12 @@ void ListAppend(struct list_head *head, struct parse_data *data, struct search_o
 bool AlreadyInList(struct list_head *head, struct parse_data *data, char *depfile)
 {
 	struct list_data *ldata;
+	char bufname[NAME_MAX+3];
 	if (list_empty(head))
 		return false;
+	sprintf(bufname,"/%s--",data->depname);
 	list_for_each_entry(ldata, head, list) {
-		// XXX: fix 'Foo' / 'Foobar' false positives
-		if (strstr(ldata->path, data->depname)) {
+		if (strstr(ldata->path, bufname)) {
 			fprintf(stderr, "WARNING: '%s' is included twice in %s\n", data->depname, depfile);
 			return true;
 		}
