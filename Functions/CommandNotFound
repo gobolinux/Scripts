@@ -22,11 +22,10 @@ function CommandNotFound_preexec() {
          command=
       fi
    fi
-   # If there's an = in the first word (i.e. an environment variable
-   # set on the command line), just ignore this command completely.
-   # Do the same when there's something weird with a variable name,
-   # escapes, or quoting. They probably know what they're doing.
-   [ "$command" != "${command%%[\$~=\\\"\'/]*}" ] && command=""
+   # When there's an environment variable or function definition, a path,
+   # or a shell expansion, just forget about it. They probably know what
+   # they're doing.
+   [ "$command" != "${command%%[\$~=(\\\"\'/]*}" ] && command=""
 }
 
 function CommandNotFound_precmd() {
