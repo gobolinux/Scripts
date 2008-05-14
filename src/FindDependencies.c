@@ -25,11 +25,12 @@ static char * const currentString = "Current";
 static char * goboPrograms;
 
 typedef enum {
+	NONE,
 	GREATER_THAN,			// >
-	GREATER_THAN_OR_EQUAL,	// >=
-	EQUAL,					// =
-	NOT_EQUAL,				// !=
-	LESS_THAN,				// <
+	GREATER_THAN_OR_EQUAL,		// >=
+	EQUAL,				// =
+	NOT_EQUAL,			// !=
+	LESS_THAN,			// <
 	LESS_THAN_OR_EQUAL,		// <=
 } operator_t;
 
@@ -41,6 +42,7 @@ typedef enum {
 } repository_t;
 
 struct version {
+	struct list_head list;		// link to the list on which we're inserted
 	char *version;			// version as listed in Resources/Dependencies
 	operator_t op;			// one of the operators listed above
 };
@@ -48,12 +50,17 @@ struct version {
 struct parse_data {
 	char *workbuf;			// buffer from the latest line read in Resources/Dependencies
 	char *saveptr;			// strtok_r pointer for safe reentrancy
-	bool hascomma;			// cache if a comma was found glued together with the first version
 	char *depname;			// dependency name, as listed in Resources/Dependencies
-	struct version v1;		// first optional restriction operator
-	struct version v2;		// second optional restriction operator
-	char fversion[NAME_MAX];// final version after restrictions were applied.
+	struct list_head *versions;	// link to the list of versions we've extracted
+	struct list_head *ranges;	// link to the list of ranges we've built
+	char fversion[NAME_MAX];	// final version after restrictions were applied.
 	char url[NAME_MAX];		// url to dependency, when using the FindPackage backend
+};
+
+struct range {
+	struct list_head list;		// link to the list on which we're inserted
+	struct version low;		// low limit
+	struct version high;		// high limit
 };
 
 struct list_data {
@@ -69,6 +76,43 @@ struct search_options {
 	char *depsfile;
 	char *searchdir;
 };
+
+const char *GetOperatorString(operator_t op)
+{
+	switch (op) {
+		case GREATER_THAN: return ">";
+		case GREATER_THAN_OR_EQUAL: return ">=";
+		case EQUAL: return "=";
+		case NOT_EQUAL: return "!=";
+		case LESS_THAN: return "<";
+		case LESS_THAN_OR_EQUAL: return "<=";
+		default: return "?";
+	}
+}
+
+const char *GetRangeOperatorString(operator_t op)
+{
+	switch (op) {
+		case GREATER_THAN: return "]";
+		case GREATER_THAN_OR_EQUAL: return "[";
+		case EQUAL: return "=";
+		case NOT_EQUAL: return "!=";
+		case LESS_THAN: return "[";
+		case LESS_THAN_OR_EQUAL: return "]";
+		case NONE: return "";
+		default: return "?";
+	}
+}
+
+void PrintVersion(struct version *version) 
+{
+	fprintf(stderr, "%s %s\n",GetOperatorString(version->op),version->version);
+}
+
+void PrintRange(struct range *range)
+{
+	fprintf(stderr, "%s%s %s%s\n",GetRangeOperatorString(range->low.op),range->low.version,range->high.version,GetRangeOperatorString(range->high.op));
+}
 
 int VersionCmp(char *_candidate, char *_specified)
 {
@@ -136,7 +180,7 @@ bool MatchRule(char *candidate, struct version *v)
 {
 	if (*candidate == '.' || !strcmp(candidate, "Variable") || !strcmp(candidate, "Settings") || !strcmp(candidate, "Current"))
 		return false;
-	if (!v->version)
+	if (!v->version || strlen(v->version) == 0) 
 		return true;
 	switch (v->op) {
 		case GREATER_THAN:
@@ -151,9 +195,36 @@ bool MatchRule(char *candidate, struct version *v)
 			return VersionCmp(candidate, v->version) < 0 ? true : false;
 		case LESS_THAN_OR_EQUAL:
 			return VersionCmp(candidate, v->version) <= 0 ? true : false;
+		case NONE:
+			return true;
 		default:
 			return false;
 	}
+}
+
+VersionMatchRange(char *bufversion, struct range *range) 
+{
+	return (MatchRule(bufversion, &range->low) && MatchRule(bufversion, &range->high));
+}
+
+bool VersionMatchRangeList(char *bufversion, struct list_head *rangelist)
+{
+	struct range *rangeentry;
+	list_for_each_entry(rangeentry, rangelist, list) {
+		if (VersionMatchRange(bufversion, rangeentry))
+			return true;
+	}
+	return false;
+}
+
+struct range *VersionInRangeList(struct version *version, struct list_head *rangelist)
+{
+	struct range *rangeentry;
+	list_for_each_entry(rangeentry, rangelist, list) {
+		if (VersionMatchRange(version->version, rangeentry)) 
+			return rangeentry;
+	}
+	return NULL;
 }
 
 bool RuleBestThanLatest(char *candidate, char *latest)
@@ -284,7 +355,7 @@ bool GetBestVersion(struct parse_data *data, struct search_options *options)
 	int i, latestindex = -1;
 	char *entry, **versions = NULL;
 	char latest[NAME_MAX], cmdline[PATH_MAX];
-	
+
 	if (options->repository == LOCAL_PROGRAMS) {
 		versions = GetVersionsFromReadDir(data);
 	} else if (options->repository == LOCAL_DIRECTORY) {
@@ -300,42 +371,20 @@ bool GetBestVersion(struct parse_data *data, struct search_options *options)
 
 	if (! versions) {
 		if (! options->quiet)
-			fprintf(stderr, "WARNING: no packages were found for dependency %s\n", data->depname);
+			fprintf(stderr, "WARNING: No packages were found for dependency %s\n", data->depname);
 		return false;
 	}
 	
 	memset(latest, 0, sizeof(latest));
 	for (i=0; versions[i]; i++) {
 		entry = versions[i];
-		if (MatchRule(entry, &data->v1) && RuleBestThanLatest(entry, latest)) {
+		if (VersionMatchRangeList(entry,data->ranges) && RuleBestThanLatest(entry, latest)) {
 			latestindex = i;
 			strcpy(latest, entry);
 			continue;
 		}
 	}
-	if (! data->v2.version) {
-		data->fversion[sizeof(data->fversion)-1] = '\0';
-		strncpy(data->fversion, latest, sizeof(data->fversion)-1);
-		goto out;
-	}
 
-	if (! MatchRule(latest, &data->v2))
-		memset(latest, 0, sizeof(latest));
-
-	for (i=0; versions[i]; i++) {
-		entry = versions[i];
-		if (MatchRule(entry, &data->v2) && RuleBestThanLatest(entry, latest)) {
-			latestindex = i;
-			strcpy(latest, entry);
-			continue;
-		}
-	}
-	if (! MatchRule(latest, &data->v1))
-		memset(latest, 0, sizeof(latest));
-
-	data->fversion[sizeof(data->fversion)-1] = '\0';
-	strncpy(data->fversion, latest, sizeof(data->fversion)-1);
-out:
 	if (! latest[0]) {
 		if (! options->quiet)
 			fprintf(stderr, "WARNING: No packages matching requirements were found, skipping dependency %s\n", data->depname);
@@ -392,6 +441,7 @@ char *ReadLine(char *buf, int size, FILE *fp)
 bool EmptyLine(char *buf)
 {
 	char *start;
+
 	if (!buf || strlen(buf) == 0)
 		return true;
 	for (start=buf; *start; start++) {
@@ -405,25 +455,28 @@ bool EmptyLine(char *buf)
 	return false;
 }
 
-const char *GetOperatorString(operator_t op)
+void PrintRestrictions(struct parse_data *data) 
 {
-	switch (op) {
-		case GREATER_THAN: return ">";
-		case GREATER_THAN_OR_EQUAL: return ">=";
-		case EQUAL: return "=";
-		case NOT_EQUAL: return "!=";
-		case LESS_THAN: return "<";
-		case LESS_THAN_OR_EQUAL: return "<=";
-		default: return "?";
-	}
-}
+	struct range *rentry;
 
-void PrintRestrictions(struct parse_data *data)
-{
-	if (data->v1.version)
-		printf("%s %s", GetOperatorString(data->v1.op), data->v1.version);
-	if (data->v2.version)
-		printf(", %s %s", GetOperatorString(data->v2.op), data->v2.version);
+	if (list_empty(data->ranges)) {
+		printf("Conflicting dependency caused invalid restrictions\n");
+	} else {
+		list_for_each_entry(rentry, data->ranges, list) {
+			switch (rentry->low.op) {
+				case EQUAL:
+				case NOT_EQUAL:
+					PrintVersion(&rentry->low);
+					break;
+				case GREATER_THAN:
+				case GREATER_THAN_OR_EQUAL:
+				case LESS_THAN:
+				case LESS_THAN_OR_EQUAL:
+					PrintRange(rentry);
+					break;
+			}
+		}
+	}
 }
 
 bool ParseName(struct parse_data *data, struct search_options *options)
@@ -434,74 +487,209 @@ bool ParseName(struct parse_data *data, struct search_options *options)
 	return data->depname ? true : false;
 }
 
-bool ParseVersion(struct parse_data *data, struct version *v)
+bool MakeVersion(char *buf, struct version *v)
 {
-	char *ptr = strtok_r(NULL, " \t", &data->saveptr);
-	if (! ptr)
-		return false;
-	if (ptr[strlen(ptr)-1] == ',') {
-		ptr[strlen(ptr)-1] = '\0';
-		data->hascomma = true;
-	}
-	v->version = ptr;
-	return true;
-}
+	// Remove white space
+	while(!strncmp(buf," ",1))
+		buf++;
 
-bool ParseOperand(struct parse_data *data, struct version *v, struct search_options *options)
-{
-	char *ptr = strtok_r(NULL, " \t", &data->saveptr);
-	if (! ptr && options->repository == LOCAL_PROGRAMS) {
-		// Only a program name without a version was supplied. Return version based on 'Current'.
-		return GetCurrentVersion(data);
-	} else if (! ptr) {
-		// Only a program name without a version was supplied. Take version from the most recent package available.
+	if (! strncmp(buf, ">=",2)) {
 		v->op = GREATER_THAN_OR_EQUAL;
-		v->version = NULL;
-		return true;
-	}
-	if (! strcmp(ptr, ">")) {
+		buf += 2;
+	} else if (! strncmp(buf, ">",1)) {
 		v->op = GREATER_THAN;
-	} else if (! strcmp(ptr, ">=")) {
-		v->op = GREATER_THAN_OR_EQUAL;
-	} else if (! strcmp(ptr, "==")) {
+		buf++;
+	} else if (! strncmp(buf, "==",2)) {
 		v->op = EQUAL;
-	} else if (! strcmp(ptr, "=")) {
+		buf += 2;
+	} else if (! strncmp(buf, "=",1)) {
 		v->op = EQUAL;
-	} else if (! strcmp(ptr, "!=")) {
+		buf++;
+	} else if (! strncmp(buf, "!=",2)) {
 		v->op = NOT_EQUAL;
-	} else if (! strcmp(ptr, "<")) {
-		v->op = LESS_THAN;
-	} else if (! strcmp(ptr, "<=")) {
+		buf += 2;
+	} else if (! strncmp(buf, "<=",2)) {
 		v->op = LESS_THAN_OR_EQUAL;
+		buf += 2;
+	} else if (! strncmp(buf, "<",1)) {
+		v->op = LESS_THAN;
+		buf++;
 	} else {
 		// ptr holds the version alone. Consider operator as GREATER_THAN_OR_EQUAL (XXX)
 		v->op = GREATER_THAN_OR_EQUAL;
-		v->version = ptr;
+		v->version = buf;
 		return true;
 	}
-	return ParseVersion(data, v);
+	// Remove white space
+	while(!strncmp(buf," ",1))
+		buf++;
+
+	v->version = buf;
+	return true;
 }
 
-bool ParseComma(struct parse_data *data)
+bool ParseVersions(struct parse_data *data, struct search_options *options)
 {
+	struct version *version = NULL;
 	char *ptr;
-	if (data->hascomma)
-		return true;
-	ptr = strtok_r(NULL, " \t", &data->saveptr);
-	if (! ptr)
+
+	data->versions = (struct list_head *) malloc(sizeof(struct list_head));
+	if (! data->versions) {
+		perror("malloc");
 		return false;
-	return strcmp(ptr, ",") == 0 ? true : false;
+	}
+	INIT_LIST_HEAD(data->versions);
+
+	for (ptr = strtok_r(NULL, ",", &data->saveptr); ptr != NULL; ptr = strtok_r(NULL, ",", &data->saveptr))	{
+		version = (struct version*) calloc(1, sizeof(struct version));
+		if (! version) {
+			perror("malloc");
+			free(data->versions);
+			return false;
+		}
+		if (! MakeVersion(ptr,version)) {
+			perror("Syntax error");
+			free(version);
+			continue;
+		}
+		list_add_tail(&version->list, data->versions);
+	}
+	// If there was no version given at all, i.e. strtok_r returns nothng
+	if (version == NULL) {
+		version = (struct version*) calloc(1, sizeof(struct version));
+		if (! version) {
+			perror("malloc");
+			free(data->versions);
+			return false;
+		}
+		if (! MakeVersion(">= 0",version)) {
+			perror("Syntax error");
+			free(version);
+		}
+		list_add_tail(&version->list, data->versions);
+	}
+	
+	return true;
+}
+
+struct range *CreateRangeFromVersion(struct version *version)
+{
+	struct range *range;
+
+	range = (struct range*) calloc(1, sizeof(struct range));
+	if (! range) {
+		perror("malloc");
+		return NULL;
+	}
+	switch (version->op) {
+
+		case GREATER_THAN:
+		case GREATER_THAN_OR_EQUAL:
+			range->low.op = version->op;
+			range->low.version = version->version;
+			range->high.op = LESS_THAN;
+			range->high.version = "";
+			break;
+		case LESS_THAN: 
+		case LESS_THAN_OR_EQUAL:
+			range->low.op = GREATER_THAN;
+			range->low.version = "";
+			range->high.op = version->op;
+			range->high.version = version->version;
+			break;
+		case EQUAL: 
+		case NOT_EQUAL:
+			range->low.op = EQUAL;
+			range->low.version = version->version;
+			range->high.op = NONE;
+			range->high.version = "";
+	}
+	return range;
+}
+
+bool LimitRange(struct parse_data *data, struct range *range, struct version *version)
+{
+	struct range *highrange = NULL;
+
+	switch (version->op) {
+	 case GREATER_THAN:
+	 case GREATER_THAN_OR_EQUAL:
+		range->low.op = version->op;
+		range->low.version = version->version;
+		break;
+	 case LESS_THAN: 
+	 case LESS_THAN_OR_EQUAL:
+		range->high.op = version->op;
+		range->high.version = version->version;
+		break;
+	 case EQUAL: 
+		range->low.op = EQUAL;
+		range->low.version = version->version;
+		range->high.op = EQUAL;
+		range->high.version = version->version;
+	 case NOT_EQUAL:
+		highrange = (struct range*) calloc(1, sizeof(struct range));
+		if (! highrange) {
+			perror("malloc");
+			return false;
+		}
+		highrange->low.op = GREATER_THAN;
+		highrange->low.version = version->version;
+		highrange->high.op = range->high.op;
+		highrange->high.version = range->high.version;
+		range->high.op = LESS_THAN;
+		range->high.version = version->version;
+		list_add_tail(&highrange->list, data->ranges);
+	}
+	return true;
+}
+
+bool ParseRanges(struct parse_data *data, struct search_options *options)
+{
+	struct range *matchrange, *rangeentry, *rangestore, *rentry;
+	struct version *verentry;
+
+	data->ranges = (struct list_head *) malloc(sizeof(struct list_head));
+	if (! data->ranges) {
+		perror("malloc");
+		return false;
+	}
+	INIT_LIST_HEAD(data->ranges);
+	list_for_each_entry(verentry, data->versions, list) {
+		if (list_empty(data->ranges)) {
+			rangestore = CreateRangeFromVersion(verentry);
+			list_add_tail(&rangestore->list,data->ranges);
+		} else {
+			matchrange = VersionInRangeList(verentry,data->ranges);
+			if (matchrange)
+				LimitRange(data,matchrange,verentry);
+			else {
+				list_for_each_entry_safe(rangeentry, rangestore, data->ranges, list) {
+				
+					list_del(&rangeentry->list);
+					free(rangeentry);
+				}
+			return true;
+			}
+		}
+	}
+	return true;
 }
 
 struct list_head *ParseDependencies(struct search_options *options)
 {
+	struct range *rentry;
+	struct version *ventry;
 	int line = 0;
 	FILE *fp = fopen(options->depsfile, "r");
+	struct list_head *head;
+
 	if (! fp) {
 		fprintf(stderr, "WARNING: %s: %s\n", options->depsfile, strerror(errno));
 		return NULL;
 	}
-	struct list_head *head = (struct list_head *) malloc(sizeof(struct list_head));
+
+	head = (struct list_head *) malloc(sizeof(struct list_head));
 	if (! head) {
 		perror("malloc");
 		return NULL;
@@ -529,31 +717,18 @@ struct list_head *ParseDependencies(struct search_options *options)
 			free(data);
 			continue;
 		}
-
-		if (! ParseOperand(data, &data->v1, options)) {
+		if (! ParseVersions(data, options)) {
 			fprintf(stderr, "WARNING: %s:%d: syntax error, ignoring dependency %s.\n", options->depsfile, line, data->depname);
 			free(data);
 			continue;
 		}
-
-		if (! ParseComma(data)) {
+		if (ParseRanges(data, options))	{
 			if (GetBestVersion(data, options))
 				ListAppend(head, data, options);
-			else
-				free(data);
-			continue;
-		}
-
-		if (! ParseOperand(data, &data->v2, options)) {
-			fprintf(stderr, "WARNING: %s:%d: syntax error, ignoring dependency %s.\n", options->depsfile, line, data->depname);
-			free(data);
-			continue;
-		}
-
-		if (GetBestVersion(data, options))
-			ListAppend(head, data, options);
 		else
 			free(data);
+
+		}
 	}
 
 	fclose(fp);
@@ -566,12 +741,12 @@ void usage(char *appname, int retval)
 			"Available options are:\n"
 			"  -d, --dependency=<dep>     Only process dependency 'dep' from the input file\n"
 			"  -r, --repository=<repo>    Specify which repository to use: [local-programs]\n"
-			"        local-programs       look for packages under %s\n"
+			"        local-programs       look for locally installed packages\n"
 			"        local-dir:<path>     look for packages/recipes under <path>\n"
 			"        package-store        look for packages in the package store\n"
 			"        recipe-store)        look for recipes in the recipe store\n"
 			"  -q, --quiet                Do not warn when a dependency is not found\n"
-			"  -h, --help                 This help\n", appname, goboPrograms);
+			"  -h, --help                 This help\n", appname);
 	exit(retval);
 }
 
@@ -588,12 +763,6 @@ int main(int argc, char **argv)
 		{"help",         0, NULL, 'h'},
 		{0, 0, 0, 0}
 	};
-
-	goboPrograms = getenv("goboPrograms");
-	if (! goboPrograms) {
-		fprintf(stderr, "Please ensure to 'source GoboPath' before running this program.\n");
-		return 1;
-	}
 
 	memset(&options, 0, sizeof(options));
 	options.repository = LOCAL_PROGRAMS;
@@ -633,6 +802,12 @@ int main(int argc, char **argv)
 				fprintf(stderr, "invalid option '%c'\n", (int)c);
 				usage(argv[0], 1);
 		}
+	}
+
+	goboPrograms = getenv("goboPrograms");
+	if (! goboPrograms && options.repository == LOCAL_PROGRAMS) {
+		fprintf(stderr, "To use local programs as repository you need to 'source GoboPath' before running this program.\n");
+		return 1;
 	}
 
 	if (optind >= argc)
