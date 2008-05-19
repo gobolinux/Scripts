@@ -438,17 +438,26 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 			ret = FindPackage(p, v, r, types=[t], accessWeb=not noWeb, goboPrograms=goboPrograms, localdirs=localdirs, availables=availables)
 		else:
 			if not v or not r:
-				ret = FindPackage(p, v, r, accessWeb=not noWeb, goboPrograms=goboPrograms, localdirs=localdirs, availables=availables)
+				ret = FindPackage(p, v, r, accessWeb=not noWeb, goboPrograms=goboPrograms, localdirs=localdirs, availables=availables, types=acceptable_types)
 			else:
 				ret = FindPackage(p, v, r, types=['installed'], accessWeb=not noWeb, goboPrograms=goboPrograms, localdirs=localdirs, availables=availables)
 				if ret:
-					ret = FindPackage(p, v, r, accessWeb=not noWeb, goboPrograms=goboPrograms, localdirs=localdirs, availables=availables)
+					ret = FindPackage(p, v, r, accessWeb=not noWeb, goboPrograms=goboPrograms, localdirs=localdirs, availables=availables, types=acceptable_types)
 
 		if not ret:
 			return [], []
 
 		self_rule = { 'program':p, 'lover':'', 'loincluded':False, 'hiver':'', 'hiincluded':False, 'optional':True }
 		self_match = ret[0]
+		# We need to check against acceptable_types, or there's
+		# no reason to have it.
+		if self_match[3] not in acceptable_types:
+			for match in ret:
+				if match[3] in acceptable_types:
+					self_match = match
+					break
+			if self_match[3] not in acceptable_types:
+				return [], []
 		all_matches.append(self_match)
 		p,v,r,t,u = self_match
 
