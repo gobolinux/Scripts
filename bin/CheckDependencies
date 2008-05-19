@@ -423,7 +423,10 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	self_match, self_rule = None, None
 
 	if all_matches == None:
-		global_available_packages_cache = {}
+		if availables:
+			global_available_packages_cache = availables
+		else:
+			global_available_packages_cache = {}
 		global_always_do = None
 		all_matches = []
 		first_call = True
