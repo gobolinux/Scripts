@@ -55,23 +55,23 @@ function Unpack_Archive() {
    case `Get_Archive_Format "${archive}"` in
    tarbzip)
       ( needs_archiver "tar+bzip" bunzip && needs_archiver "tar+bzip" tar ) || return 2
-      bunzip --keep --decompress --stdout "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      bunzip --keep --decompress --stdout "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C --file=- "${targetdirectory}"} ${force:+--overwrite} ${files:+"${files[@]}"}
       ;;
    tarbzip2)
       ( needs_archiver "tar+bzip2" bunzip2 && needs_archiver "tar+bzip2" tar ) || return 2
-      bunzip2 --keep --decompress --stdout "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      bunzip2 --keep --decompress --stdout "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} --file=- ${force:+--overwrite} ${files:+"${files[@]}"}
       ;;
    targzip)
       ( needs_archiver "tar+gzip" gunzip && needs_archiver "tar+gzip" tar ) || return 2
-      gunzip --decompress --stdout "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      gunzip --decompress --stdout "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} --file=- ${files:+"${files[@]}"}
       ;;
    tarlzma)
       ( needs_archiver "tar+lzma" lzma && needs_archiver "tar+lzma" tar ) || return 2
-      lzma --stdout --decompress --keep "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      lzma --stdout --decompress --keep "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} --file=- ${files:+"${files[@]}"}
       ;;
    tarcompress)
       ( needs_archiver "tar+compress" compress && needs_archiver "tar+compress" tar ) || return 2
-      tar --extract -Z --verbose --file "${path}/${archive}" ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      tar --extract -Z --verbose --file "${path}/${archive}" ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+"${files[@]}"}
       ;;
    bzip) 
       needs_archiver "bzip" bunzip || return 2
@@ -87,7 +87,7 @@ function Unpack_Archive() {
       ;;
    tar)
       needs_archiver "tar" tar || return 2
-      tar --extract --verbose --file "${path}/${archive}" ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+--files-from=<(echo "${files[@]}")}
+      tar --extract --verbose --file "${path}/${archive}" ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+"${files[@]}"}
       ;; 
    lzma)
       needs_archiver "lzma" lzma || return 2
