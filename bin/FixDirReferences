@@ -8,11 +8,11 @@ Import GoboLinux
 
 ### Options ###################################################################
 
-scriptDescription="Converts .{la,pc} files created by libtool/pkgconfig to make them GoboLinux-compliant."
+scriptDescription="Converts .{la,pc,cmake} files created by libtool/pkgconfig/cmake to make them GoboLinux-compliant."
 scriptCredits="Copyright (C) Hisham H. Muhammad et al, 2003-2007. Released under the GNU GPL."
 helpOnNoArguments=yes
 scriptUsage="<files...>"
-scriptExample="-b *.la *.pc"
+scriptExample="-b *.la *.pc *.cmake"
 Add_Option_Boolean "b" "backup" "Keep a backup file of the original files before modifying them."
 Parse_Options "$@"
 
@@ -24,7 +24,7 @@ n=$(Number_Of_Arguments)
 for (( i=1 ; i<=n ; i++))
 do
    current="$(Arg ${i})"
-   if [ "${current##*.}" != "la" -a "${current##*.}" != "pc" ] 
+   if [ "${current##*.}" != "la" -a "${current##*.}" != "pc" -a "${current##*.}" != "cmake" ] 
    then continue
    else Log_Verbose "Converting ${current}..."
    fi
@@ -41,6 +41,7 @@ s%$goboPrograms/[^ /]*/*[^ /]*/+include(/?)/*%$goboHeaders\1%g;
 s%$goboPrograms/[^ /]*/*[^ /]*/+include([ '\''])%$goboHeaders/\1%g;
 s%$goboPrograms/[^ /]*/*[^ /]*/+share(/?)/*%$goboShared\1%g;
 s%$goboPrograms/[^ /]*/*[^ /]*/+share([ '\''])%$goboShared/\1%g;
+s%$goboPrograms/[^ /]*/*[^ /]*/+etc(/?)/*%$goboSettings\1%g;
 s%$goboPrograms/[^ /]*/+Settings/(.*)%$goboSettings/\1%g;
 s%$goboPrograms/[^ /]*/*[^ /]*%/usr%g;
 s%(-L|-I|-R)*$compileDir/[^('| )]*%%g;
