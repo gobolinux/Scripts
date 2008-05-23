@@ -229,7 +229,7 @@ then
          if [ "$(find . -name '*.la' -or -name '*.pc' | wc -l)" != "0" ]
          then
             Log_Normal "Correcting directory references..."
-            find . -name '*.la' -or -name '*.pc' | xargs FixDirReferences
+            find . -name '*.la' -or -name '*.pc' -or -name '*.cmake' | xargs FixDirReferences
          fi
          Quiet popd
       fi
