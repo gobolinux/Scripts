@@ -226,7 +226,7 @@ then
       if [ -d "$current/lib" ]
       then
          Quiet pushd "$current/lib"
-         if [ "$(find . -name '*.la' -or -name '*.pc' -r -name '*.cmake' | wc -l)" != "0" ]
+         if [ "$(find . -name '*.la' -or -name '*.pc' -or -name '*.cmake' | wc -l)" != "0" ]
          then
             Log_Normal "Correcting directory references..."
             find . -name '*.la' -or -name '*.pc' -or -name '*.cmake' | xargs FixDirReferences
