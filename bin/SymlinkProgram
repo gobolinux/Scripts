@@ -226,7 +226,7 @@ then
       if [ -d "$current/lib" ]
       then
          Quiet pushd "$current/lib"
-         if [ "$(find . -name '*.la' -or -name '*.pc' | wc -l)" != "0" ]
+         if [ "$(find . -name '*.la' -or -name '*.pc' -r -name '*.cmake' | wc -l)" != "0" ]
          then
             Log_Normal "Correcting directory references..."
             find . -name '*.la' -or -name '*.pc' -or -name '*.cmake' | xargs FixDirReferences
@@ -330,6 +330,14 @@ then
       if ! Is_Real_Directory "Shared" && Is_Link "share"
       then
          rm "share"
+      fi
+      if Is_Real_Directory "$Shared"
+      then
+         if [ "$(find Shared -name '*.cmake' | wc -l)" != "0" ]
+         then
+            Log_Normal "Correcting directory references..."
+            find Shared -name '*.cmake' | xargs FixDirReferences
+         fi
       fi
       Quiet cd -
    fi
