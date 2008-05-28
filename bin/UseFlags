@@ -25,7 +25,7 @@ global_program_potential_flags_cache = None
 def UseFlags(program=None):
 	"""Return the set of flags enabled for program"""
 	global global_use_flags_cache, global_program_use_flags_cache
-	potentialflags = set()
+	potentialflags = None
 	if program and program.startswith('/'):
 		catch = False
 		recipedir = str(program)
@@ -37,7 +37,10 @@ def UseFlags(program=None):
 			elif comp.endswith('Recipes'):
 				catch = True
 		potentialflags = potentialFlags(recipedir)
-					
+		if not potentialFlags:
+			# There can't possibly be any flags enabled, so just return.
+			return frozenset()
+
 	# When program is specified and a cached set is available, use it.
 	if (program and global_program_use_flags_cache and program in
 		global_program_use_flags_cache):
@@ -71,7 +74,8 @@ def UseFlags(program=None):
 		if program:
 			if not global_program_use_flags_cache:
 				global_program_use_flags_cache = dict()
-			if potentialflags: flags.intersection_update(potentialflags)
+			if potentialflags is not None:
+				flags.intersection_update(potentialflags)
 			flags = frozenset(flags)
 			global_program_use_flags_cache[program] = flags
 			return flags
