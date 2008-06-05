@@ -157,7 +157,7 @@ int VersionCmp(char *_candidate, char *_specified)
 			int a = atoi(candidate);
 			int b = atoi(specified);
 			ret = a == b ? 0 : (a > b) ? 1 : -1;
-			if (ret == 0) {
+			if (ret == 0 && sptr) {
 				int revision_a = cptr ? atoi(cptr+2) : 0;
 				int revision_b = sptr ? atoi(sptr+2) : 0;
 				ret = revision_a == revision_b ? 0 : (revision_a > revision_b) ? 1 : -1;
@@ -331,7 +331,7 @@ char **GetVersionsFromStore(struct parse_data *data, struct search_options *opti
 				break;
 			}
 		}
-		if (num > 0 && !strcmp(versions[num-1], version))
+		if (num > 0 && !strcmp(versions[num-1], version)) 
 			continue;
 
 		versions = (char **) realloc(versions, (num+2) * sizeof(char*));
