@@ -196,6 +196,7 @@ then
    rm -f System/Kernel/Devices/tty
    find -type f -name "*__dir_opaque" | xargs rm -f &> /dev/null
    find -type f -name "*_HIDDEN~" | xargs rm -f &> /dev/null
+   find -type f -name "\.wh.*" | xargs rm -f &> /dev/null
    find -type d | xargs rmdir -p --ignore-fail-on-non-empty &> /dev/null
    if [ "$goboIndex" ]
    then
