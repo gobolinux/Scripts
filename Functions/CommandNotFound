@@ -9,6 +9,8 @@ function CommandNotFound_preexec() {
    # Trim back to the command itself, chopping off everything until
    # a space, pipe, redirect, semicolon or ampersand.
    command="${1%%[|>< ;&]*}"
+   # Our zshrc defines autocd by default, so ignore directory names
+   [ -d "$command" ] && command=
    # If you define this variable to point to a tool that works like
    # "kfmclient exec", you can automatically launch a file with its
    # appropriate application just by typing its name. A little hacky, but
