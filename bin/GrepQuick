@@ -33,11 +33,13 @@ color="--color=always"
 Boolean "no-color" && export color=
 
 function all() {
+   {
    pwd=${PWD#/}
    if [ -L share -a "${pwd%%/*}" = "${goboPrograms#/}" ]
    then ls -d -- * .[A-Za-z0-9]* 2> /dev/null | grep -v "^.svn$" | grep -v "^share$"
    else ls -d -- * .[A-Za-z0-9]* 2> /dev/null | grep -v "^.svn$" 
    fi
+   } | sed 's/.*/"\0"/'
 }
 
 esc=`echo -e '\033'`
@@ -58,7 +60,8 @@ then
    hits=`grep $insensitive $whole $recursive $color $nobins -snH --mmap -- "$pattern" "${files[@]}"`
    result=$?
 else
-   hits=$(grep $insensitive $whole $recursive $color $nobins -snH --mmap -- "$pattern" `all`)
+   cmd='grep $insensitive $whole $recursive $color $nobins -snH --mmap -- "$pattern" '`all`
+   hits=$(eval $cmd)
    result=$?
    hits=`echo "$hits" | grep -v ".svn/"`
 fi
