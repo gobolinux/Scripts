@@ -377,7 +377,7 @@ then
       Log_Normal "Checking dependencies..."
       set -o pipefail
       selecteddeps=$(CheckDependencies --types=local_package,official_package --mode=missing \
-        --no-recursive --quiet-progress  "$packagename" "$packageversion" \
+        --quiet-progress  "$packagename" "$packageversion" \
         "installed" "${goboPrograms}/$packagename/$packageversion" | awk '{ print $4 }') || Die "Aborted."
       set +o pipefail
       for d_url in $selecteddeps
