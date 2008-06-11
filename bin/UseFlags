@@ -168,7 +168,7 @@ of flags enabled for that program or overall.
 program may be the path to a recipe directory to include only flags actually
 used by prog.
 """)
-		exit()
+		sys.exit()
 	program = None
 	if len(args): program = args[0]
 	flags = UseFlags(program)
@@ -176,13 +176,13 @@ used by prog.
 	if len(args) < 2:
 		for flag in flags:
 			sys.stdout.write(flag + '\n')
-		exit(0)
+		sys.exit(0)
 	# Otherwise, test whether the flag is enabled and set the return code
 	# accordingly. If -v was given, also output "<flag> on|off"
 	else:
 		if args[1] in flags:
 			if verbose: sys.stdout.write(args[1] + ' on\n')
-			exit(0)
+			sys.exit(0)
 		else:
 			if verbose: sys.stdout.write(args[1] + ' off\n')
-			exit(1)
+			sys.exit(1)
