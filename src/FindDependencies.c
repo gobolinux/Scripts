@@ -122,7 +122,11 @@ int VersionCmp(char *_candidate, char *_specified)
 	strcpy(specifiedstring, _specified);
 	char *candidate = candidatestring;
 	char *specified = specifiedstring;
+	int c_len, s_len;
 	int c, s, ret=0;
+
+	c_len = strlen(candidate);
+	s_len = strlen(specified);
 
 	// for text-based versions just propagate retval from strcmp().
 	if (isalpha(candidate[0]) && isalpha(specified[0]))
@@ -132,16 +136,16 @@ int VersionCmp(char *_candidate, char *_specified)
 		c = 0;
 		s = 0;
 		// consume strings until a '.' is found
-		while (c<strlen(candidate) && candidate[c] != '.')
+		while (c<c_len && candidate[c] != '.')
 			c++;
-		while (s<strlen(specified) && specified[s] != '.')
+		while (s<s_len && specified[s] != '.')
 			s++;
 
-		if (c == 0 && s != 0)
+		if ((c == 0 && s != 0) || (c == c_len && s != s_len))
 			return 1;
-		else if (c !=0 && s == 0)
+		else if ((c !=0 && s == 0) || (c != c_len && s == s_len))
 			return -1;
-		else if (c == 0 && s == 0)
+		else if ((c == 0 && s == 0) || (c == c_len && s == s_len))
 			return 0;
 
 		candidate[c] = 0;
