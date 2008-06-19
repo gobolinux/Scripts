@@ -206,7 +206,7 @@ bool MatchRule(char *candidate, struct version *v)
 	}
 }
 
-VersionMatchRange(char *bufversion, struct range *range) 
+bool VersionMatchRange(char *bufversion, struct range *range) 
 {
 	return (MatchRule(bufversion, &range->low) && MatchRule(bufversion, &range->high));
 }
@@ -478,6 +478,8 @@ void PrintRestrictions(struct parse_data *data)
 				case LESS_THAN_OR_EQUAL:
 					PrintRange(rentry);
 					break;
+				default:
+					break;
 			}
 		}
 	}
@@ -607,6 +609,13 @@ struct range *CreateRangeFromVersion(struct version *version)
 			range->low.version = version->version;
 			range->high.op = NONE;
 			range->high.version = "";
+			break;
+		default:
+			range->low.op = NONE;
+			range->low.version = "";
+			range->high.op = NONE;
+			range->high.version = "";
+			break;
 	}
 	return range;
 }
@@ -631,6 +640,7 @@ bool LimitRange(struct parse_data *data, struct range *range, struct version *ve
 		range->low.version = version->version;
 		range->high.op = EQUAL;
 		range->high.version = version->version;
+		break;
 	 case NOT_EQUAL:
 		highrange = (struct range*) calloc(1, sizeof(struct range));
 		if (! highrange) {
@@ -644,13 +654,20 @@ bool LimitRange(struct parse_data *data, struct range *range, struct version *ve
 		range->high.op = LESS_THAN;
 		range->high.version = version->version;
 		list_add_tail(&highrange->list, data->ranges);
+		break;
+	default:
+		range->low.op = NONE;
+		range->low.version = "";
+		range->high.op = NONE;
+		range->high.version = "";
+		break;
 	}
 	return true;
 }
 
 bool ParseRanges(struct parse_data *data, struct search_options *options)
 {
-	struct range *matchrange, *rangeentry, *rangestore, *rentry;
+	struct range *matchrange, *rangeentry, *rangestore;
 	struct version *verentry;
 
 	data->ranges = (struct list_head *) malloc(sizeof(struct list_head));
@@ -682,8 +699,6 @@ bool ParseRanges(struct parse_data *data, struct search_options *options)
 
 struct list_head *ParseDependencies(struct search_options *options)
 {
-	struct range *rentry;
-	struct version *ventry;
 	int line = 0;
 	FILE *fp = fopen(options->depsfile, "r");
 	struct list_head *head;
