@@ -1,5 +1,5 @@
 
-MYCFLAGS = -O2 -Wall
+MYCFLAGS = -O2 -Wall 
 CC = gcc
 
 STATIC=-static
@@ -35,18 +35,18 @@ install: $(dynamic_targets) $(static_targets)
 	chmod a+x $@
 
 $(dynamic_exec): %: %.c
-	$(CC) $(MYFLAGS) $< -o $@
+	$(CC) $(MYCFLAGS) $< -o $@
 	@if [ -e "$@.exe" ]; then \
 		mv $@.exe $@; \
 	fi
 
 $(static_exec): %: %.c
-	$(CC) $(MYFLAGS) $< -o $@ $(STATIC)
+	$(CC) $(MYCFLAGS) $< -o $@ $(STATIC)
 	@if [ -e "$@.exe" ]; then \
 		mv $@.exe $@; \
 	fi
 
-debug: MYCFLAGS = -g -DDEBUG
+debug: MYCFLAGS = -g -DDEBUG -Wall
 debug: all
 
 static: MYCFLAGS = $(STATIC)
