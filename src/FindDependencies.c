@@ -125,11 +125,22 @@ int VersionCmp(char *_candidate, char *_specified)
 	strcpy(specifiedstring, _specified);
 	char *candidate = candidatestring;
 	char *specified = specifiedstring;
+	char *ptr;
 	int c_len, s_len;
 	int c, s, ret=0;
 
 	c_len = strlen(candidate);
 	s_len = strlen(specified);
+
+	// find and remove arguments such as [!cross]. 
+	// we need to take care of them later.
+	ptr = strstr(specified, "[");
+	if (ptr) {
+		do {
+			*ptr = 0;
+			ptr--;
+		} while (*ptr == ' ');
+	}
 
 	// for text-based versions just propagate retval from strcmp().
 	if (isalpha(candidate[0]) && isalpha(specified[0]))
