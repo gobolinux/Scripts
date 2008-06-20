@@ -178,7 +178,7 @@ int VersionCmp(char *_candidate, char *_specified)
 				char *alphab = GetFirstAlpha(specified);
 				return strcmp(alphaa, alphab);
 			}
-			return a >= b;
+			return a == b ? 0 : (a > b) ? 1 : -1;
 		}
 
 		candidate[c] = 0;
