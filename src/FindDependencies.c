@@ -117,6 +117,20 @@ void PrintRange(struct range *range)
 			GetRangeOperatorString(range->high.op));
 }
 
+char *GetFirstAlpha(char *version)
+{
+	char *ptr;
+	for (ptr = version; *ptr; ptr++)
+		if (isalpha(*ptr))
+			return ptr;
+	return NULL;
+}
+
+bool HasAlpha(char *version)
+{
+	return GetFirstAlpha(version) ? true : false;
+}
+
 int VersionCmp(char *_candidate, char *_specified)
 {
 	char candidatestring[strlen(_candidate)+1];
@@ -155,11 +169,16 @@ int VersionCmp(char *_candidate, char *_specified)
 		while (s<s_len && specified[s] != '.')
 			s++;
 
-		if (candidate[c] == 0 || specified[s] == 0 || c == c_len || s == s_len) {
-			candidate[c == c_len ? c_len : c] = 0;
-			specified[s == s_len ? s_len : s] = 0;
+		if (c == c_len || s == s_len) {
 			// return a comparison of the major numbers
-			return strcmp(candidate, specified);
+			int a = atoi(candidate);
+			int b = atoi(specified);
+			if (a == b && HasAlpha(candidate) && HasAlpha(specified)) {
+				char *alphaa = GetFirstAlpha(candidate);
+				char *alphab = GetFirstAlpha(specified);
+				return strcmp(alphaa, alphab);
+			}
+			return a >= b;
 		}
 
 		candidate[c] = 0;
