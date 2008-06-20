@@ -418,6 +418,7 @@ bool GetBestVersion(struct parse_data *data, struct search_options *options)
 		if (VersionMatchRangeList(entry,data->ranges) && RuleBestThanLatest(entry, latest)) {
 			latestindex = i;
 			strcpy(latest, entry);
+			strcpy(data->fversion, entry);
 			continue;
 		}
 	}
