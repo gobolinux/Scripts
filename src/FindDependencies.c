@@ -111,7 +111,10 @@ void PrintVersion(struct version *version)
 
 void PrintRange(struct range *range)
 {
-	fprintf(stderr, "%s%s %s%s\n",GetRangeOperatorString(range->low.op),range->low.version,range->high.version,GetRangeOperatorString(range->high.op));
+	fprintf(stderr, "%s%s %s%s\n", 
+			GetRangeOperatorString(range->low.op),
+			range->low.version, range->high.version,
+			GetRangeOperatorString(range->high.op));
 }
 
 int VersionCmp(char *_candidate, char *_specified)
@@ -141,12 +144,12 @@ int VersionCmp(char *_candidate, char *_specified)
 		while (s<s_len && specified[s] != '.')
 			s++;
 
-		if ((c == 0 && s != 0) || (c == c_len && s != s_len))
-			return 1;
-		else if ((c !=0 && s == 0) || (c != c_len && s == s_len))
-			return -1;
-		else if ((c == 0 && s == 0) || (c == c_len && s == s_len))
-			return 0;
+		if (candidate[c] == 0 || specified[s] == 0 || c == c_len || s == s_len) {
+			candidate[c == c_len ? c_len : c] = 0;
+			specified[s == s_len ? s_len : s] = 0;
+			// return a comparison of the major numbers
+			return strcmp(candidate, specified);
+		}
 
 		candidate[c] = 0;
 		specified[s] = 0;
@@ -406,6 +409,11 @@ void ListAppend(struct list_head *head, struct parse_data *data, struct search_o
 {
 	struct list_data *ldata = (struct list_data *) malloc(sizeof(struct list_data));
 	if (options->repository == LOCAL_PROGRAMS) {
+		// if no version exists in fversion it's because we parsed an application without a version
+		// in Dependencies/BuildDependencies. Just resolve the "Current" symlink, returning "any"
+		// available version as result.
+		if (!data->fversion || !strlen(data->fversion))
+			GetCurrentVersion(data);
 		snprintf(ldata->path, sizeof(ldata->path), "%s/%s/%s", goboPrograms, data->depname, data->fversion);
 	} else {
 		snprintf(ldata->path, sizeof(ldata->path), "%s", data->url);
