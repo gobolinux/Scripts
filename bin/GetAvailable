@@ -11,12 +11,12 @@ import os.path, sys, string, time, os, threading
 
 from PythonUtils import *
 
-goboUserSettings = getGoboVariable('goboUserSettings')
-if not goboUserSettings:
-	Log_Error("Unable to get $goboUserSettings value. Aborting.")
+goboTemp = getGoboVariable('goboTemp')
+if not goboTemp:
+	Log_Error("Unable to get $goboTemp value. Aborting.")
 	sys.exit(1)
 
-cacheDir = os.path.expanduser(goboUserSettings+'/cache/')
+cacheDir = os.path.expanduser(goboTemp+'/Scripts-'+os.getenv('USER')+'/cache/')
 
 def loadConfig():
 	goboSettings = getGoboVariable('goboSettings')

@@ -32,7 +32,7 @@ old_format = s_name+s_blank+s_version+'?'+s_blank+s_flags+'?'
 old_format_c = re.compile(old_format)
 
 global_wget_timeout = getGoboVariable('timeout', 'Scripts/GetAvailable.conf')
-global_dependencies_cache_dir = os.path.expanduser(getGoboVariable('goboUserSettings')+'/dependencies_cache/')
+global_dependencies_cache_dir = os.path.expanduser(getGoboVariable('goboTemp')+'/Scripts-'+os.getenv('USER')+'/dependencies_cache/')
 global_dependencies_blacklist = [ i.lower() for i in getGoboVariable('','Scripts/Dependencies.blacklist') ]
 
 global_compatibility_list = {}
