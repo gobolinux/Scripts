@@ -106,6 +106,28 @@ is_hidden(char *filename)
    return (base[0] == '.' ? 1 : 0);
 }
 
+int
+is_mygroup(gid_t gid)
+{
+   gid_t groups[NGROUPS_MAX];
+   unsigned int i;
+   unsigned int count;
+
+   if (gid == getegid())
+      return 1;
+
+   if ((count = getgroups(NGROUPS_MAX, groups)) == -1) {
+      perror("getgroups");
+      return 0;
+   }
+
+   for (i=0; i < count; i++) {
+      if (gid == groups[i])
+         return 1;
+   }
+   return 0;
+}
+
 void 
 set_color(char *ext, char *code, int index)
 {
@@ -368,7 +390,7 @@ set_permission_string(struct stat *status, char *mask_U, char *mask_G, char *mas
       snprintf(final_mask, mask_len, "%s%s%s%s%s", 
           COLOR_WHITE_CODE, mask_U, COLOR_GREY_CODE, mask_G, mask_O);
    
-   else if (status->st_gid == getegid())
+   else if (is_mygroup(status->st_gid))
       snprintf(final_mask, mask_len, "%s%s%s%s%s%s", 
           COLOR_GREY_CODE, mask_U, COLOR_WHITE_CODE, mask_G, COLOR_GREY_CODE, mask_O);
 
