@@ -64,7 +64,10 @@ def get_rules_of_files(depfiles, t=None, no_compatlist=False, cross_compile=Fals
 				options=line.split("|")
 				last_rule = None
 				for o in options:
-					rule = interpret_dependency_line(o,t, cross_compile=cross_compile, flags=flags) # todo: add exception handling
+					try:
+						rule = interpret_dependency_line(o,t, cross_compile=cross_compile, flags=flags)
+					except ParseError, e:
+						raise ParseError("Error parsing '%s'\n"%depfile + e.message)
 					if last_rule:
 						last_rule['option'] = rule
 						last_rule = rule
@@ -169,8 +172,9 @@ def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False,
 	#sys.stderr.write('Dependencies for %s %s %s %s %s not found\n'%(p,v,r,t,u))
 	return []
 
-def interpret_dependency_line(line, t=None, cross_compile=False, flags=None):
-	line = line.split('#')[0].strip()
+def interpret_dependency_line(whole_line, t=None, cross_compile=False, flags=None):
+
+	line = whole_line.split('#')[0].strip()
 	if not line:
 		return
 
@@ -206,10 +210,10 @@ def interpret_dependency_line(line, t=None, cross_compile=False, flags=None):
 				versions.append(('>=', list_version[0]))
 		elif len(list_version) == 2:
 			if not list_version[0] in ['>', '<', '<=', '>=', '=', '!=']:
-				raise Exception("Error at dependencies file, unsuported operand '%s'"%list_version[0])
+				raise ParseError("Unsuported operand '%s' at line '%s'"%(list_version[0], whole_line.strip()))
 			versions.append((list_version[0], list_version[1]))
 		else:
-			raise Exception("Error at dependencies file. '%s'"%(line))
+			raise ParseError("Error at line '%s'"%(whole_line.strip()))
 
 
 	ret = { 'program'    : programname,
@@ -752,6 +756,9 @@ Examples of usage:
 					pp,vv,rr,tt,uu=match
 					print pp, Join_Version_Revision(vv,rr), tt, uu
 			sys.exit(0)
+	except ParseError, e:
+		sys.stderr.write('\n' + e.message)
+		sys.exit(1)
 	except KeyboardInterrupt:
 		sys.exit(1)
 
