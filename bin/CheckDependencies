@@ -757,7 +757,7 @@ Examples of usage:
 					print pp, Join_Version_Revision(vv,rr), tt, uu
 			sys.exit(0)
 	except ParseError, e:
-		sys.stderr.write('\n' + e.message)
+		Log_Error(e.message, 'CheckDependencies')
 		sys.exit(1)
 	except KeyboardInterrupt:
 		sys.exit(1)
