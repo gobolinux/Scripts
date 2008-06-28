@@ -95,7 +95,7 @@ pwd=$PWD
 
 echo "You are about to create a Rootless environment at" 
 echo "${goboPrefix}"
-echo "Press any key to continue or Ctrl+C to abort."
+echo "Press Enter to continue or Ctrl+C to abort."
 read
 echo
 
