@@ -363,6 +363,7 @@ bonobo-activation-sysconf LibBonobo
 bonobo-browser LibBonoboui
 bonobo-slay LibBonobo
 bootlogd Sysvinit
+briquolo BRIQUOLO
 brprintconf_dcp130c Brother-DCP130cLPR
 brprintconflsr BRMFC-7820n
 brushtopbm Netpbm
@@ -388,6 +389,7 @@ c++ GCC
 c++filt BinUtils
 c2ph Perl
 c_rehash OpenSSL
+caff Signing-Party
 cal Util-Linux
 calculator Fox
 cameratopam Netpbm
@@ -456,6 +458,7 @@ column OpenMotif Util-Linux
 comm CoreUtils
 comp_err MySQL
 compare ImageMagick
+compile-et.pl NSPR
 compile_et E2FSProgs
 composeglyphs A2PS
 composite ImageMagick
@@ -600,6 +603,8 @@ digitaglinktree Digikam
 dijkstra Graphviz
 dir CoreUtils
 dircolors CoreUtils
+dirmngr DirMngr
+dirmngr-client DirMngr
 dirname CoreUtils
 disable-paste GPM
 dislocate Expect
@@ -693,6 +698,7 @@ emacsclient Emacs
 embedjs KDE-Bindings
 emerald Emerald
 emerald-theme-manager Emerald
+empty-trash Trash
 enc2xs Perl
 env CoreUtils
 envsubst Gettext
@@ -763,6 +769,7 @@ fdp Graphviz
 feedbrowser KDE-Network
 fftw-wisdom FFTW
 fftw-wisdom-to-conf FFTW
+fftwf-wisdom FFTW
 fgconsole KBD
 fgrep Grep
 fiascotopnm Netpbm
@@ -921,6 +928,7 @@ gftp-text GFTP
 gftype TeTeX
 ghc GHC GHC-Bin
 ghc-pkg GHC GHC-Bin
+ghc-updater GHC-Bin
 ghci GHC GHC-Bin
 ghcprof GHC GHC-Bin
 gif2epsn Giflib
@@ -1158,12 +1166,17 @@ gpg-agent GPG-Agent GnuPG
 gpg-connect-agent GnuPG
 gpg-error LibGPG-Error
 gpg-error-config LibGPG-Error
+gpg-key2ps Signing-Party
+gpg-mailkeys Signing-Party
 gpg-zip GnuPG
 gpg2 GnuPG
 gpgconf GnuPG
 gpgkey2ssh GnuPG
+gpglist Signing-Party
 gpgme-config GPGME
 gpgparsemail GnuPG
+gpgparticipants Signing-Party
+gpgsigs Signing-Party
 gpgsm GnuPG
 gpgsm-gencert.sh GnuPG
 gpgsplit GnuPG
@@ -1613,6 +1626,7 @@ kexi_add_column KOffice
 kexi_add_column_gui KOffice
 kexi_delete_column KOffice
 kexi_delete_column_gui KOffice
+keylookup Signing-Party
 keytab-lilo.pl LILO
 keytool Sun-JDK
 kfax KDE-Graphics
@@ -1874,6 +1888,7 @@ ld86 Bin86
 ldapadd OpenLDAP
 ldapcompare OpenLDAP
 ldapdelete OpenLDAP
+ldapexop OpenLDAP
 ldapmodify OpenLDAP
 ldapmodrdn OpenLDAP
 ldappasswd OpenLDAP
@@ -1916,6 +1931,7 @@ link CoreUtils
 links Links
 lisa KDE-Network
 lispmtopgm Netpbm
+list-trash Trash
 listener Listener
 listres Xorg
 lkbib Groff
@@ -2230,6 +2246,7 @@ mzip MTools
 named Bind
 named-checkconf Bind
 named-checkzone Bind
+named-compilezone Bind
 namei Util-Linux
 nameif Net-Tools
 nano Nano
@@ -2595,6 +2612,8 @@ pgmtolispm Netpbm
 pgmtopbm Netpbm
 pgmtopgm Netpbm
 pgmtoppm Netpbm
+pgp-clean Signing-Party
+pgp-fixkey Signing-Party
 pgrep Procps
 php PHP
 php-cgi PHP
@@ -2704,6 +2723,7 @@ pod2usage Perl Perl-Pod-Parser
 podchecker Perl Perl-Pod-Parser
 podselect Perl Perl-Pod-Parser
 podtohtml Perl-PodToHTML
+poldi-ctrl PAM-Poldi
 policytool Sun-JDK
 pooltype TeTeX
 populate-dock.sh Kiba-Dock
@@ -2796,6 +2816,7 @@ pr CoreUtils
 pre-grohtml Groff
 precat Aspell
 preparetips KDE-Libs
+prerr.properties NSPR
 preunzip Aspell
 prezip Aspell
 prezip-bin Aspell
@@ -2960,6 +2981,7 @@ resizefs.reiserfs ProgsReiserFS ReiserFSProgs
 reslisa KDE-Network
 resolve_stack_dump MySQL
 resolveip MySQL
+restore-trash Trash
 restorefont SVGALib
 restorepalette SVGALib
 restoretextmode SVGALib
@@ -3048,6 +3070,8 @@ sbase OpenOffice
 sbigccd KDE-Edu
 sbigtopgm Netpbm
 scalc OpenOffice
+scalixadmin KDE-PIM
+scalixwizard KDE-PIM
 scandeps.pl Perl-Module-ScanDeps
 scanpci Xorg
 sccmap Graphviz
@@ -3129,6 +3153,7 @@ shred CoreUtils
 shuf CoreUtils
 shutdown Sysvinit
 shutterbug Fox
+sig2dot Signing-Party
 simpledrop OpenMotif
 simpress OpenOffice
 sip KDE-Bindings SIP
@@ -3203,6 +3228,7 @@ split CoreUtils
 split2po KDE-SDK
 spotlight2kvtml KDE-Edu
 spottopgm Netpbm
+springgraph Signing-Party
 sprof Glibc
 sputoppm Netpbm
 sqlite SQLite Sqlite
@@ -3384,6 +3410,7 @@ tr CoreUtils
 traceroute TraceRoute
 trackgen TORCS
 transxx KDE-SDK
+trash Trash
 tred Graphviz
 tree OpenMotif
 trm LibTunepimp
@@ -3401,6 +3428,7 @@ tunelp Util-Linux
 tuxpuck TuxPuck
 twm Xorg
 twopi Graphviz
+tworld TileWorld
 type1afm T1Lib
 typelib-dump ORBit2
 tzselect Glibc
@@ -3435,6 +3463,7 @@ uniqleaf TeTeX
 units Units
 unix-lpr.sh ESP-Ghostscript GNU-Ghostscript Ghostscript
 unix_chkpwd Linux-PAM
+unix_update Linux-PAM
 unlink CoreUtils
 unlzma LZMA-Utils
 unopkg OpenOffice
@@ -3612,10 +3641,10 @@ wsimport Sun-JDK
 wsm OpenMotif
 wtpt LCMS
 wv2-config WV2
-wx-config WxPython WxWidgets
+wx-config WxBase WxGTK WxPython WxWidgets
 wxcopy WindowMaker
 wxpaste WindowMaker
-wxrc WxPython WxWidgets
+wxrc WxGTK WxPython WxWidgets
 wzd-config WzdFTPd
 wzdftpd WzdFTPd
 x11perf Xorg
@@ -3768,6 +3797,7 @@ xrandr Xorg
 xrdb Xorg
 xrefresh Xorg
 xrx Xorg
+xscorch-server Xscorch
 xscreensaver XScreenSaver
 xscreensaver-command XScreenSaver
 xscreensaver-demo XScreenSaver
