@@ -16,9 +16,6 @@
 // Arbitrary, but much larger than we need here
 #define MAX_ITERATIONS 30
 #define BUFLEN 512
-// Determined by exhaustive experimentation on the data; double the minimum
-// tested working value (2008-02-26)
-#define LINEAR_SEARCH_THRESHOLD 256
 // For possible Rootless support, or hardwiring each CNF to its own version's
 // data, make the data file configurable.
 #ifndef DATAFILE
@@ -56,38 +53,17 @@ int foundexecutable(char * executable, char * target) {
 	return 0;
 }
 
-int linsearch(FILE * fp, char * target, int lo, int hi) {
-	char entry [BUFLEN];
-	char * executable;
-	fseek(fp, lo, SEEK_SET);
-	// Unless we're right at the beginning, we're probably in the middle of a
-	// line, so skip it.
-	if (0 != lo)
-		fgets(entry, BUFLEN, fp);
-	// Perform a linear search from here to the upper bound of the range, and
-	// hand off to foundexecutable() if the target is found.
-	while (ftell(fp) < hi) {
-		fgets(entry, BUFLEN, fp);
-		executable = strtok(entry, " ");
-		if (strcmp(executable, target) == 0)
-			return foundexecutable(executable, target);
-	}
-	// Not found
-	return 1;
-}
-
 int binsearch(FILE * fp, char * target, int lo, int hi) {
 	int mid = lo + (hi - lo) / 2;
 	char entry [BUFLEN];
 	char * executable;
-	// Switch to a linear search when we're getting close, for the edge cases
-	if (hi - lo < LINEAR_SEARCH_THRESHOLD)
-		return linsearch(fp, target, lo, hi);
-
+	// Definitely not going to find anything, so quit here.
+	if (lo == mid)
+		return 0;
 	// Jump to our current midpoint
 	fseek(fp, mid, SEEK_SET);
-	// We're probably in the middle of a line, so discard it, then use the
-	// next, *unless* we're right at the start.
+	// We're probably in the middle of a line, so discard it, then use
+	// the next, *unless* we're right at the start.
 	if (0 != mid) 
 		fgets(entry, BUFLEN, fp);
 	fgets(entry, BUFLEN, fp);
