@@ -58,7 +58,7 @@ int binsearch(FILE * fp, char * target, int lo, int hi) {
 	char entry [BUFLEN];
 	char * executable;
 	// Definitely not going to find anything, so quit here.
-	if (lo == mid)
+	if (lo == mid && (lo != 0 || hi == 0))
 		return 1;
 	// Jump to our current midpoint
 	fseek(fp, mid, SEEK_SET);
