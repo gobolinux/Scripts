@@ -221,7 +221,7 @@ then
       scripts=Scripts--${version}--i686.tar.bz2
       wget http://kundor.org/gobo/packages/official/${scripts} -O /tmp/${scripts}
       cd "${goboPrefix}/Programs/"
-      tar xvfj /tmp/${scripts}
+      tar xvfj /tmp/${scripts} && rm -f /tmp/${scripts}
       cd Scripts
       ln -sfn "$version" Current
       cp -R "${goboPrefix}/Programs/Scripts/$version/Resources/Defaults/Settings" "${goboPrefix}/Programs/Scripts/Settings"
