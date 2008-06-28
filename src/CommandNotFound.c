@@ -27,7 +27,7 @@ void multiprogrammessage(char * executable, char * program, char * program2) {
 	                "It is available in the following packages:\n",
 	                executable);
 	fprintf(stderr, " %s, %s", program, program2);
-	while (program2 = strtok(NULL, " "))
+	while ((program2 = strtok(NULL, " ")))
 		fprintf(stderr, ", %s", program2);
 	// The last program will include the newline in it, no need to be explicit
 	fprintf(stderr, "You can install one of these by typing (for example):\n"
@@ -59,7 +59,7 @@ int binsearch(FILE * fp, char * target, int lo, int hi) {
 	char * executable;
 	// Definitely not going to find anything, so quit here.
 	if (lo == mid)
-		return 0;
+		return 1;
 	// Jump to our current midpoint
 	fseek(fp, mid, SEEK_SET);
 	// We're probably in the middle of a line, so discard it, then use
@@ -69,12 +69,11 @@ int binsearch(FILE * fp, char * target, int lo, int hi) {
 	fgets(entry, BUFLEN, fp);
 	executable = strtok(entry, " ");
 	int cmpval = strcmp(executable, target);
-	if (0 == cmpval)
-		return foundexecutable(executable, target);
-	else if (0 > cmpval)
+	if (0 > cmpval)
 		return binsearch(fp, target, mid, hi);
 	else if (0 < cmpval)
 		return binsearch(fp, target, lo, mid);
+	return foundexecutable(executable, target);
 }
 
 int main(int argc, char **argv) {
