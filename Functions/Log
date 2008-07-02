@@ -18,7 +18,6 @@ export debugFD=104
 export logFD=105
 export questionFD=106
 
-
 function Is_Log_Mode() {
    [ "$1" = "$logMode" ]
 }
@@ -109,8 +108,13 @@ function Ask_Option() {
 
 function Ask() {
    Parameters "$@" question
-   Ask_Option "$question [Y/n]"
-   if [ "$REPLY" = "n" -o "$REPLY" = "N" ]
+   REPLY=foo
+   while [ -n "$(echo $REPLY | sed -r -e 's/((Y|y)(ES|es)?|(N|n)(O|o)?)//')" ]
+   do
+      Ask_Option "$question [Y/n]"
+   done
+
+   if [[ "$REPLY" == [Nn]* ]]
    then return 1
    else return 0
    fi
