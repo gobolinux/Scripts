@@ -20,3 +20,5 @@ Xorg-Lib: Xorg
 Xorg-Server: Xorg
 Xorg-Driver: Xorg
 Xorg-App: Xorg
+Util-Linux: Util-Linux-NG
+Util-Linux-NG: Util-Linux
