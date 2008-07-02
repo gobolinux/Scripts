@@ -35,10 +35,10 @@ do
    elif [ -z "${cross_compiler}" ] && realfile=$(ldd "$1" | grep "${obj}" | awk '{ print $3 }') && [ -f "${realfile}" ]
    then
       echo ${realfile}
-   elif realfile=$(find "${prefix}" -name "${obj}" | xargs -i readlink -f {} ) && [ -f "${realfile}" ]
+   elif realfile=($(find "${prefix}" -name "${obj}" | xargs -i readlink -f {} )) && [ -f "${realfile}" ]
    then
       continue
-   elif [ -z "${cross_compiler}" ] && realfile=$(find ${goboLibraries} -name "${obj}" | xargs -i readlink -f {} ) && [ -f "${realfile}" ]
+   elif [ -z "${cross_compiler}" ] && realfile=($(find ${goboLibraries} -name "${obj}" | xargs -i readlink -f {} )) && [ -f "${realfile}" ]
    then
       echo ${realfile}
    else
