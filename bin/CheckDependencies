@@ -483,8 +483,9 @@ Import GoboLinux
 Get_Version %s Current"""%rule['program']
 		installed_version = bash(cmd)
 		ret += rule['program'] + ' >= ' + installed_version
-		if rule['hiver']:
-			ret += ', ' + (rule['hiincluded'] and '<= ' or '< ') + rule['hiver']
+		for op, ver in rule['versions']:
+			if '<' in op or '!=' == op:
+				ret += ', ' + op + ' ' + ver
 		ret += '\n'
 	return ret
 
