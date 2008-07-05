@@ -178,13 +178,13 @@ def interpret_dependency_line(whole_line, t=None, cross_compile=False, flags=Non
 	if not line:
 		return
 
+	if line.startswith('['):
+		return
+
 	global global_dependencies_blacklist
 	l = line.split()
 	programname = l[0]
 	rest = " ".join(l[1:])
-
-	if rest and rest[0] == '[':
-		return
 
 	activeflags = frozenset()
 	if rest and rest[-1] == ']':
