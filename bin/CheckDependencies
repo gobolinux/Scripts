@@ -191,7 +191,7 @@ def interpret_dependency_line(whole_line, t=None, cross_compile=False, flags=Non
 		l = rest.split('[')
 		rest = l[0]
 		useflags = l[1][:-1]
-		useflagssplit = useflags.split()
+		useflagssplit = useflags.split(',')
 		if (('cross' in useflagssplit and not cross_compile) or ('!cross' in useflagssplit and cross_compile)):
 			return
 		# If none of the listed flags are enabled, skip this dependency
