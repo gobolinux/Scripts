@@ -382,7 +382,7 @@ then
       set +o pipefail
       for d_url in $selecteddeps
       do
-         InstallPackage --no-dependencies ${nosigncheck} $d_url || {
+         InstallPackage --no-dependencies ${nosigncheck} ${keep} ${nosymlink} $d_url || {
             ret=$?
             exit $ret
          }
