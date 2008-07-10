@@ -68,6 +68,9 @@ function cleanup() {
         Quiet popd
     fi
 
+    # Remove wrapper
+    rm -f -- "$sandbox_mp/.wrapper"
+
     # Clean up mountpoints
 
     # unionfs-fuse keeps a few programs busy, so we need to make sure all ocurrences created by us are finished
@@ -195,9 +198,6 @@ chmod a+x "${sandbox_mp}/.wrapper"
 # Run program in chrooted sandbox
 chroot $sandbox_mp /.wrapper
 result=$?
-
-# Remove wrapper
-rm "$sandbox_mp/.wrapper"
        
 # Cleanup
 cleanup
