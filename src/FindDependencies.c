@@ -477,6 +477,9 @@ char *ReadLine(char *buf, int size, FILE *fp)
 		ptr = strstr(buf, "#");
 		if (ptr)
 			*ptr = '\0';
+		ptr = strstr(buf, "[");
+		if (ptr)
+			*ptr = '\0';
 	}
 	return ret;
 }
