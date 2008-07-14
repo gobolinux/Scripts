@@ -723,7 +723,7 @@ bool ParseRanges(struct parse_data *data, struct search_options *options)
 			matchrange = VersionInRangeList(verentry,data->ranges);
 			if (matchrange)
 				LimitRange(data,matchrange,verentry);
-			} else if (verentry->op != NOT_EQUAL) {
+			else if (verentry->op != NOT_EQUAL) {
 				list_for_each_entry_safe(rangeentry, rangestore, data->ranges, list) {
 				
 					list_del(&rangeentry->list);
