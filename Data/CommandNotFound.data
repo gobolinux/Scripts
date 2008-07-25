@@ -3675,6 +3675,13 @@ xdelta3 XDelta3
 xdelta3-debug XDelta3
 xdeview UUDeview
 xditview Xorg
+xdg-desktop-icon XDG-Utils
+xdg-desktop-menu XDG-Utils
+xdg-email XDG-Utils
+xdg-icon-resource XDG-Utils
+xdg-mime XDG-Utils
+xdg-open XDG-Utils
+xdg-screensaver XDG-Utils
 xdm Xorg
 xdmshell Xorg
 xdmx Xorg
