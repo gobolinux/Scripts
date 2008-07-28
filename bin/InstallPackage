@@ -196,6 +196,7 @@ else # $1 is a file
    packagename=`Get_Token    "$noext" "--" "0"`
    packageversionrevision=`Get_Token "$noext" "--" "1"`
    packageversion=`String_Version $packageversionrevision`
+   packagerevision=`String_Revision $packageversionrevision`
    if echo "$noext" | Quiet grep ".*--.*--.*"
    then
       packagearch=`Get_Token "$noext" "--" "2"`
@@ -277,6 +278,13 @@ else
    Verbose tar "$taroption" "$archive" -C "${goboPrograms}"
 fi
 
+# Checking correct revision
+if [ -f "${goboPrograms}/$packagename/$packageversion/Resources/Revision" ]
+then
+   [ "$(cat ${goboPrograms}/$packagename/$packageversion/Resources/Revision 2>/dev/null)" != "$packagerevision" ] && Die "Package spoofing detected. Package revision for tarball ($packagerevision) does not match the package revision ($(cat ${goboPrograms}/$packagename/$packageversion/Resources/Revision 2>/dev/null))"
+else
+   Log_Terse "No Revision file exists in ${goboPrograms}/$packagename/$packageversion/Resources. Cannot validate package revision."
+fi
 
 if [ -n "${nosigncheck}" ]
 then

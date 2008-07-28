@@ -88,6 +88,15 @@ fi
 [ -s ~/.gnupg/gobopackagetrustedkeys.gpg ] && TrustedKeyring="~/.gnupg/gobopackagetrustedkeys.gpg"
 ########## Operations ##########
 
+# Checking correct name and version
+if [ -f "${prefix}/Resources/MetaData" ]
+then
+   [ "$(grep 'Name:' ${prefix}/Resources/MetaData 2>/dev/null | cut -f2 -d' ')" != "$package" ] && Die "Package spoofing detected. Package name ($package) does not match the name in MetaData ($(grep 'Name:' ${prefix}/Resources/MetaData 2>/dev/null | cut -f2 -d' '))"
+   [ "$(grep 'Version:' ${prefix}/Resources/MetaData 2>/dev/null | cut -f2 -d' ')" != "$version" ] && Die "Package spoofing detected. Package version ($version) does not match the version in MetaData ($(grep 'Version:' ${prefix}/Resources/MetaData 2>/dev/null | cut -f2 -d' '))"
+else
+   Log_Terse "No MetaData file exists in ${prefix}/Resources. Cannot validate package name and version."
+fi
+
 result=0
 gpgv=`(which gpgv2 || which gpgv) 2> /dev/null`
 if Is_Executable "$gpgv"
