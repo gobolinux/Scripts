@@ -157,7 +157,7 @@ def sha1sum_file(filename):
    f.close()
    return sha1sum_string(data)
 
-print 'GoboLinux FileHash, version 2.2, SHA-1'
+print 'GoboLinux FileHash, version 2.1, SHA-1'
 
 for line in sys.stdin:
    line = line.split('\n')[0]
@@ -167,7 +167,7 @@ for line in sys.stdin:
       sum = sha1sum_string(os.readlink(line))
    else:
       sum = sha1sum_file(line)
-   print '%s %s/%s' % (sum, '$file_prefix', line)
+   print '%s %s' % (sum, line)
 
 """ | $sudo_exec tee -a "$hashfile" >&$verboseFD
    Quiet popd
@@ -220,7 +220,6 @@ function Check_FileHash() {
 ### python check_filehashes CHANGELOG
 # 10/10/2004 - [calica] First version
    Parameters "$@" prefix hash_file
-   prefix=`echo "$prefix" | sed 's,/$,,'`
    cleanhashfilename=$(echo "$hash_file" | sed 's,'"$prefix"'\/*,,g')
    local rtn
    Quiet pushd "$prefix"
@@ -250,10 +249,7 @@ hashes = file(hashfile, 'r')
 lines = hashes.readlines()
 
 version = 1
-if lines[0] == 'GoboLinux FileHash, version 2.2, SHA-1\n':
-   version = 2.2
-   lines = lines[1:]
-elif lines[0] == 'GoboLinux FileHash, version 2.1, SHA-1\n':
+if lines[0] == 'GoboLinux FileHash, version 2.1, SHA-1\n':
    version = 2.1
    lines = lines[1:]
 elif lines[0] == 'GoboLinux FileHash, version 2.0, SHA-1\n':
@@ -276,8 +272,6 @@ for line in lines:
 for line in sys.stdin:
    try:
       line = line.split('\n')[0]
-      if version >= 2.2:
-         line = '$prefix/' + line.split('\n')[0]
       good_sum = file_checksums[line]
       if not good_sum:
          raise Exception
