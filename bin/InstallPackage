@@ -282,7 +282,8 @@ fi
 if [ -f "${goboPrograms}/$packagename/$packageversion/Resources/Revision" ]
 then
    [ "$(cat ${goboPrograms}/$packagename/$packageversion/Resources/Revision 2>/dev/null)" != "$packagerevision" ] && Die "Package spoofing detected. Package revision for tarball ($packagerevision) does not match the package revision ($(cat ${goboPrograms}/$packagename/$packageversion/Resources/Revision 2>/dev/null))"
-else
+elif [ -n "$packagerevision" ]
+then
    Log_Terse "No Revision file exists in ${goboPrograms}/$packagename/$packageversion/Resources. Cannot validate package revision."
 fi
 
