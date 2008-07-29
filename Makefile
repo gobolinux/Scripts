@@ -48,9 +48,14 @@ verify:
 	@{ svn status 2>&1 | grep -v "Resources/SettingsBackup" | grep "^\?" ;} && { echo -e "Error: unknown files exist. Please take care of them first.\n"; exit 1 ;} || exit 0
 	@{ svn status 2>&1 | grep "^M" ;} && { echo -e "Error: modified files exist. Please checkin/revert them first.\n"; exit 1 ;} || exit 0
 
-dist: version_check cleanup verify
+update_version: verify
 	sed -i "s/CURRENT_SCRIPTS_VERSION=.*#/CURRENT_SCRIPTS_VERSION="${VERSION}" #/g" bin/CreateRootlessEnvironment
 	svn commit -m "Update version." bin/CreateRootlessEnvironment
+
+dist: update_version tarball
+	@echo; echo "Now make a tag by running \`svn cp http://svn.gobolinux.org/tools/trunk/$(PROGRAM) http://svn.gobolinux.org/tools/tags/$(SVNTAG) -m\"Tagging $(PROGRAM) $(VERSION)\"\`"
+
+tarball: version_check cleanup
 	rm -rf $(PACKAGE_DIR)/$(PROGRAM)/$(VERSION)
 	mkdir -p $(PACKAGE_DIR)/$(PROGRAM)/$(VERSION)
 	ListProgramFiles $(shell pwd) | cpio -p $(PACKAGE_DIR)/$(PROGRAM)/$(VERSION)
@@ -59,18 +64,7 @@ dist: version_check cleanup verify
 	rm -rf $(PACKAGE_DIR)/$(PROGRAM)/$(VERSION)
 	rmdir $(PACKAGE_DIR)/$(PROGRAM)
 	SignProgram $(PACKAGE_FILE)
-	@echo; echo "Package at $(PACKAGE_FILE)"
-	@echo; echo "Now make a tag by running \`svn cp http://svn.gobolinux.org/tools/trunk/$(PROGRAM) http://svn.gobolinux.org/tools/tags/$(SVNTAG) -m\"Tagging $(PROGRAM) $(VERSION)\"\`"
-
-tarball: version_check cleanup
-	rm -rf $(TARBALL_ROOT)
-	mkdir -p $(TARBALL_ROOT)
-	ListProgramFiles $(PROGRAM) | cpio -p $(TARBALL_ROOT)
-	cd $(TARBALL_ROOT) && sed -i "s,^VERSION=,VERSION=$(VERSION)," Makefile
-	cd $(PACKAGE_DIR); tar cvp $(TARBALL_BASE) | gzip > $(TARBALL_FILE)
-	rm -rf $(TARBALL_ROOT)
-	@echo; echo "Tarball at $(TARBALL_FILE)"; echo
-	make all
+	@echo; echo "Tarball at $(PACKAGE_FILE)"; echo
 
 install: version_check
 	cp -a * $(DESTDIR)
