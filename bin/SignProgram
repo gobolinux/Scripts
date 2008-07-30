@@ -73,7 +73,7 @@ FileHash_sig="${FileHash_loc}.sig"
 $sudo_exec rm -f "$FileHash_loc"
 $sudo_exec rm -f "$FileHash_sig"
 
-echo -e "Name: $package\nVersion: $version\n" > "$prefix/$package/$version/Resources/MetaData"
+echo -e "Name: $package\nVersion: $version\n" | $sudo_exec tee "$prefix/$package/$version/Resources/MetaData" >/dev/null
 Log_Normal "Creating FileHash"
 Gen_FileHash "$prefix/$package/$version" "$FileHash_loc" || exit 1
 Boolean "no-signature" && exit 0
