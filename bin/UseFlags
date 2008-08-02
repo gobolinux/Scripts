@@ -170,9 +170,11 @@ def _modifyFlagSetFromSpec(specStr, flagSet, program=None):
 
 def _parseGenerics():
 	global generic_to_specific, specific_to_generic
+	fn = os.path.join(getGoboVariable('goboSettings'),
+						'GenericFlags.conf')
 	generic_to_specific = dict()
 	specific_to_generic = dict()
-	for line in open('/System/Settings/GenericFlags.conf'):
+	for line in open(fn):
 		components = line.split()
 		generic = components[0][:-1]
 		specifics = components[1:]
