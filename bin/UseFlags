@@ -21,7 +21,9 @@ global_use_flags_cache = None
 global_program_use_flags_cache = None
 # A dict of recipe dir=>set of potential flags
 global_program_potential_flags_cache = None
+# A dict of generic flag=>(specific flag,...)
 generic_to_specific = None
+# A dict of specific flag=>parent generic flag
 specific_to_generic = None
 
 def UseFlags(program=None):
@@ -85,11 +87,15 @@ def UseFlags(program=None):
 					for specific in generic_to_specific[generic]:
 						if specific not in potentialflags:
 							continue
+						# Save the first available flag, but continue
+						# looping in case a later one is enabled specifically.
 						if not first:
 							first = specific
 						if specific in flags:
 							child = True
 							break
+					# When there is no component flag enabled but one of them
+					# is available, enable it now.
 					if not child and first:
 						flags.add(first)
 		# If program is specified, the flags should be saved in the program
@@ -169,6 +175,15 @@ def _modifyFlagSetFromSpec(specStr, flagSet, program=None):
 		else: flagSet.add(flagSpec)
 
 def _parseGenerics():
+	"""Parse GenericFlags.conf and initialise its module variables.
+
+	GenericFlags.conf is in the format generic: specific1 specific2...
+
+	generic_to_specific and specific_to_generic in the global scope
+	will be initialised as dicts in the corresponding direction;
+	generic_to_specific will be string=>iterable, specific_to_generic
+	string=>string
+	"""
 	global generic_to_specific, specific_to_generic
 	fn = os.path.join(getGoboVariable('goboSettings'),
 						'GenericFlags.conf')
