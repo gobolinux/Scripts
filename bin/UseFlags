@@ -21,10 +21,15 @@ global_use_flags_cache = None
 global_program_use_flags_cache = None
 # A dict of recipe dir=>set of potential flags
 global_program_potential_flags_cache = None
+generic_to_specific = None
+specific_to_generic = None
 
 def UseFlags(program=None):
 	"""Return the set of flags enabled for program"""
 	global global_use_flags_cache, global_program_use_flags_cache
+	global generic_to_specific, specific_to_generic
+	if generic_to_specific is None:
+		_parseGenerics()
 	potentialflags = None
 	if program and program.startswith('/'):
 		catch = False
@@ -69,6 +74,24 @@ def UseFlags(program=None):
 		# merged, and overwrite any previous specifications for the same flag.
 		if 'USE' in os.environ:
 			_mergeFlags(flags, os.environ['USE'].split(), program)
+		for specific in specific_to_generic:
+			if specific in flags:
+				flags.add(specific_to_generic[specific])
+		if potentialflags:
+			for generic in generic_to_specific:
+				if generic in flags:
+					child = False
+					first = None
+					for specific in generic_to_specific[generic]:
+						if specific not in potentialflags:
+							continue
+						if not first:
+							first = specific
+						if specific in flags:
+							child = True
+							break
+					if not child and first:
+						flags.add(first)
 		# If program is specified, the flags should be saved in the program
 		# cache. Otherwise they are the global flags and can be saved there.
 		if program:
@@ -144,6 +167,18 @@ def _modifyFlagSetFromSpec(specStr, flagSet, program=None):
 		elif flagSpec[0] == '+': flagSet.add(flagSpec[1:])
 		elif flagSpec[0] == '#': pass
 		else: flagSet.add(flagSpec)
+
+def _parseGenerics():
+	global generic_to_specific, specific_to_generic
+	generic_to_specific = dict()
+	specific_to_generic = dict()
+	for line in open('/System/Settings/GenericFlags.conf'):
+		components = line.split()
+		generic = components[0][:-1]
+		specifics = components[1:]
+		generic_to_specific[generic] = specifics
+		for specific in specifics:
+			specific_to_generic[specific] = generic
 
 # Executable code when run from the command line.
 if __name__ == '__main__':
