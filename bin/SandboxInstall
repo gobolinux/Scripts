@@ -134,12 +134,12 @@ default_settings="$installPackageDir/$version/Resources/Defaults/Settings"
 for unmanaged in "${unmanagedarray[@]}"
 do
    # If it's not a directory (it's possible that it's a non-existant directory, but that's ok), strip one level
-   [ ! -d ${unmanaged} ] && unmanaged=$(echo ${unmanaged} | sed 's,\(.*\)/[^/]*,\1,')
+   [ ! -d ${unmanaged} ] && unmanaged=$(echo ${unmanaged} | sed -e 's,\(.*\)/[^/]*,\1,' -e 's,'"$goboPrefix"',,' )
    # Make sure the directories exist
-   Assert_Dir ${unmanaged}
+   Assert_Dir ${goboPrefix}${unmanaged}
    Assert_Dir ${installPackageDir}/${version}/Resources/Unmanaged${unmanaged}
    # Map them
-   unmanagedmap="${installPackageDir}/${version}/Resources/Unmanaged${unmanaged}=${unmanaged}${unmanagedmap:+:${unmanagedmap}}"
+   unmanagedmap="${installPackageDir}/${version}/Resources/Unmanaged${unmanaged}=${goboPrefix}${unmanaged}${unmanagedmap:+:${unmanagedmap}}"
 done
 
 if [ "$unionsandbox" ] 
