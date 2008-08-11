@@ -178,6 +178,7 @@ aalib-config AALib
 aasavefont AALib
 aatest AALib
 ab HTTPD
+abxtest Mad
 acat Atool
 accc TORCS
 accept CUPS
@@ -726,6 +727,7 @@ etags Emacs
 etex TeTeX
 etracer ExtremeTuxRacer
 eventlogadm Samba
+evilwm EvilWM
 ex Vim
 exchangewizard KDE-PIM
 exiv2 Exiv2
@@ -749,6 +751,8 @@ extractattr KDE-SDK
 extractrc KDE-SDK
 eyeD3 EyeD3
 eyuvtoppm Netpbm
+faac FAAC
+faad FAAD2
 factor CoreUtils
 faillog Shadow
 false CoreUtils
@@ -767,6 +771,8 @@ fdformat Util-Linux
 fdisk Util-Linux
 fdp Graphviz
 feedbrowser KDE-Network
+ffmpeg FFmpeg
+ffserver FFmpeg
 fftw-wisdom FFTW
 fftw-wisdom-to-conf FFTW
 fftwf-wisdom FFTW
@@ -2026,6 +2032,7 @@ lzmainfo LZMA-Utils
 lzmore LZMA-Utils
 m4 M4
 macptopbm Netpbm
+madplay Mad
 mag TeTeX
 mail-files SharUtils
 mail.local KDE-Network
@@ -3674,7 +3681,6 @@ xdbedizzy Xorg
 xdelta3 XDelta3
 xdelta3-debug XDelta3
 xdeview UUDeview
-xditview Xorg
 xdg-desktop-icon XDG-Utils
 xdg-desktop-menu XDG-Utils
 xdg-email XDG-Utils
@@ -3682,6 +3688,7 @@ xdg-icon-resource XDG-Utils
 xdg-mime XDG-Utils
 xdg-open XDG-Utils
 xdg-screensaver XDG-Utils
+xditview Xorg
 xdm Xorg
 xdmshell Xorg
 xdmx Xorg
