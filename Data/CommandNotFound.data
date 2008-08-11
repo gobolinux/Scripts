@@ -13,6 +13,7 @@ Arrange AfterStep
 AttachProgram Scripts
 AugmentCommandNotFoundDatabase Scripts
 AutoPatch AutoPatch
+BMPtoRGB Dirac
 Banner AfterStep
 BatchChrootCompile ChrootCompile
 BatchNewVersion DevelScripts
@@ -120,6 +121,12 @@ PrioritiseUpdates Scripts
 ProfileInstall Installer
 PublishRevision DevelScripts
 PutRecipe DevelScripts
+RGBtoBMP Dirac
+RGBtoUYVY Dirac
+RGBtoYUV411 Dirac
+RGBtoYUV420 Dirac
+RGBtoYUV422 Dirac
+RGBtoYUV444 Dirac
 RecipeLint Compile
 RemoveBroken Scripts
 RemoveEmpty Scripts
@@ -145,6 +152,8 @@ SystemInfo Scripts
 Terminal Terminal
 TestBootTheme BootScripts
 Thunar Thunar
+UYVYtoRGB Dirac
+UYVYtoYUV422 Dirac
 UnionSandbox Scripts
 UpdateEnvironment BuildLiveCD
 UpdateLocalStore DevelScripts
@@ -167,11 +176,19 @@ Xpm2Jpg AfterStep
 Xprt Xorg
 Xtest Xtest
 Xvfb Xorg
+YUV411toRGB Dirac
+YUV420toRGB Dirac
+YUV420toYUV422 Dirac
+YUV422toRGB Dirac
+YUV422toUYVY Dirac
+YUV422toYUV420 Dirac
+YUV444toRGB Dirac
 [ CoreUtils
 a2p Perl
 a2ping TeTeX
 a2ps A2PS
 a2x AsciiDoc
+a52dec A52Dec
 aafire AALib
 aainfo AALib
 aalib-config AALib
@@ -325,6 +342,19 @@ autopopups OpenMotif
 autoreconf Autoconf
 autoscan Autoconf
 autoupdate Autoconf
+avahi-autoipd Avahi
+avahi-browse Avahi
+avahi-browse-domains Avahi
+avahi-daemon Avahi
+avahi-discover-standalone Avahi
+avahi-dnsconfd Avahi
+avahi-publish Avahi
+avahi-publish-address Avahi
+avahi-publish-service Avahi
+avahi-resolve Avahi
+avahi-resolve-address Avahi
+avahi-resolve-host-name Avahi
+avahi-set-host-name Avahi
 awk Gawk
 b2m Emacs
 badblocks E2FSProgs
@@ -368,10 +398,13 @@ briquolo BRIQUOLO
 brprintconf_dcp130c Brother-DCP130cLPR
 brprintconflsr BRMFC-7820n
 brushtopbm Netpbm
+bshell Avahi
+bssh Avahi
 btcflash CDRTools
 build-progress.sh KDE-SDK
 buildhash Ispell
 bunzip2 Bzip2
+bvnc Avahi
 bzadmin BZFlag
 bzcat Bzip2
 bzcmp Bzip2
@@ -411,7 +444,13 @@ cc GCC
 ccmake CMake
 ccmakedep Imake Xorg
 ccomps Graphviz
+cd-drive LibCdio
+cd-info LibCdio
+cd-paranoia LibCdio
+cd-read LibCdio
+cdda-player LibCdio
 cdda2wav CDRTools
+cddb-slave2-properties Gnome-Media
 cddb_query LibCDDB
 cdparanoia Cdparanoia-III
 cdrdao CDRDAO
@@ -486,6 +525,7 @@ cracklib-unpacker CrackLib
 crc32 Perl-Archive-Zip
 create-cracklib-dict CrackLib
 create_cvsignore KDE-SDK
+create_dirac_testfile.pl Dirac
 create_floppy_devices Udev
 create_makefile KDE-SDK
 create_makefiles KDE-SDK
@@ -603,6 +643,9 @@ digikamthemedesigner Digikam
 digitaglinktree Digikam
 dijkstra Graphviz
 dir CoreUtils
+dirac_decoder Dirac
+dirac_encoder Dirac
+dirac_instrumentation Dirac
 dircolors CoreUtils
 dirmngr DirMngr
 dirmngr-client DirMngr
@@ -681,6 +724,7 @@ e2label E2FSProgs
 e2pall TeTeX
 earth OpenMotif
 easy_install Setuptools
+easytag EasyTAG
 ebb TeTeX
 ebrowse Emacs
 echo CoreUtils
@@ -747,6 +791,7 @@ extcheck Sun-JDK
 extend_dmalloc KDE-SDK
 extensionproxy KDE-Base
 extract LibExtractor
+extract_a52 A52Dec
 extractattr KDE-SDK
 extractrc KDE-SDK
 eyeD3 EyeD3
@@ -772,6 +817,7 @@ fdisk Util-Linux
 fdp Graphviz
 feedbrowser KDE-Network
 ffmpeg FFmpeg
+ffplay FFmpeg
 ffserver FFmpeg
 fftw-wisdom FFTW
 fftw-wisdom-to-conf FFTW
@@ -1143,11 +1189,17 @@ glxpbdemo Mesa
 glxpixmap Mesa
 glxswapcontrol Mesa
 gm GraphicsMagick
+gmpc GMPC
 gmplayer MPlayer
+gnome-about Gnome-Desktop
+gnome-audio-profiles-properties Gnome-Media
+gnome-cd Gnome-Media
 gnome-doc-prepare Gnome-Doc-Utils
 gnome-keyring-daemon Gnome-Keyring
 gnome-open LibGnome
+gnome-sound-recorder Gnome-Media
 gnome-tptest Gnome-TPTest
+gnome-volume-control Gnome-Media
 gnomevfs-cat Gnome-VFS
 gnomevfs-copy Gnome-VFS
 gnomevfs-df Gnome-VFS
@@ -1269,8 +1321,11 @@ gst-xmlinspect-0.8 GStreamer
 gst-xmllaunch GST-Core GStreamer
 gst-xmllaunch-0.10 GST-Core GStreamer
 gst-xmllaunch-0.8 GStreamer
+gstreamer-properties Gnome-Media
 gsx GNU-Ghostscript Ghostscript
 gtbl Groff
+gtester GLib
+gtester-report GLib
 gtf Xorg
 gtk-builder-convert GTK+
 gtk-demo GTK+
@@ -1453,6 +1508,8 @@ irb Ruby
 irkick KDE-Utils
 irssi Irssi
 isc-config.sh Bind
+iso-info LibCdio
+iso-read LibCdio
 isodebug CDRTools
 isodump CDRTools
 isoinfo CDRTools
@@ -1900,6 +1957,11 @@ ldapmodrdn OpenLDAP
 ldappasswd OpenLDAP
 ldapsearch OpenLDAP
 ldapwhoami OpenLDAP
+ldbadd Samba
+ldbdel Samba
+ldbedit Samba
+ldbmodify Samba
+ldbsearch Samba
 ldconfig Glibc
 ldd Glibc
 lddlibc4 Glibc
@@ -2100,6 +2162,8 @@ mft TeTeX
 mgrtopbm Netpbm
 midisend KDE-Multimedia
 mii-tool Net-Tools
+mimeopen Perl-File-MimeInfo
+mimetype Perl-File-MimeInfo
 minews UUDeview
 minfo MTools
 mk_cmds E2FSProgs
@@ -2144,6 +2208,7 @@ mktexmf TeTeX
 mktexpk TeTeX
 mktextfm TeTeX
 mlabel MTools
+mmc-tool LibCdio
 mmd MTools
 mmount MTools
 mmove MTools
@@ -2166,6 +2231,8 @@ mountpoint Sysvinit
 mouse-test GPM
 mousepad Mousepad
 mpartition MTools
+mpd MPD
+mpdscribble MPDScribble
 mpeglibartsplay KDE-Multimedia
 mplayer MPlayer
 mpost TeTeX
@@ -2259,6 +2326,11 @@ nameif Net-Tools
 nano Nano
 nasm Nasm
 native2ascii Sun-JDK
+nautilus Nautilus
+nautilus-autorun-software Nautilus
+nautilus-cd-burner Nautilus-CD-Burner
+nautilus-connect-server Nautilus
+nautilus-file-management-properties Nautilus
 nc Netcat
 ncftp NcFTP
 ncftpbatch NcFTP
@@ -3225,6 +3297,7 @@ socklist Procinfo
 soelim Groff
 soffice OpenOffice
 sort CoreUtils
+sound-juicer Sound-Juicer
 spctoppm Netpbm
 speaker-test ALSA-Utils
 speexdec Speex
@@ -3312,6 +3385,7 @@ tabstack OpenMotif
 tac CoreUtils
 tack Ncurses
 taglib-config TagLib
+tagtool AudioTagTool
 tail CoreUtils
 tailf Util-Linux
 talk InetUtils
@@ -3465,6 +3539,7 @@ unflatten Graphviz
 unicode_start KBD
 unicode_stop KBD
 uninstaller Wine
+unionfs UnionFS-Fuse
 uniq CoreUtils
 uniqleaf TeTeX
 units Units
@@ -3562,6 +3637,7 @@ volname Eject
 vorbiscomment Vorbis-Tools
 vptovf TeTeX
 vte VTE
+vumeter Gnome-Media
 w Procps
 wacdump Linuxwacom
 wacomcpl Linuxwacom
