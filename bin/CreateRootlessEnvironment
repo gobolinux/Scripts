@@ -164,6 +164,11 @@ export PKG_CONFIG_PATH="${goboPrefix}/System/Links/Libraries/pkgconfig${PKG_CONF
 
 export LD_LIBRARY_PATH="${goboPrefix}/System/Links/Libraries${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
+if [ "`uname -s`" = "Darwin" ]
+then
+   export DYLD_LIBRARY_PATH="${goboPrefix}/System/Links/Libraries${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
+fi
+
 # Without calling cd, prompt does not display ~, but ${HOME}
 { [ `readlink -f "${PWD}"` = `readlink -f "${HOME}"` ] && cd; } 2> /dev/null
 ' >> "${goboPrefix}/Programs/Rootless/1.0/bin/StartRootless"
