@@ -15,7 +15,7 @@ function Get_Archive_Format() {
    -e "s/.*\.gz$/gzip/" \
    -e "s/.*\.tar$/tar/" \
    -e "s/.*\.(lzma|7z)$/lzma/" \
-   -e "s/.*\.Z$/compress/" \
+   -e "s/.*\.Z$/gzip/" \
    -e "s/.*\.zip$/zip/" \
    -e "s/.*\.cpio$/cpio/")
    if [ "${format}" == "${file}" ]
