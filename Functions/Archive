@@ -9,7 +9,7 @@ function Get_Archive_Format() {
    -e "s/.*\.(tar\.bz2|tbz2)$/tarbzip2/" \
    -e "s/.*\.(tar\.gz|tgz)$/targzip/" \
    -e "s/.*\.tar\.(lzma|7z)$/tarlzma/" \
-   -e "s/.*\.tar\.Z$/tarcompress/" \
+   -e "s/.*\.tar\.Z$/targzip/" \
    -e "s/.*\.bz$/bzip/" \
    -e "s/.*\.bz2$/bzip2/" \
    -e "s/.*\.gz$/gzip/" \
@@ -69,11 +69,7 @@ function Unpack_Archive() {
       ( needs_archiver "tar+lzma" lzma && needs_archiver "tar+lzma" tar ) || return 2
       lzma --stdout --decompress --keep "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} --file=- ${files:+"${files[@]}"}
       ;;
-   tarcompress)
-      ( needs_archiver "tar+compress" compress && needs_archiver "tar+compress" tar ) || return 2
-      tar --extract -Z --verbose --file "${path}/${archive}" ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} ${files:+"${files[@]}"}
-      ;;
-   bzip) 
+   bzip)
       needs_archiver "bzip" bunzip || return 2
       bunzip --decompress --keep --stdout "${path}/${archive}" > "${targetdirectory}/${archive%%.bz}"
       ;;
@@ -122,9 +118,6 @@ function List_Archive_Files() {
       ;;
    tarlzma)
       lzma --stdout --decompress --keep "${archive}" | tar --list
-      ;;
-   tarcompress)
-      tar --list -Z --file "${archive}"
       ;;
    bzip)
       echo $(basename "${archive}") | sed -e "s/\(.*\)\.bz$/\1/"
