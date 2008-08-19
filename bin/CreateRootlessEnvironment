@@ -167,6 +167,8 @@ export LD_LIBRARY_PATH="${goboPrefix}/System/Links/Libraries${LD_LIBRARY_PATH:+:
 if [ "`uname -s`" = "Darwin" ]
 then
    export DYLD_LIBRARY_PATH="${goboPrefix}/System/Links/Libraries${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
+   export CFLAGS="-I${goboPrefix}/System/Links/Headers${CFLAGS:+ $CFLAGS}"
+   export LDFLAGS="-L${goboPrefix}/System/Links/Libraries${LDFLAGS:+$LDFLAGS}"
 fi
 
 # Without calling cd, prompt does not display ~, but ${HOME}
