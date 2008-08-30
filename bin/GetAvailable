@@ -288,7 +288,8 @@ def getVersionsFromList(file, d = None):
 		if d == None:
 			d = KeyInsensitiveDict()
 	except Exception, e:
-		Log_Terse("Cannot open %s - %s\nRemove it to have it rebuilt."%(file,str(e)),"GetAvailable")
+		Log_Terse("Cannot open %s - %s"%(file,str(e)),"GetAvailable")
+		os.remove(file)
 		return d
 
 	for line in lines:
