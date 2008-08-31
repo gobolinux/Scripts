@@ -92,7 +92,7 @@ Gen_Env_Cache
 
 mv "$disabled" "$prefix" || Die "Please check $disabled."
 Log_Normal "${programname} ${versionnumber} disabled."
-[ -n "${failedunmanageddirs}" ] && {
+[ -z "${failedunmanageddirs}" ] || {
    Log_Terse "The following unmanaged directories were not removed since they were not empty."
    Log_Verbose "You have to manually delete the following directories."
    for dir in "${failedunmanageddirs[@]}"

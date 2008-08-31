@@ -95,7 +95,7 @@ echo "$filesdir" | RemoveBroken || Log_Error "Couldn't cleanup links."
 Gen_Env_Cache
 
 Log_Normal "${program} ${version} removed."
-[ -n "${failedunmanageddirs}" ] && {
+[ -z "${failedunmanageddirs}" ] || {
    Log_Terse "The following unmanaged directories were not removed since they were not empty."
    Log_Verbose "You have to manually delete the following directories."
    for dir in "${failedunmanageddirs[@]}"
