@@ -332,13 +332,15 @@ else
 fi
 
 # Hack for updating Glibc
-glibcinstalledversion=`Get_Version Glibc Current`
-glibcrequiredversion=`grep -w Glibc "${goboPrograms}/$packagename/$packageversion/Resources/BuildInformation" 2> /dev/null | cut -f2 -d' '`
-if [ "$glibcrequiredversion" -a "`GuessLatest $glibcrequiredversion $glibcinstalledversion`" != "$glibcinstalledversion" ]
+if [ -z "$ROOTLESS_GOBOLINUX" ]
 then
-   Log_Question "Installed package was built using a newer Glibc ($glibcrequiredversion)."
-   Ask_Option   "Install an updated Glibc? (Y/n)"
-   [ "$REPLY" = "Y" -o "$REPLY" = "y" ] && InstallPackage Glibc
+   glibcinstalledversion=`Get_Version Glibc Current`
+   glibcrequiredversion=`grep -w Glibc "${goboPrograms}/$packagename/$packageversion/Resources/BuildInformation" 2> /dev/null | cut -f2 -d' '`
+   if [ -n "$glibcrequiredversion" -a "`GuessLatest $glibcrequiredversion $glibcinstalledversion`" != "$glibcinstalledversion" ]
+   then
+      Log_Question "Installed package was built using a newer Glibc ($glibcrequiredversion)."
+      Ask "Install an updated Glibc?" && InstallPackage Glibc
+   fi
 fi
 
 cd "${goboPrograms}/$packagename"
