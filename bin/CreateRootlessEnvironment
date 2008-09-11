@@ -368,20 +368,20 @@ SymlinkProgram Rootless
 # Preparing Rootless startup on next sessions
 ###############################################################################
 
-for sh in bash zsh
+for profile in bash_profile zshrc xprofile
 do
-   file="${HOME}/.${sh}rc"
+   file="${HOME}/.${profile}"
    line=". \"${goboPrefix}/Programs/Rootless/Current/bin/StartRootless\""
    
    if ! grep "^${line}" "${file}" &> /dev/null
    then
-      if Ask "Should a StartRootless line be added to ~/.${sh}rc?"
+      if Ask "Should a StartRootless line be added to ~/.${profile}?"
       then
          echo >> "${file}"
          echo "$line" >> "${file}"
       else
-         Log_Terse "StartRootless was not added to ~/.${sh}rc."
-	 Log_Normal "To start rootless you either need to issue '. ${goboPrefix}/Programs/Rootless/Current/bin/StartRootless' at the prompt each session or add that line to ~/.${sh}rc manually."
+         Log_Terse "StartRootless was not added to ~/.${profile}."
+	 Log_Normal "To start rootless you either need to issue '. ${goboPrefix}/Programs/Rootless/Current/bin/StartRootless' at the prompt each session or add that line to ~/.${profile} manually."
       fi
    fi
 done
