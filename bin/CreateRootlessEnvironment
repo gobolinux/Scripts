@@ -171,6 +171,12 @@ then
    export LDFLAGS="-L${goboPrefix}/System/Links/Libraries${LDFLAGS:+$LDFLAGS}"
 fi
 
+if [ -n "$(uname -s | grep -i cygwin)" ]
+then
+   export CFLAGS="-I${goboPrefix}/System/Links/Headers${CFLAGS:+ $CFLAGS}"
+   export LDFLAGS="-L${goboPrefix}/System/Links/Libraries -Wl,-u,_WinMain@16 ${LDFLAGS:+$LDFLAGS}"
+fi
+
 # Without calling cd, prompt does not display ~, but ${HOME}
 { [ `readlink -f "${PWD}"` = `readlink -f "${HOME}"` ] && cd; } 2> /dev/null
 ' >> "${goboPrefix}/Programs/Rootless/1.0/bin/StartRootless"
