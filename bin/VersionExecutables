@@ -1,0 +1,86 @@
+#!/bin/bash
+
+source ScriptFunctions
+Import File
+Import GoboLinux
+Import OptionParser
+Import String
+Import Requirements
+Import Versions
+
+helpOnNoArguments=yes
+scriptDescription="Create versioned hardlinks for each executable in the given program"
+scriptCredits="Copyright (C) 2008 Michael Homer. Released under the GNU GPL version 2 or later."
+scriptUsage="[<options>] <program_name> [<program_version>]"
+scriptExample="ZSH 4.3.6"
+
+Parse_Options "$@"
+
+Is_Writable "$goboExecutables" || Verify_Superuser
+
+package=`GuessProgramCase "$(Arg 1)" "$(Arg 2)"`
+packageDir="$goboPrograms/$package"
+current="$packageDir/Current"
+version="$(basename "$(readlink -f "${current}")" /)"
+
+if [ "$(Arg 2)" ]
+then
+   version="$(Arg 2)"
+fi
+
+versionDir="$packageDir/$version"
+
+Log_Normal "Processing $package $version..."
+
+# Split $version on dots
+components=(
+   $(echo $version|sed 's/\./\n/g')
+)
+
+# Now drop the first component, but save it into $cumulative first.
+cumulative="${components[0]}"
+components=( "${components[@]:1:$((1+${#components}))}" )
+versions=( "$cumulative" )
+
+# Now build up a list of partial versions: e.g., 4, 4.3, 4.3.6
+for comp in "${components[@]}"
+do
+   cumulative="$cumulative.$comp"
+   versions=("${versions[@]}" "$cumulative")
+done
+
+
+# Create all the versioned links for a given path, and save the list
+# of created links into Resources/VersionedExecutables.
+linkex() {
+   ex=$1
+   for ver in "${versions[@]}"
+   do
+      # Files that already exist, either from an earlier run or because
+      # the program ships with them by default should be skipped.
+      if ! [ -e "$ex-$ver" ]
+      then
+         ln $ex $ex-$ver
+         echo $(basename $ex-$ver) >> $versionDir/Resources/VersionedExecutables
+         count=$((1+$count))
+      fi
+   done
+}
+
+# Loop over all the executables in this version, and link them.
+count=0
+for bindir in "$versionDir/bin" "$versionDir/sbin"
+do
+   if [ -e "$bindir" ]
+   then
+      for ex in "$bindir"/*
+      do
+         if ! echo $ex | grep -qe '-[0-9]\+\(\.[0-9]\+\)*$'
+         then
+            linkex $ex
+         fi
+      done
+   fi
+done
+
+Log_Normal "Created $count link(s)."
