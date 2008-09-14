@@ -26,6 +26,8 @@ scriptCredits="Copyright (C) 2008 Michael Homer. Released under the GNU GPL vers
 scriptUsage="[<options>] <program_name> [<program_version>]"
 scriptExample="ZSH 4.3.6"
 
+Add_Option_Boolean "a" "all-versions" "Create links for all versions of a program, not just Current (when no version specified)."
+
 Parse_Options "$@"
 
 Is_Writable "$goboExecutables" || Verify_Superuser
@@ -34,28 +36,6 @@ package=`GuessProgramCase "$(Arg 1)" "$(Arg 2)"`
 packageDir="$goboPrograms/$package"
 current="$packageDir/Current"
 version="$(basename "$(readlink -f "${current}")" /)"
-
-if [ "$(Arg 2)" ]
-then
-   version="$(Arg 2)"
-fi
-
-versionDir="$packageDir/$version"
-
-Log_Normal "Processing $package $version..."
-
-# Split $version on dots
-components=(
-   $(echo $version|sed 's/\./\n/g')
-)
-
-# Now build up a list of partial versions: e.g., 4, 4.3, 4.3.6
-for comp in "${components[@]}"
-do
-   cumulative="${cumulative:+${cumulative}.}${comp}"
-   versions=(${versions:+"${versions[@]}"} "${cumulative}")
-done
-
 
 # Create all the versioned links for a given path, and save the list
 # of created links into Resources/VersionedExecutables.
@@ -74,20 +54,52 @@ linkex() {
    done
 }
 
-# Loop over all the executables in this version, and link them.
-count=0
-for bindir in "$versionDir/bin" "$versionDir/sbin"
-do
-   if [ -e "$bindir" ]
-   then
-      for ex in "$bindir"/*
-      do
-         if ! echo $ex | grep -qe '-[0-9]\+\(\.[0-9]\+\)*$'
-         then
-            linkex $ex
-         fi
-      done
-   fi
-done
+createprogramlinks() {
+   unset cumulative versions
+   package=$1
+   version=$2
+   versionDir="$goboPrograms/$package/$version"
+   Log_Normal "Processing $package $version..."
+   # Split $version on dots
+   components=(
+      $(echo $version|sed 's/\./\n/g')
+   )
+   # Now build up a list of partial versions: e.g., 4, 4.3, 4.3.6
+   for comp in "${components[@]}"
+   do
+      cumulative="${cumulative:+${cumulative}.}${comp}"
+      versions=(${versions:+"${versions[@]}"} "${cumulative}")
+   done
 
-Log_Normal "Created $count link(s)."
+   # Loop over all the executables in this version, and link them.
+   count=0
+   for bindir in "$versionDir/bin" "$versionDir/sbin"
+   do
+      if [ -e "$bindir" ]
+      then
+         for ex in "$bindir"/*
+         do
+            if ! echo $ex | grep -qe '-[0-9]\+\(\.[0-9]\+\)*$'
+            then
+               linkex $ex
+            fi
+         done
+      fi
+   done
+   Log_Normal "Created $count link(s)."
+}
+
+if Boolean "all-versions"
+then
+   Log_Normal "Processing all versions for $package..."
+   All_Versions $package | while read ver
+   do
+      createprogramlinks $package $ver
+   done
+   exit
+elif [ "$(Arg 2)" ]
+then
+   version="$(Arg 2)"
+fi
+
+createprogramlinks $package $version
