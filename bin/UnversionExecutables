@@ -1,0 +1,64 @@
+#!/bin/bash
+# Copyright (C) 2008 Michael Homer <=mwh>
+# Removes versioned hardlinks created by VersionExecutables.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+source ScriptFunctions
+Import File
+Import GoboLinux
+Import OptionParser
+Import String
+Import Requirements
+Import Versions
+
+helpOnNoArguments=yes
+scriptDescription="Delete versioned hardlinks for each executable created by VersionExecutables"
+scriptCredits="Copyright (C) 2008 Michael Homer. Released under the GNU GPL version 2 or later."
+scriptUsage="[<options>] <program_name> [<program_version>]"
+scriptExample="ZSH 4.3.6"
+scriptNotes="This tool will only remove links created by VersionExecutables and listed in Resources/VersionExecutables."
+
+Parse_Options "$@"
+
+Is_Writable "$goboExecutables" || Verify_Superuser
+
+package=`GuessProgramCase "$(Arg 1)" "$(Arg 2)"`
+packageDir="$goboPrograms/$package"
+current="$packageDir/Current"
+version="$(basename "$(readlink -f "${current}")" /)"
+
+if [ "$(Arg 2)" ]
+then
+   version="$(Arg 2)"
+fi
+
+versionDir="$packageDir/$version"
+
+Log_Normal "Processing $package $version..."
+
+cd $versionDir
+
+if ! [ -e "Resources/VersionedExecutables" ]
+then
+   Log_Normal "Nothing to do."
+   exit
+fi
+
+count=0
+while read link
+do
+   rm -f $link
+   count=$((1+$count))
+done < Resources/VersionedExecutables
+
+rm -f Resources/VersionedExecutables
+
+Log_Normal "Removed $count links."
