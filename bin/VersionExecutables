@@ -1,4 +1,16 @@
 #!/bin/bash
+# Copyright (C) 2008 Michael Homer <=mwh>
+# Creates versioned hardlinks for all executables within a program.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
 
 source ScriptFunctions
 Import File
@@ -60,7 +72,7 @@ linkex() {
       # the program ships with them by default should be skipped.
       if ! [ -e "$ex-$ver" ]
       then
-         ln $ex $ex-$ver
+         ln $ex $ex-$ver || Die "Could not create link $ex-$ver."
          echo $(basename $ex-$ver) >> $versionDir/Resources/VersionedExecutables
          count=$((1+$count))
       fi
