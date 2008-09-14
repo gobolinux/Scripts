@@ -54,12 +54,9 @@ for prog in programs:
 					continue
 				if not ex in commands:
 					(base, sep, vers) = ex.rpartition('-')
-					# Short version: skip entries like zsh-4.3.5, but not
-					# gconftool-2. Does skip some things it shouldn't
-					# (e.g. gimptool-2.0), but they are of minor importance.
-					if vers and '.' in vers:
-						if vers.replace('.', '').isdigit():
-							continue
+					# Short version: skip entries like zsh-4.3.5
+					if vers and vers.replace('.', '').isdigit():
+						continue
 					commands[ex] = []
 					eout("Adding executable %s\n" % (ex))
 				if not prog in commands[ex]:
