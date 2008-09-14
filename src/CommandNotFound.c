@@ -13,8 +13,6 @@
 #include <sys/stat.h>
 #include <string.h>
 
-// Arbitrary, but much larger than we need here
-#define MAX_ITERATIONS 30
 #define BUFLEN 512
 // For possible Rootless support, or hardwiring each CNF to its own version's
 // data, make the data file configurable.
@@ -78,6 +76,8 @@ int binsearch(FILE * fp, char * target, int lo, int hi) {
 
 int main(int argc, char **argv) {
 	FILE * fp;
+	char shortexec [ 50 ];
+	size_t hyphenpos;
 	if ((argc < 2) || (0 == strcmp("--help", argv[1]))) {
 		puts("Usage: CommandNotFound <command>\n"
 		     "Intended to be run automatically from shell hooks.");
@@ -92,9 +92,22 @@ int main(int argc, char **argv) {
 	
 	fp = fopen(DATAFILE, "r");
 	if (binsearch(fp, argv[1], 0, st.st_size)) {
-		// Not found, so stay silent to let the shell handle the error.
-		fclose(fp);
-		return 1;
+		// Not found, but check whether this was a versioned name,
+		// and try the bare executable if it was.
+		hyphenpos = (int) strrchr(argv[1], '-');
+		if (hyphenpos) {
+			hyphenpos-= (int) argv[1];
+			strncpy(shortexec, argv[1], (size_t)hyphenpos);
+			shortexec[hyphenpos] = '\0';
+			if (binsearch(fp, shortexec, 0, st.st_size)) {
+				fclose(fp);
+				return 1;
+			}
+		} else {
+			// Not found, so stay silent to let the shell handle the error.
+			fclose(fp);
+			return 1;
+		}
 	}
 	fclose(fp);
 	return 0;
