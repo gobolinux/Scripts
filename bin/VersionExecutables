@@ -49,16 +49,11 @@ components=(
    $(echo $version|sed 's/\./\n/g')
 )
 
-# Now drop the first component, but save it into $cumulative first.
-cumulative="${components[0]}"
-components=( "${components[@]:1:$((1+${#components}))}" )
-versions=( "$cumulative" )
-
 # Now build up a list of partial versions: e.g., 4, 4.3, 4.3.6
 for comp in "${components[@]}"
 do
-   cumulative="$cumulative.$comp"
-   versions=("${versions[@]}" "$cumulative")
+   cumulative="${cumulative:+${cumulative}.}${comp}"
+   versions=(${versions:+"${versions[@]}"} "${cumulative}")
 done
 
 
