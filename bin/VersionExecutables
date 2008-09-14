@@ -47,9 +47,11 @@ linkex() {
       # the program ships with them by default should be skipped.
       if ! [ -e "$ex-$ver" ]
       then
-         ln $ex $ex-$ver || Die "Could not create link $ex-$ver."
-         echo $(basename $(dirname $ex))/$(basename $ex-$ver) >> $versionDir/Resources/VersionedExecutables
-         count=$((1+$count))
+         if ln $ex $ex-$ver
+         then
+            echo $(basename $(dirname $ex))/$(basename $ex-$ver) >> $versionDir/Resources/VersionedExecutables
+            count=$((1+$count))
+         fi
       fi
    done
 }
