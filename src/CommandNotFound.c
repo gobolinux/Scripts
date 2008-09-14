@@ -92,9 +92,7 @@ int main(int argc, char **argv) {
 	
 	fp = fopen(DATAFILE, "r");
 	if (binsearch(fp, argv[1], 0, st.st_size)) {
-		fprintf(stderr, "The program '%s' is not currently installed, and "
-		                "no known package contains it.\n",
-		                argv[1]);
+		// Not found, so stay silent to let the shell handle the error.
 		fclose(fp);
 		return 1;
 	}
