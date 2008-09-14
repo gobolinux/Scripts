@@ -68,7 +68,7 @@ linkex() {
       if ! [ -e "$ex-$ver" ]
       then
          ln $ex $ex-$ver || Die "Could not create link $ex-$ver."
-         echo $(dirname $ex)/$(basename $ex-$ver) >> $versionDir/Resources/VersionedExecutables
+         echo $(basename $(dirname $ex))/$(basename $ex-$ver) >> $versionDir/Resources/VersionedExecutables
          count=$((1+$count))
       fi
    done
