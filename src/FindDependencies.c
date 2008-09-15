@@ -21,6 +21,16 @@
 
 #include "LinuxList.h"
 
+#ifdef DEBUG
+#define DBG(a...) fprintf(stderr,a)
+#else
+#define DBG(a...)
+#endif
+
+#ifndef LINE_MAX
+#define LINE_MAX 2048
+#endif
+
 static char * const currentString = "Current";
 static char * goboPrograms;
 
