@@ -82,6 +82,10 @@ static char* os_listdir(os_dir* dir) {
 inline static bool string_replace1(char* dest, char* buffer, char* from, char* to, int len) {
    char tmpbuffer[len+1];
    char* out;
+   assert(dest);
+   assert(buffer);
+   assert(from);
+   assert(to);
    if (dest == buffer)
       out = tmpbuffer;
    else
@@ -265,9 +269,12 @@ static void canonicalize_path(char* path) {
 static void create_single_link(char* src, char* dest) {
    count++;
    char dotdest[PATH_MAX+1];
+   assert(src);
+   assert(dest);
    snprintf(dotdest, PATH_MAX, "./%s", dest);
    if (relative) {
       char relativesrc[PATH_MAX+1];
+      assert(relativeGoboPrograms);
       if (!string_replace1(relativesrc, src, realpathGoboPrograms, relativeGoboPrograms, PATH_MAX))
          string_replace1(relativesrc, src, goboProgramsSansPrefix, relativeGoboPrograms, PATH_MAX);
       symlink(relativesrc, dotdest);
@@ -293,6 +300,7 @@ static void Link_Or_Expand(char* new) {
             break;
          }
       }
+      assert(relativeGoboPrograms);
    }
    char* realnew = NULL;
    if (nofollow) {
