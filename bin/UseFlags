@@ -25,11 +25,13 @@ global_program_potential_flags_cache = None
 generic_to_specific = None
 # A dict of specific flag=>parent generic flag
 specific_to_generic = None
+# A set of /Programs entries, normalised into flag form
+installed_programs = set()
 
 def UseFlags(program=None):
 	"""Return the set of flags enabled for program"""
 	global global_use_flags_cache, global_program_use_flags_cache
-	global generic_to_specific, specific_to_generic
+	global generic_to_specific, specific_to_generic, installed_programs
 	if generic_to_specific is None:
 		_parseGenerics()
 	potentialflags = None
@@ -52,7 +54,8 @@ def UseFlags(program=None):
 	if (program and global_program_use_flags_cache and program in
 		global_program_use_flags_cache):
 		return global_program_use_flags_cache[program]
-	# When a program is *not* specified and a cached global set exists, use it
+	# When a program is *not* specified and a cached global set exists,
+	# use it
 	elif global_use_flags_cache is not None and not program:
 		return global_use_flags_cache
 	# Otherwise, generate the set of flags now.
@@ -67,6 +70,15 @@ def UseFlags(program=None):
 				'/Scripts/Current/Data/SystemUseFlags.conf')
 			_mergeFlags(flags, f, program)
 			f.close()
+		# Include all /Programs entries, appropriately normalised,
+		# where they can be overridden in UseFlags.conf.
+		if not installed_programs:
+			for prog in os.listdir(goboPrograms):
+				prog = prog.lower().replace('-', '_')
+				prog = filter(lambda p: p.isalpha() or p.isdigit() or
+										p=='_', prog)
+				installed_programs.add(prog)
+		flags.update(installed_programs)
 		# Import site-specific use flags
 		if os.path.exists(goboSettings + '/UseFlags.conf'):
 			f = open(goboSettings + '/UseFlags.conf')
