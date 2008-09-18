@@ -65,9 +65,9 @@ def UseFlags(program=None):
 		flags = set()
 		# Import default use flags
 		if os.path.exists(goboPrograms +
-		'/Scripts/Current/Data/SystemUseFlags.conf'):
+		'/Scripts/Current/Data/DistUseFlags.conf'):
 			f = open(goboPrograms +
-				'/Scripts/Current/Data/SystemUseFlags.conf')
+				'/Scripts/Current/Data/DistUseFlags.conf')
 			_mergeFlags(flags, f, program)
 			f.close()
 		# Include all /Programs entries, appropriately normalised,
