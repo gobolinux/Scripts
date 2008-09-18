@@ -88,9 +88,6 @@ def UseFlags(program=None):
 		# merged, and overwrite any previous specifications for the same flag.
 		if 'USE' in os.environ:
 			_mergeFlags(flags, os.environ['USE'].split(), program)
-		for specific in specific_to_generic:
-			if specific in flags:
-				flags.add(specific_to_generic[specific])
 		if potentialflags:
 			for generic in generic_to_specific:
 				if generic in flags:
@@ -110,6 +107,11 @@ def UseFlags(program=None):
 					# is available, enable it now.
 					if not child and first:
 						flags.add(first)
+		# These should be handled *after* generic-to-specific mapping
+		# occurs, so that there's no e.g. +sqlite->+sql->+mysql
+		for specific in specific_to_generic:
+			if specific in flags:
+				flags.add(specific_to_generic[specific])
 		# If program is specified, the flags should be saved in the program
 		# cache. Otherwise they are the global flags and can be saved there.
 		if program:
