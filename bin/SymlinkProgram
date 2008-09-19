@@ -36,6 +36,7 @@ Add_Option_Boolean "r" "relative" "Use relative paths to link files from ${goboP
 Add_Option_Boolean "t" "rootfs" "Copy program to rootfs if a symlink."
 
 Parse_Options "$@"
+Parse_Conf "VersionExecutables.conf"
 
 Is_Writable "$goboExecutables" || Verify_Superuser
 
@@ -139,6 +140,10 @@ then
    version="$youngestdir"
 fi
 
+if [ "xyes" = "x$autoVersionExecutables" ]
+then
+   VersionExecutables "${package}" "${version}"
+fi
 Log_Normal "Symlinking ${package} ${version}."
 
 ################################################################################
