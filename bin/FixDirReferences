@@ -24,7 +24,7 @@ n=$(Number_Of_Arguments)
 for (( i=1 ; i<=n ; i++))
 do
    current="$(Arg ${i})"
-   if [ "${current##*.}" != "la" -a "${current##*.}" != "pc" -a "${current##*.}" != "cmake" ] 
+   if [ "${current##*.}" != "la" -a "${current##*.}" != "pc" -a "${current##*.}" != "cmake" -a "${current##*.}" != "prl" ]
    then continue
    else Log_Verbose "Converting ${current}..."
    fi
