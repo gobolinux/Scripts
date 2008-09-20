@@ -7,6 +7,7 @@ Import OptionParser
 Import String
 Import Requirements
 Import Versions
+Import Directories
 
 helpOnNoArguments=yes
 scriptDescription="Link a program from the ${goboPrograms} hierarchy in the ${goboSystem} tree."
@@ -266,16 +267,28 @@ then
    
    # cd "$current"
    # SymlinkManuals
-   
-   link_directory "$current/man/man0" "$goboManuals/man0"
-   link_directory "$current/man/man1" "$goboManuals/man1"
-   link_directory "$current/man/man2" "$goboManuals/man2"
-   link_directory "$current/man/man3" "$goboManuals/man3"
-   link_directory "$current/man/man4" "$goboManuals/man4"
-   link_directory "$current/man/man5" "$goboManuals/man5"
-   link_directory "$current/man/man6" "$goboManuals/man6"
-   link_directory "$current/man/man7" "$goboManuals/man7"
-   link_directory "$current/man/man8" "$goboManuals/man8"
+   if Dir_Set Manuals
+   then
+      link_directory "$current/man/man0" "$goboManuals/man0"
+      link_directory "$current/man/man1" "$goboManuals/man1"
+      link_directory "$current/man/man2" "$goboManuals/man2"
+      link_directory "$current/man/man3" "$goboManuals/man3"
+      link_directory "$current/man/man4" "$goboManuals/man4"
+      link_directory "$current/man/man5" "$goboManuals/man5"
+      link_directory "$current/man/man6" "$goboManuals/man6"
+      link_directory "$current/man/man7" "$goboManuals/man7"
+      link_directory "$current/man/man8" "$goboManuals/man8"
+   else
+      link_directory "$current/Shared/man/man0" "$goboManuals/man0"
+      link_directory "$current/Shared/man/man1" "$goboManuals/man1"
+      link_directory "$current/Shared/man/man2" "$goboManuals/man2"
+      link_directory "$current/Shared/man/man3" "$goboManuals/man3"
+      link_directory "$current/Shared/man/man4" "$goboManuals/man4"
+      link_directory "$current/Shared/man/man5" "$goboManuals/man5"
+      link_directory "$current/Shared/man/man6" "$goboManuals/man6"
+      link_directory "$current/Shared/man/man7" "$goboManuals/man7"
+      link_directory "$current/Shared/man/man8" "$goboManuals/man8"
+   fi   
    cd "$current"
 fi
 

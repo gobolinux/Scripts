@@ -184,6 +184,19 @@ then
          else Is_Directory "$programdir/man" || Quiet rm -- "$programdir/share/man"
 	 fi
       fi
+   else if [ ! "$goboIndex" ]
+   then
+      $dirop "$programdir/Shared/man/man1"
+      $dirop "$programdir/Shared/man/man2"
+      $dirop "$programdir/Shared/man/man3"
+      $dirop "$programdir/Shared/man/man4"
+      $dirop "$programdir/Shared/man/man5"
+      $dirop "$programdir/Shared/man/man6"
+      $dirop "$programdir/Shared/man/man7"
+      $dirop "$programdir/Shared/man/man8"
+      $dirop "$programdir/Shared/man/man9"
+      $dirop "$programdir/Shared/man"
+   fi
    fi
    if Dir_Set Shared && [ ! "$goboIndex" ]
    then $dirop "$programdir/Shared"
@@ -253,6 +266,10 @@ then
       --sysconfdir="$configuresettings"
       --localstatedir="$configurevariable"
    )
+   if Dir_Set Manuals
+   then configure_options=("${configure_options[@]}" --mandir="$configureprefix/man")
+   else configure_options=("${configure_options[@]}" --mandir="$configureprefix/share/man")
+   fi
    if [ "$goboCrossCompiling" = "yes" ]
    then
       configure_options=(
