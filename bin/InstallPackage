@@ -238,7 +238,7 @@ existingpackage=`ls "${goboPrograms}" | grep -i "^$packagename$"`
 function try_remove() {
    [ "$doremove" = "yes" ] && {
       [ "$doask" = "yes" ] && {
-         Ask_Option "Remove existing? [R]emove/[k]eep/[c]ancel "
+         Ask_Option "Remove existing? [R]emove/[k]eep/[c]ancel" "R" '[ -n "$REPLY" -a -z "$(echo $REPLY | sed -r -e "s/((R|r)|(K|k)|(C|c))//")" ]'
          echo
          [ "$REPLY" = "C" -o "$REPLY" = "c" ] && exit 1
          [ "$REPLY" = "K" -o "$REPLY" = "k" ] && return
