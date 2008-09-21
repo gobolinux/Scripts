@@ -86,7 +86,10 @@ function Log_Question() {
 }
 
 function Ask_Option() {
-    Log_Question "$*"
+    local question=$1
+    local defaultanswer=$2
+    local lambda=$3
+    Log_Question "${question}"
 
     # detsch, maybe this loop should be continued until some valid
     #  response is received
@@ -94,7 +97,17 @@ function Ask_Option() {
     do
        read
        #if [ "$REPLY" != "" -o "${questionStream}" = "" ]
-       if [ "$REPLY" != "" ]
+       if [ -z "$REPLY" -a -n "${defaultanswer}" ]
+       then
+          Log_Verbose "Using default answer (${defaultanswer})"
+          REPLY="${defaultanswer}"
+       fi
+       if [ "$REPLY" != "" -a -n "$lambda" ]
+       then
+          if eval ${lambda}
+          then break
+          fi
+       elif [ -n "$REPLY" ]
        then
           break
        fi
@@ -109,11 +122,7 @@ function Ask_Option() {
 function Ask() {
    Parameters "$@" question
    REPLY=foo
-   while [ -n "$(echo $REPLY | sed -r -e 's/((Y|y)(ES|es)?|(N|n)(O|o)?)//')" ]
-   do
-      Ask_Option "$question [Y/n]"
-   done
-
+   Ask_Option "$question [Y/n]" "yes" '[ -n "$REPLY" -a -z "$(echo $REPLY | sed -r -e "s/((Y|y)(ES|es)?|(N|n)(O|o)?)//")" ]'
    if [[ "$REPLY" == [Nn]* ]]
    then return 1
    else return 0
