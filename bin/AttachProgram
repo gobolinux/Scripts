@@ -83,5 +83,5 @@ SymlinkProgram $symopts "$programname" "$versionnumber"
 if ! Boolean "no-dependencies"
 then
    Log_Normal "Checking Dependencies..."
-   Dependencies -c -H -e $0 "$programname" "$versionnumber"
+   CheckDependencies --mode=missing "$programname" "$versionnumber"
 fi
