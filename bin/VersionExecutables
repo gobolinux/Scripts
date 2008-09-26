@@ -77,7 +77,7 @@ createprogramlinks() {
    count=0
    for bindir in "$versionDir/bin" "$versionDir/sbin"
    do
-      if [ -e "$bindir" ]
+      if [ -e "$bindir" ] && [ "`ls $bindir`" ]
       then
          for ex in "$bindir"/*
          do
