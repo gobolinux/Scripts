@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 BusyWait=100000 # 1/10 of a second
 TimeOut=1200 # 1200*BusyWait = 2 minutes
@@ -158,13 +158,18 @@ Quit() {
 
 ExecBackend() {
     command=$@
-    "$@" 1> $ThemeStdoutStream 2> $ThemeStderrStream
+    result=$("$@" 2>&1)
     exitstatus=$?
-    ThemeAfter "$execCtr" "$exitstatus"
-   
-    if [ "$BootLogging" = "yes" ]
-    then LogBoot $message " [$exitstatus] " $command 
+    if [ "$exitstatus" != "0" ]
+    then
+        test -z "$result" && result="No error message"
+        echo $result > $ThemeStderrStream	 
+        [ "$BootLogging" = "yes" ] && LogBoot $command " -- Failed with error code $exitstatus\n " $result
+    else
+        echo $result > $ThemeStdoutStream	 
+        [ "$BootLogging" = "yes" ] && LogBoot $command " -- Success\n" $result
     fi
+    ThemeAfter "$execCtr" "$exitstatus"
 }
 
 WaitBackend() {
