@@ -602,7 +602,10 @@ function update_files()
       fi
 
       # Handle one file
-      update_one_file $num $type "$cur" "$default" || return
+      update_one_file $num $type "$cur" "$default"
+      local result=$?
+      [ "$result" = "$SKIP_ALL_MAGIC_NUMBER" ] && return 0
+      [ "$result" != 0 ] && return $result
    done
 }
 
