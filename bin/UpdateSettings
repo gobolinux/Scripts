@@ -354,9 +354,9 @@ function update_one_file() {
    
       attempt_action "$num" "$difftype" "$cur" "$default" "${ACTION}"
       local result="$?"
-      [ "$repeatQuestion" = yes ] && repeatQuestion=no && update_one_file $@
-      [ "$result" = "$SKIP_ALL_MAGIC_NUMBER" ] && return 1
-      [ "$result" = 0 ] && return 0
+      [ "$repeatQuestion" == yes ] && repeatQuestion=no && update_one_file $@
+      [ "$result" == "$SKIP_ALL_MAGIC_NUMBER" ] && return "$SKIP_ALL_MAGIC_NUMBER"
+      [ "$result" == 0 ] && return 0
    done
 }
 
@@ -604,7 +604,7 @@ function update_files()
       # Handle one file
       update_one_file $num $type "$cur" "$default"
       local result=$?
-      [ "$result" = "$SKIP_ALL_MAGIC_NUMBER" ] && return 0
+      [ "$result" == "$SKIP_ALL_MAGIC_NUMBER" ] && return 0
       [ "$result" != 0 ] && return $result
    done
 }
