@@ -45,8 +45,8 @@ function Load_Hints() {
    parserPath="${scriptPath}/../lib/ruby/site_ruby/1.8/gobo/HintsFileParser.rb"
 
    # If Ruby doesn't exist, or if we can't read the hint parser, we're screwed.
-   if [ "`which ruby`" = '' ]; then
-      Log_Terse "Ruby is not installed, or it's not in your path."
+   if [ "`which ruby 2>/dev/null`" = '' ]; then
+      Log_Normal "Will not use hints as ruby is not installed, or is not in your path."
       screwed=yes
    elif ! Is_File "$parserPath"; then
       Log_Terse "Missing hint parser. Consider updating your Scripts version."
@@ -75,7 +75,7 @@ function Load_Hints() {
 
    # If we're screwed, write a message to that effect, and exit.
    if [ "$screwed" = yes ]; then
-      Log_Terse "Cannot parse hints file."
+      Log_Normal "Cannot parse hints file."
       return 1
    fi
 
