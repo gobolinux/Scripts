@@ -310,9 +310,9 @@ function update_one_file() {
    for instruction in "${opts_requested[@]}"; do
       ACTION=''
       if [ "${instruction##*:}" = hint ]; then
-      	InstructionSource='hint:'
-		else
-			InstructionSource='auto:'
+         InstructionSource='hint:'
+      else
+         InstructionSource='auto:'
       fi
       case "${instruction%%:hint}" in
          # I'll start with the simpler behaviors.
@@ -356,7 +356,7 @@ function update_one_file() {
       local result="$?"
       [ "$repeatQuestion" == yes ] && repeatQuestion=no && update_one_file $@
       [ "$result" == "$SKIP_ALL_MAGIC_NUMBER" ] && return "$SKIP_ALL_MAGIC_NUMBER"
-      [ "$result" == 0 ] && return 0
+      [ "$result" == "0" ] && return 0
    done
 }
 
@@ -605,7 +605,7 @@ function update_files()
       update_one_file $num $type "$cur" "$default"
       local result=$?
       [ "$result" == "$SKIP_ALL_MAGIC_NUMBER" ] && return 0
-      return $result
+      [ "$result" == "0" ] || return $result
    done
 }
 
