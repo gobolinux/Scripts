@@ -144,12 +144,10 @@ function Gen_FileHash() {
    # gpg must run as normal user.
    Quiet pushd "$file_prefix"
    $sudo_exec env SUDO_OK=1 ListProgramFiles --files --links "$file_prefix" | $sudo_exec python -c """#
-import sys, os, os.path, sha
+import sys, os, os.path, hashlib
 
 def sha1sum_string(data):
-   s = sha.new()
-   s.update(data)
-   return s.hexdigest()
+   return hashlib.sha1(data).hexdigest()
 
 def sha1sum_file(filename):
    f = open(filename, 'r')
@@ -227,12 +225,10 @@ function Check_FileHash() {
    $sudo_exec ListProgramFiles --files --links "$prefix" | grep -v "$cleanhashfilename" | $sudo_exec python -c """#
 import re, os, string, os.path, sys
 
-import sha
+import hashlib
 
 def sha1sum_string(data):
-   s = sha.new()
-   s.update(data)
-   return s.hexdigest()
+   return hashlib.sha1(data).hexdigest()
 
 def sha1sum_file(filename):
    f = open(filename, 'r')
