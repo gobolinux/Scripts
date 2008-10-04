@@ -11,7 +11,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from PythonUtils import getGoboVariable
+from PythonUtils import getGoboVariable, colorCyan, colorNormal, colorGray
 import sys, os.path
 
 # A frozen set of the global set of flags (program=None, or any program
@@ -35,6 +35,7 @@ def UseFlags(program=None, postchangehook=None):
 	if generic_to_specific is None:
 		_parseGenerics()
 	potentialflags = None
+	potentialswithgenerics = None
 	if program and program.startswith('/'):
 		catch = False
 		recipedir = str(program)
@@ -49,6 +50,11 @@ def UseFlags(program=None, postchangehook=None):
 		if not potentialFlags:
 			# There can't possibly be any flags enabled, so just return.
 			return frozenset()
+		potentialswithgenerics = set()
+		for flag in potentialflags:
+			potentialswithgenerics.add(flag)
+			if flag in specific_to_generic:
+				potentialswithgenerics.add(specific_to_generic[flag])
 
 	# When program is specified and a cached set is available, use it.
 	if (program and global_program_use_flags_cache and program in
@@ -70,7 +76,7 @@ def UseFlags(program=None, postchangehook=None):
 				'/Scripts/Current/Data/DistUseFlags.conf')
 			_mergeFlags(flags, f, program)
 			f.close()
-		_callhook(postchangehook, 'distflags', flags, potentialflags)
+		_callhook(postchangehook, 'distflags', flags, potentialswithgenerics)
 		# Include all /Programs entries, appropriately normalised,
 		# where they can be overridden in UseFlags.conf.
 		if not installed_programs:
@@ -80,18 +86,18 @@ def UseFlags(program=None, postchangehook=None):
 										p=='_', prog)
 				installed_programs.add(prog)
 		flags.update(installed_programs)
-		_callhook(postchangehook, 'installed', flags, potentialflags)
+		_callhook(postchangehook, 'installed', flags, potentialswithgenerics)
 		# Import site-specific use flags
 		if os.path.exists(goboSettings + '/UseFlags.conf'):
 			f = open(goboSettings + '/UseFlags.conf')
 			_mergeFlags(flags, f, program)
 			f.close()
-		_callhook(postchangehook, 'useflags', flags, potentialflags)
+		_callhook(postchangehook, 'useflags', flags, potentialswithgenerics)
 		# Flags set in the environment for a specific run of Compile are
 		# merged, and overwrite any previous specifications for the same flag.
 		if 'USE' in os.environ:
 			_mergeFlags(flags, os.environ['USE'].split(), program)
-		_callhook(postchangehook, 'environ', flags, potentialflags)
+		_callhook(postchangehook, 'environ', flags, potentialswithgenerics)
 		if potentialflags:
 			for generic in generic_to_specific:
 				if generic in flags:
@@ -111,13 +117,15 @@ def UseFlags(program=None, postchangehook=None):
 					# is available, enable it now.
 					if not child and first:
 						flags.add(first)
-		_callhook(postchangehook, 'generictospecific', flags, potentialflags)
+		_callhook(postchangehook, 'generictospecific', flags,
+					potentialswithgenerics)
 		# These should be handled *after* generic-to-specific mapping
 		# occurs, so that there's no e.g. +sqlite->+sql->+mysql
 		for specific in specific_to_generic:
 			if specific in flags:
 				flags.add(specific_to_generic[specific])
-		_callhook(postchangehook, 'specifictogeneric', flags, potentialflags)
+		_callhook(postchangehook, 'specifictogeneric', flags,
+					potentialswithgenerics)
 		# If program is specified, the flags should be saved in the program
 		# cache. Otherwise they are the global flags and can be saved there.
 		if program:
@@ -224,28 +232,86 @@ def _callhook(hook, *args):
 		hook(*args)
 
 def _vchook(desc, flags, potentials = None):
+	"""Hook method to display information on origin of flags.
+
+	This method is called from within UseFlags after each phase of
+	the process, and displays detailed information on which flags
+	have been set or unset, and what transformations have been applied
+	to generic flags, in the preceding phase.
+
+	desc is a human-readable, but unfriendly, string describing the
+	phase that has just completed.
+	flags is the set of flags at the end of that phase.
+	potentials, if given, is the set of flags that the recipe has
+	indicated it can use, and if given only flags in this set will
+	have their information displayed.
+	"""
 	if not hasattr(_vchook, 'lastflags'):
 		_vchook.lastflags = frozenset()
 	if potentials is not None:
 		flags = flags.intersection(potentials)
-	sys.stdout.write('Added at ' + desc + ': {' +
-					', '.join(flags-_vchook.lastflags) + '}\n')
-	sys.stdout.write('Removed at ' + desc + ': {' +\
-					', '.join(_vchook.lastflags-flags) + '}\n')
+	if 'distflags' == desc:
+		desc = 'distribution flags'
+	elif 'installed' == desc:
+		desc = 'installed programs'
+	elif 'useflags' == desc:
+		desc = 'system UseFlags'
+	elif 'environ' == desc:
+		desc = 'USE environment variable'
+	elif 'specifictogeneric' == desc:
+		_vchook.lastflags = frozenset()
+		return
+	added = flags - _vchook.lastflags
+	removed = _vchook.lastflags - flags
+	if 'generictospecific' == desc:
+		for gen in generic_to_specific:
+			if gen not in flags:
+				continue
+			available = set(generic_to_specific[gen]).intersection(potentials)
+			enabled = flags.intersection(available) - added
+			if enabled:
+				sys.stderr.write(colorGray + 'UseFlags: ' + colorCyan)
+				sys.stderr.write('Generic flag ' + gen +
+					' transformed into already-enabled flag')
+				if len(enabled) > 1:
+					sys.stderr.write('s')
+				sys.stderr.write(' ' + ', '.join(enabled))
+				alsos = available - enabled
+				if alsos:
+					sys.stderr.write(' - also available ' + ', '.join(alsos))
+				sys.stderr.write(colorNormal + '\n')
+	if desc == 'generictospecific' and added:
+		for flag in added:
+			gen = specific_to_generic[flag]
+			alsos = set(generic_to_specific[gen])
+			alsos.discard(flag)
+			alsos.intersection_update(potentials)
+			sys.stderr.write(colorGray + 'UseFlags: ' + colorCyan)
+			sys.stderr.write('Transforming generic flag ' + gen +
+				' into ' + flag)
+			if alsos:
+				sys.stderr.write(' - also available ' +
+				','.join(alsos))
+			sys.stderr.write(colorNormal + '\n')
+	elif added:
+		sys.stderr.write(colorGray + 'UseFlags: ' + colorCyan)
+		sys.stderr.write('Added from ' + desc + ': ' +
+				', '.join(added) + colorNormal + '\n')
+	if removed:
+		sys.stderr.write(colorGray + 'UseFlags:' + colorCyan)
+		sys.stderr.write('Unset from ' + desc + ': ' +
+				', '.join(removed) + colorNormal + '\n')
 	_vchook.lastflags = flags
+
 
 # Executable code when run from the command line.
 if __name__ == '__main__':
 	verbose = False
 	args = sys.argv[1:]
-	changehook = None
 	# "verbose" mode applies when a program AND flag are given: it will output
 	# a message as well as setting the return code
 	if args and '-v' == args[0]:
 		verbose = True
-		args = args[1:]
-	elif args and '--debug' == args[0]:
-		changehook = _vchook
 		args = args[1:]
 	elif args and '--help' == args[0]:
 		sys.stdout.write("""
@@ -264,7 +330,7 @@ used by prog.
 		sys.exit()
 	program = None
 	if len(args): program = args[0]
-	flags = UseFlags(program, postchangehook=changehook)
+	flags = UseFlags(program, postchangehook=_vchook)
 	# If no flag is specified, output all the enabled flags for this program
 	if len(args) < 2:
 		for flag in flags:
