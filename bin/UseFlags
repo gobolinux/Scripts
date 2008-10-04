@@ -329,7 +329,18 @@ used by prog.
 """)
 		sys.exit()
 	program = None
-	if len(args): program = args[0]
+	# If args[0] is a path, just pass it straight through
+	if args and '/' in args[0]:
+		program = args[0]
+	else:
+		# Otherwise, call GetRecipe to fetch/find the local copy
+		f = None
+		if len(args) == 2:
+			f = os.popen('GetRecipe %s %s2> /dev/null'%args)
+		elif len(args) == 1:
+			f = os.popen('GetRecipe %s 2>/dev/null'%(args[0]))
+		program = f.read().strip()
+		f.close()
 	flags = UseFlags(program, postchangehook=_vchook)
 	# If no flag is specified, output all the enabled flags for this program
 	if len(args) < 2:
