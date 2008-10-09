@@ -30,6 +30,10 @@
    #include <sys/mount.h>
    #define MAJOR(x) (long long) major(x)
    #define MINOR(x) (long long) minor(x)
+#elif defined(__FreeBSD__)
+   #include <sys/mount.h>
+   #define MAJOR(x) (long long) major(x)
+   #define MINOR(x) (long long) minor(x)
 #else
    #include <sys/statfs.h>
    #include <sys/vfs.h>
@@ -700,9 +704,10 @@ usage(char *program_name)
     exit(EXIT_FAILURE);
 }
 
-char *
-get_filesystem(struct statfs status)
+char const *
+get_filesystem(struct statfs *status)
 {
+#ifndef __FreeBSD__
     int i;
     struct fs_info fs_info[] = {
         { ADFS_SUPER_MAGIC,     "adfs" },
@@ -755,11 +760,17 @@ get_filesystem(struct statfs status)
     };
 
     for (i = 0; i < sizeof(fs_info)/sizeof(struct fs_info); ++i) {
-        if (status.f_type == fs_info[i].magic)
+        if (status->f_type == fs_info[i].magic)
             return fs_info[i].name;
     }
-
     return "filesystem";
+#else /* __FreeBSD__ */
+	/* 
+	 * Those magic numbers don't work on FreeBSD. OTOH, the statfs struct
+	 * on that platform has a convenient filesystem name in cleartext.
+	 */
+	return status->f_fstypename;
+#endif
 }
 
 void
@@ -817,11 +828,11 @@ summarize(struct statfs status, long long total, long counter, long hiddenfiles,
     
    if (hiddenfiles) {
       printf("\n%s in %ld%s+%ld%s files - %s: %s%s kB used (%02.0f%%), %s%s kB free\n", bytes_total_string,
-               counter, COLOR_GREY_CODE, hiddenfiles, COLOR_WHITE_CODE, get_filesystem(status), 
+               counter, COLOR_GREY_CODE, hiddenfiles, COLOR_WHITE_CODE, get_filesystem(&status), 
             bytes_used_string, COLOR_WHITE_CODE, percent, bytes_free_string, COLOR_WHITE_CODE);
     } else {
       printf("\n%s in %ld files - %s: %s%s kB used (%02.0f%%), %s%s kB free\n", bytes_total_string, counter,
-            get_filesystem(status), bytes_used_string, COLOR_WHITE_CODE, percent, bytes_free_string,
+            get_filesystem(&status), bytes_used_string, COLOR_WHITE_CODE, percent, bytes_free_string,
             COLOR_WHITE_CODE);
     }
    
