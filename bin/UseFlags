@@ -136,7 +136,9 @@ def UseFlags(program=None, postchangehook=None):
 				for specific in generic_to_specific[generic]:
 					if remove:
 						flags.discard(specific)
-					elif specific in flags:
+					# Need to specify that it's in potentials too, or auto-
+					# enabled but unsupported flags will break it.
+					elif specific in potentialflags and specific in flags:
 						remove = True
 		_callhook(postchangehook, 'mutuallyexclusive', flags,
 					potentialswithgenerics)
