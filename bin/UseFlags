@@ -14,6 +14,17 @@
 from PythonUtils import getGoboVariable, colorCyan, colorNormal, colorGray
 import sys, os.path
 
+class proxy(object):
+	"""Proxy object that allows adding extra attributes."""
+	def __init__(self, obj):
+		self.obj = obj
+
+	def __getattr__(self, attr):
+		return getattr(self.obj, attr)
+
+	def __iter__(self):
+		return self.obj.__iter__()
+
 # A frozen set of the global set of flags (program=None, or any program
 # with no special flags specified)
 global_use_flags_cache = None
@@ -119,6 +130,16 @@ def UseFlags(program=None, postchangehook=None):
 						flags.add(first)
 		_callhook(postchangehook, 'generictospecific', flags,
 					potentialswithgenerics)
+		if potentialflags:
+			for generic in potentialflags.mutuallyexclusives:
+				remove = False
+				for specific in generic_to_specific[generic]:
+					if remove:
+						flags.discard(specific)
+					elif specific in flags:
+						remove = True
+		_callhook(postchangehook, 'mutuallyexclusive', flags,
+					potentialswithgenerics)
 		# These should be handled *after* generic-to-specific mapping
 		# occurs, so that there's no e.g. +sqlite->+sql->+mysql
 		for specific in specific_to_generic:
@@ -148,6 +169,7 @@ def potentialFlags(recipedir):
 		return global_program_potential_flags_cache[recipedir]
 	import re
 	potentialflags = set()
+	mutuallyexclusives = set()
 	flagre = re.compile('.*\[([^]]+)\].*')
 	for depfile in (recipedir+'/Resources/Dependencies',
 					recipedir+'/Resources/BuildDependencies'):
@@ -155,10 +177,14 @@ def potentialFlags(recipedir):
 			for dep in open(depfile):
 				m = flagre.match(dep)
 				if m:
-					potentialflags.update(m.group(1).split(','))
+					if '*' == m.group(1)[0]:
+						mutuallyexclusives.add(m.group(1)[1:])
+					else:
+						potentialflags.update(m.group(1).split(','))
 	potentialflags.discard('cross')
 	potentialflags.discard('!cross')
-	potentialflags = frozenset(potentialflags)
+	potentialflags = proxy(frozenset(potentialflags))
+	potentialflags.mutuallyexclusives = mutuallyexclusives
 	global_program_potential_flags_cache[recipedir] = potentialflags
 	return potentialflags
 
@@ -258,6 +284,8 @@ def _vchook(desc, flags, potentials = None):
 		desc = 'system UseFlags'
 	elif 'environ' == desc:
 		desc = 'USE environment variable'
+	elif 'mutuallyexclusive' == desc:
+		desc = 'mutually-exclusive flags'
 	elif 'specifictogeneric' == desc:
 		_vchook.lastflags = frozenset()
 		return
@@ -298,7 +326,7 @@ def _vchook(desc, flags, potentials = None):
 		sys.stderr.write('Added from ' + desc + ': ' +
 				', '.join(added) + colorNormal + '\n')
 	if removed:
-		sys.stderr.write(colorGray + 'UseFlags:' + colorCyan)
+		sys.stderr.write(colorGray + 'UseFlags: ' + colorCyan)
 		sys.stderr.write('Unset from ' + desc + ': ' +
 				', '.join(removed) + colorNormal + '\n')
 	_vchook.lastflags = flags
