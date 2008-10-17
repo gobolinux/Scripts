@@ -2,15 +2,9 @@
  * List - the cool GoboLinux' "List" shell script, written in C
  *
  * Copyright (C) 2004-2005 Lucas Correia Villa Real <lucasvr@gobolinux.org>
+ *
  * Released under the GNU GPL.
- *
- *
- * Changelog:
- * 01/04/2004 - [lucasvr] First version
- * 19/04/2004 - [lucasvr] Using information from $LS_COLORS
- * 03/10/2005 - [lucasvr] Reading file information (stat) in one pass
  */
-
 #include <stdio.h>
 #include <libgen.h>
 #include <limits.h>
@@ -59,6 +53,7 @@ char default_ls_colors[] =
 #define COLOR_LIGHT_GREEN_CODE "\033[1;36m" 
 #define COLORCODE_MAX     16
 #define EXTENSION_MAX      8
+#define COLOR_MAXENTRIES 30000
 
 struct color_list {
    char  extension[EXTENSION_MAX];
@@ -148,26 +143,36 @@ void
 set_dircolors()
 {
    int i;
-   char *env, *env_copy, *token, *equal_char;
+   char *env = NULL, *env_copy = NULL, *token, *equal_char;
    
    env = getenv("LS_COLORS");
-   if (! env) {
+   if (! env || env[0] == '\0') {
       /* use default colors */
       env = default_ls_colors;
    }
    
    env_copy = strdup(env);
    env = strdup(env_copy);
+   if (! env_copy || ! env) {
+      perror("strdup");
+      goto fail;
+   }
+
+   /* 
+	* count number of entries in environment variable
+	* $LS_COLORS; a hardcoded maximum of entries
+	* (COLOR_MAXENTRIES) exists as a safety precaution. 
+	*/
    color_list_len = 1;
-   
    token = strtok(env_copy, ":");
    while ((token = strtok(NULL, ":")))
-      color_list_len++;
+	   if (++color_list_len >= COLOR_MAXENTRIES)
+		   break;
 
    colors = (struct color_list *) malloc(sizeof(struct color_list) * color_list_len);
    if (! colors) {
       perror("malloc");
-      free(env_copy);
+      goto fail;
    }
    
    for (i = 0; i < color_list_len; ++i) {
@@ -185,8 +190,25 @@ set_dircolors()
       /* 'token' now has the extension, with its color code in 'equal_char+1' */
       set_color(token, equal_char+1, i); 
    }
-   free(env_copy);
-   free(env);
+
+   if (i < color_list_len) {
+      /* couldn't parse all colors for some reason; truncate to 'i' elements */
+      void *tmp = realloc(colors, sizeof(struct color_list) * i);
+      if (tmp)
+         colors = (struct color_list *) tmp;
+      color_list_len = i;
+   }
+
+cleanup:
+   if (env)
+      free(env);
+   if (env_copy)
+      free(env_copy);
+   return;
+
+fail:
+   color_list_len = 0;
+   goto cleanup;
 }
 
 void
