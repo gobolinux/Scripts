@@ -22,7 +22,8 @@ Add_Option_Boolean ""  "use-contrib" "Look in contrib store as well."
 Add_Option_Boolean "D" "no-dependencies" "Do not try to fullfit dependencies."
 Add_Option_Boolean "I" "no-install" "Do not install, only locate and fetch the package.
         Automatically enables '--keep'"
-Add_Option_Boolean "S" "no-symlink" "Do not create symbolic links in ${goboLinks}, just fetch and unpack the package."
+Add_Option_Boolean "S" "no-symlink" "Do not create symbolic links in ${goboLinks}, just fetch and unpack the package. Deprecated - use --symlink=no instead."
+Add_Option_Entry   "l" "symlink" "If symlinks should be created and wether they should be forced on conflicts."  "yes" "yes no force"
 Add_Option_Boolean "k" "keep" "Do not remove downloaded packages."
 Add_Option_Entry "s" "same" "What to do when unpackaging over the same version,
         'keep', 'remove', 'ask' or 'cancel'." "ask"
@@ -52,11 +53,12 @@ then
 fi
 
 unmanaged="--unmanaged $(Entry unmanaged)"
+symlink="$(Entry symlink)"
 Boolean "batch"      && batch="--batch"
 Boolean "keep"       && keep="--keep"
-Boolean "no-symlink" && nosymlink="--no-symlink"
+Boolean "no-symlink" && symlink="no"
 Boolean "no-install" && noinstall="--no-install" && keep="--keep"
-Boolean "use-contrib"&& contrib=",contrib_package" && usecontrib="--use-contrib"
+Boolean "use-contrib"&& contrib="contrib_package" && usecontrib="--use-contrib"
 Boolean "no-sign-check" && nosigncheck="--no-sign-check"
 Is_Writable "${goboPrograms}" || Verify_Superuser
 Is_Writable "${goboInstall}"  || Verify_Superuser
@@ -82,13 +84,13 @@ then
 
       if mv "${goboTemp}/${filename}" "${defaultLocalPackagesPaths[0]}/${filename}"
       then 
-         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${nosymlink} ${nosigncheck} ${keep} ${batch} "${defaultLocalPackagesPaths[0]}/${filename}"
+         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${symlink:+--symlink=${symlink}} ${nosigncheck} ${keep} ${batch} "${defaultLocalPackagesPaths[0]}/${filename}"
       else
          Log_Error "Could not move package."
-         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${nosymlink} ${nosigncheck} ${keep} ${batch} "${goboTemp}/${filename}"
+         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${symlink:+--symlink=${symlink}} ${nosigncheck} ${keep} ${batch} "${goboTemp}/${filename}"
       fi
    else
-      InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${nosymlink} ${nosigncheck} ${keep} ${batch} "${goboTemp}/${filename}"
+      InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${symlink:+--symlink=${symlink}} ${nosigncheck} ${keep} ${batch} "${goboTemp}/${filename}"
       Log_Normal "Removing downloaded package ${goboTemp}/${filename}."
       rm -f -- "${goboTemp}/${filename}"
    fi
@@ -121,14 +123,14 @@ then
       
       Log_Normal "Locating a binary package for" ${name} ${version} "..."
       noweb=`Forward_Boolean_Entry "no-web"` 
-      pkgType="-t local_package,official_package${contrib}"
+      pkgType="-t local_package,official_package${contrib:+,${contrib}}"
       if [ ${version} ] 
       then
          found=`FindPackage $noweb $pkgType ${name} ${version}`
          if [ "${found}" ]
          then 
             Log_Normal "Found package for ${name} ${version}: ${found}"
-            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${nosymlink} ${nosigncheck} ${keep} ${batch} "${found}"
+            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${symlink:+--symlink=${symlink}} ${nosigncheck} ${keep} ${batch} "${found}"
          else
             Die_With $errorNotFound "Package for ${name} ${version} not found."
          fi
@@ -137,7 +139,7 @@ then
          if [ "${found}" ]
          then
             [ ! "$batch" ] && Ask_Continue "Installing ${found}"
-            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${nosymlink} ${nosigncheck} ${keep} ${batch} "${found}"
+            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${symlink:+--symlink=${symlink}} ${nosigncheck} ${keep} ${batch} "${found}"
          else
             Die_With $errorNotFound "Package for ${name} not found."
          fi
@@ -376,7 +378,10 @@ then
    Boolean "no-updatesettings" || UpdateSettings "$packagename" "$packageversion"
 fi
 
-Boolean "no-symlink" || SymlinkProgram ${unmanaged} "$packagename" "$packageversion"
+case "${symlink}" in
+"yes") SymlinkProgram ${unmanaged} "$packagename" "$packageversion" ;;
+"force") SymlinkProgram ${unmanaged} --conflict=overwrite "$packagename" "$packageversion" ;;
+esac
 
 [ "$package_verified" = "true" ] && Run_PostInstall "$packagename" "$packageversion" "" ""
 
@@ -387,13 +392,13 @@ then
    then
       Log_Normal "Checking dependencies..."
       set -o pipefail
-      selecteddeps=$(CheckDependencies --types=local_package,official_package${contrib} --mode=missing \
+      selecteddeps=$(CheckDependencies --types=local_package,official_package${contrib:+,${contrib}} --mode=missing \
         --quiet-progress  "$packagename" "$packageversion" \
         "installed" "${goboPrograms}/$packagename/$packageversion" | awk '{ print $4 }') || Die "Aborted."
       set +o pipefail
       for d_url in $selecteddeps
       do
-         InstallPackage --no-dependencies ${unmanaged} ${usecontrib} ${noinstall} ${nosymlink} ${nosigncheck} ${keep} ${batch} $d_url || {
+         InstallPackage --no-dependencies ${unmanaged} ${usecontrib} ${noinstall} ${symlink:+--symlink=${symlink}} ${nosigncheck} ${keep} ${batch} $d_url || {
             ret=$?
             exit $ret
          }
