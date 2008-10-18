@@ -378,9 +378,18 @@ used by prog.
 	if 'USE' in os.environ:
 		hook = _vchook
 	if not hook and os.path.exists(goboSettings + '/UseFlags.conf'):
-		for line in open(goboSettings + '/UseFlags.conf'):
-			if not line.startswith('#'):
-				hook = _vchook
+		f = None
+		try:
+			f = open(goboSettings + '/UseFlags.conf')
+			for line in f:
+				if not line.startswith('#'):
+					hook = _vchook
+					break
+		except IOError:
+			pass
+		finally:
+			if f:
+				f.close()
 	flags = UseFlags(program, postchangehook=hook)
 	# If no flag is specified, output all the enabled flags for this program
 	if len(args) < 2:
