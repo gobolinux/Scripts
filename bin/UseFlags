@@ -278,6 +278,8 @@ def _vchook(desc, flags, potentials = None):
 		_vchook.lastflags = frozenset()
 	if potentials is not None:
 		flags = flags.intersection(potentials)
+	else:
+		return
 	if 'distflags' == desc:
 		desc = 'distribution flags'
 	elif 'installed' == desc:
@@ -337,6 +339,7 @@ def _vchook(desc, flags, potentials = None):
 # Executable code when run from the command line.
 if __name__ == '__main__':
 	verbose = False
+	goboSettings = getGoboVariable('goboSettings')
 	args = sys.argv[1:]
 	# "verbose" mode applies when a program AND flag are given: it will output
 	# a message as well as setting the return code
@@ -362,7 +365,7 @@ used by prog.
 	# If args[0] is a path, just pass it straight through
 	if args and '/' in args[0]:
 		program = args[0]
-	else:
+	elif args:
 		# Otherwise, call GetRecipe to fetch/find the local copy
 		f = None
 		if len(args) == 2:
@@ -371,7 +374,14 @@ used by prog.
 			f = os.popen('GetRecipe %s 2>/dev/null'%(args[0]))
 		program = f.read().strip()
 		f.close()
-	flags = UseFlags(program, postchangehook=_vchook)
+	hook = None
+	if 'USE' in os.environ:
+		hook = _vchook
+	if not hook and os.path.exists(goboSettings + '/UseFlags.conf'):
+		for line in open(goboSettings + '/UseFlags.conf'):
+			if not line.startswith('#'):
+				hook = _vchook
+	flags = UseFlags(program, postchangehook=hook)
 	# If no flag is specified, output all the enabled flags for this program
 	if len(args) < 2:
 		for flag in flags:
