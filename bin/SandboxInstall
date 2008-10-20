@@ -172,8 +172,6 @@ then makecmd=`Entry "make"`
 else makecmd="${compileMakeCommand:-ColorMake}"
 fi
 
-echo $sandbox $makecmd -f "`Entry "makefile"`" INSIDE_GOBO_SANDBOX=1 "${args[@]}" `Entry "target"` >&2
-read
 if Is_Entry "command"
 then $sandbox `Entry "command"` "${args[@]}" || installation_failed
 else $sandbox $makecmd -f "`Entry "makefile"`" INSIDE_GOBO_SANDBOX=1 "${args[@]}" `Entry "target"` || installation_failed
