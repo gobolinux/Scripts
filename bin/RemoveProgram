@@ -50,7 +50,7 @@ Is_Real_Nonempty_Directory "${goboPrograms}/${program}/${version}/Shared/applica
 Is_Real_Nonempty_Directory "${goboPrograms}/${program}/${version}/Shared/fonts" && rebuildfontcache=true
 Is_Real_Nonempty_Directory "${goboPrograms}/${program}/${version}/lib/gtk-2.0" && rebuildgdkpixbufloaders=true
 Is_Real_Nonempty_Directory "${goboPrograms}/${program}/Settings/gconf/schemas" && Uninstall_GConf_Schemas "$program"
-[ -f "${goboPrograms}/${program}/${version}/Resources/XmlCatalogData" && Remove_From_XML_Catalog "${goboPrograms}/${program}/${version}"
+[ -f "${goboPrograms}/${program}/${version}/Resources/XmlCatalogData" ] && Remove_From_XML_Catalog "${goboPrograms}/${program}/${version}"
 
 Log_Normal "Removing ${goboPrograms}/${program}/${version}..."
 if [ -f ${disabled}/Resources/UnmanagedFiles ] && ! Is_Entry "unmanaged" "keep"
