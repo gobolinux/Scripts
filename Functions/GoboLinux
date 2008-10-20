@@ -104,6 +104,37 @@ then
 fi
 }
 
+function Add_To_XML_Catalog() {
+target="${1}"
+xmldatafile="${target}/Resources/XmlCatalogData"
+if Executable_Exists_In_Path "xmlcatalog"
+then
+   while read data
+   do
+      type="$(echo ${data} | cut -d';' -f1)"
+      orig="$(echo ${data} | cut -d';' -f2)"
+      eval repl="$(echo ${data} | cut -d';' -f3)"
+      eval catalog="$(echo ${data} | cut -d';' -f4)"
+      [ -f "${catalog}" ] || xmlcatalog --noout --create "${catalog}"
+      xmlcatalog --noout --add ${type} "${orig}" "${repl}" "${catalog}"
+   done < "${xmldatafile}"
+fi
+}
+
+function Remove_From_XML_Catalog() {
+target="${1}"
+xmldatafile="${target}/Resources/XmlCatalogData"
+if Executable_Exists_In_Path "xmlcatalog"
+then
+   while read data
+   do
+      orig="$(echo ${data} | cut -d';' -f2)"
+      eval catalog="$(echo ${data} | cut -d';' -f4)"
+      [ -f "${catalog}" ] && xmlcatalog --noout --del "${orig}" "${catalog}"
+   done < "${xmldatafile}"
+fi
+}
+
 function Uninstall_GConf_Schemas() {
    Parameters "$@" application_name
    if Executable_Exists_In_Path "gconftool-2"
