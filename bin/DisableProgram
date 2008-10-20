@@ -87,6 +87,7 @@ Is_Real_Nonempty_Directory "${disabled}/Shared/applications" && Rebuild_Desktop_
 Is_Real_Nonempty_Directory "${disabled}/Shared/mime/packages" && Rebuild_MIME_Database
 Is_Real_Nonempty_Directory "${disabled}/Shared/fonts" && Rebuild_Font_Cache
 Is_Real_Nonempty_Directory "${disabled}/lib/gtk-2.0" && Rebuild_GDK_Pixbuf_Loaders
+[ -f "${disabled}/Resources/XmlCatalogData" ] && Remove_From_XML_Catalog "${disabled}"
 Gen_Env_Cache
 
 
