@@ -1,0 +1,56 @@
+#!/bin/bash
+
+. ScriptFunctions
+Import GoboLinux
+Import Log
+
+##################################################
+# Main
+##################################################
+if [ -n "${INSIDE_GOBO_SANDBOX}" ]
+then
+   add="false"
+   sgml="false"
+   noout="false"
+   for opt in "$@"
+   do
+      if [ "${opt:0:2}" = "--" ]
+      then
+	 echo "opt: ${opt}" >&2      
+         case "${opt:2}" in
+         "sgml") sgml="true"
+                 ;;
+         "add") add="true"
+                ;;
+         "noout") noout="true"
+                  ;;
+         *) ;;
+         esac
+      elif [ -n "${opt}" -a "${add}" == "true" ]
+      then
+	 data="${data:+${data};}$(echo ${opt} | sed -e 's,'"${goboVariable}"',${goboVariable},' -e 's,'"${installprefix}"',${target},')"
+      fi
+   done
+   
+   if [ "${add}" == "true" ]
+   then
+      [ "${noout}" == "false" ] && Die "Output to sdtout is not allowed. The redirection cannot be controlled."
+      if [ "${sgml}" == "true" ]
+      then
+         # This is a noop for now
+         Log_Terse "SGML not supported by wrapper yet"
+      else
+         # We're adding things to an xml catalog
+         Log_Verbose "Adding xml entry ($data) to ${goboVariable}/tmp/XmlCatalogData"
+         echo "$data" > "${installprefix}/Resources/XmlCatalogData"
+      fi
+   fi
+else
+   # We're not inside a sandbox. Because of bash' quoting we need to make the arguments into an array before we call real_xmlcatalog
+   unset options
+   for opt in "$@"
+   do
+      options=(${options:+"${options[@]}"} "$opt")
+   done
+   real_xmlcatalog ${options:+"${options[@]}"}
+fi

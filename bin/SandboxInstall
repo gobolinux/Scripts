@@ -174,7 +174,7 @@ fi
 
 if Is_Entry "command"
 then $sandbox `Entry "command"` "${args[@]}" || installation_failed
-else $sandbox $makecmd -f "`Entry "makefile"`" INSIDE_GOBO_SANDBOX=1 "${args[@]}" `Entry "target"` || installation_failed
+else $sandbox $makecmd -f "`Entry "makefile"`" installprefix="${installPackageDir}/${version}" INSIDE_GOBO_SANDBOX=1 "${args[@]}" `Entry "target"` || installation_failed
 fi
 result="$?"
 
