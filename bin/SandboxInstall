@@ -137,8 +137,8 @@ do
    # Also remove any $goboPrefix, since we will add it later to ensure that it is used even for recipes that don't use it
    [ ! -d ${unmanaged} ] && unmanaged=$(echo ${unmanaged} | sed -e 's,\(.*\)/[^/]*,\1,'${goboPrefix:+ -e 's,'"$goboPrefix"',,'} )
    # Make sure the directories exist
-   Assert_Dir ${goboPrefix}${unmanaged}
-   Assert_Dir ${installPackageDir}/${version}/Resources/Unmanaged${unmanaged}
+   Assert_Dir "${goboPrefix}${unmanaged}"
+   Assert_Dir "${installPackageDir}/${version}/Resources/Unmanaged${unmanaged}"
    # Map them
    unmanagedmap="${installPackageDir}/${version}/Resources/Unmanaged${unmanaged}=${goboPrefix}${unmanaged}${unmanagedmap:+:${unmanagedmap}}"
 done
@@ -172,9 +172,11 @@ then makecmd=`Entry "make"`
 else makecmd="${compileMakeCommand:-ColorMake}"
 fi
 
+echo $sandbox $makecmd -f "`Entry "makefile"`" INSIDE_GOBO_SANDBOX=1 "${args[@]}" `Entry "target"` >&2
+read
 if Is_Entry "command"
 then $sandbox `Entry "command"` "${args[@]}" || installation_failed
-else $sandbox $makecmd -f "`Entry "makefile"`" "${args[@]}" `Entry "target"` || installation_failed
+else $sandbox $makecmd -f "`Entry "makefile"`" INSIDE_GOBO_SANDBOX=1 "${args[@]}" `Entry "target"` || installation_failed
 fi
 result="$?"
 
