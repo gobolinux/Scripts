@@ -25,6 +25,15 @@ class proxy(object):
 	def __iter__(self):
 		return self.obj.__iter__()
 
+	def __add__(self, other):
+		return self.obj + other
+
+	def __sub__(self, other):
+		return self.obj - other
+
+	def radd(self, other):
+		return other + self.obj
+
 # A frozen set of the global set of flags (program=None, or any program
 # with no special flags specified)
 global_use_flags_cache = None
