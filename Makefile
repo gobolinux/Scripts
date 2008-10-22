@@ -30,7 +30,7 @@ default: all
 all: python $(exec_files)
 
 debug: python
-	cd src; make debug
+	cd src; $(MAKE) debug
 
 python:
 	for f in $(PYTHON_LIBS); \
@@ -55,7 +55,7 @@ clean: cleanup
 cleanup:
 	rm -rf Resources/FileHash*
 	find * -path "*~" -or -path "*/.\#*" -or -path "*.bak" | xargs rm -f
-	cd src && make clean
+	cd src && $(MAKE) clean
 	cd $(PYTHON_SITE) && rm -f *.pyc *.pyo
 	rm -f $(exec_files)
 
@@ -71,7 +71,7 @@ update_version: version_check verify
 dist: update_version manuals tarball
 	@echo; echo "Press enter to create a subversion tag for version $(VERSION) or ctrl-c to abort."
 	@read
-	@make tag
+	@$(MAKE) tag
 
 tag: version_check verify
 	svn cp http://svn.gobolinux.org/tools/trunk/$(PROGRAM) http://svn.gobolinux.org/tools/tags/$(SVNTAG) -m\"Tagging $(PROGRAM) $(VERSION)\"
@@ -87,7 +87,7 @@ $(PACKAGE_FILE): $(all_files)
 	rm -rf $(PACKAGE_DIR)/$(PROGRAM)/$(VERSION)
 	mkdir -p $(PACKAGE_DIR)/$(PROGRAM)/$(VERSION)
 	@ListProgramFiles $(shell pwd) | cpio -p $(PACKAGE_DIR)/$(PROGRAM)/$(VERSION)
-	cd $(PACKAGE_DIR)/$(PROGRAM)/$(VERSION); make clean default
+	cd $(PACKAGE_DIR)/$(PROGRAM)/$(VERSION); $(MAKE) clean default
 	cd $(PACKAGE_DIR); tar cvp $(PROGRAM)/$(VERSION) | bzip2 > $(PACKAGE_FILE)
 	rm -rf $(PACKAGE_DIR)/$(PROGRAM)/$(VERSION)
 	rmdir $(PACKAGE_DIR)/$(PROGRAM)
@@ -104,7 +104,7 @@ $(exec_files): bin/%: src/%
 	chmod a+x $@
 
 src/%: src/%.c
-	make -C src
+	$(MAKE) -C src
 
 install: $(INSTALL_TARGET)
 
