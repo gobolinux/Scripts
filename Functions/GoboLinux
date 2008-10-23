@@ -87,7 +87,7 @@ if Executable_Exists_In_Path "update-desktop-database"
 then
    desktopdirectory="${goboVariable}/xdg"
    if ! $sudo_exec mkdir -p $desktopdirectory && ! $sudo_exec test -w ${desktopdirectory}
-   then [ -n "${XDG_DATA_HOME}" ] && desktopdirectory="${XDG_DATA_HOME}" || desktopdirectory="$HOME/.local/share"
+   then [ -n "${XGD_DATA_HOME}" ] && desktopdirectory="${XDG_DATA_HOME}" || desktopdirectory="$HOME/.local/share"
    fi
    Assert_Dir ${desktopdirectory}
    Is_Directory ${desktopdirectory}/applications || ln -s ${goboShared}/applications ${desktopdirectory}
@@ -118,6 +118,14 @@ then
       [ -f "${catalog}" ] || xmlcatalog --noout --create "${catalog}"
       xmlcatalog --noout --add ${type} "${orig}" "${repl}" "${catalog}"
    done < "${xmldatafile}"
+fi
+}
+
+function Update_Scrollkeeper_Database() {
+if Executable_Exists_In_Path "scrollkeeper-update"
+then
+   Log_Normal "Updating scrollkeeper catalog..."
+   scrollkeeper-update -q &>/dev/null
 fi
 }
 
