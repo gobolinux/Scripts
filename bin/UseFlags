@@ -104,7 +104,20 @@ def UseFlags(program=None, postchangehook=None):
 				prog = prog.lower().replace('-', '_')
 				prog = filter(lambda p: p.isalpha() or p.isdigit() or
 										p=='_', prog)
-				installed_programs.add(prog)
+				if 'qt' == prog:
+					for ver in os.listdir(goboPrograms + '/Qt'):
+						if ver.startswith('3'):
+							installed_programs.add('qt3')
+						elif ver.startswith('4'):
+							installed_programs.add('qt4')
+				elif 'gtk' == prog:
+					for ver in os.listdir(goboPrograms + '/GTK+'):
+						if ver.startswith('2'):
+							installed_programs.add('gtk2')
+						elif ver.startswith('1'):
+							installed_programs.add('gtk1')
+				else:
+					installed_programs.add(prog)
 		flags.update(installed_programs)
 		_callhook(postchangehook, 'installed', flags, potentialswithgenerics)
 		# Import site-specific use flags
