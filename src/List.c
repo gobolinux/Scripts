@@ -38,7 +38,6 @@
    #else
       #include <linux/kdev_t.h>
    #endif
-   #include <linux/kdev_t.h>
 #endif
 #include "List.h"
 
