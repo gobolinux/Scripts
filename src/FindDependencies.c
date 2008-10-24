@@ -18,6 +18,9 @@
 #include <ctype.h>
 #define _GNU_SOURCE
 #include <getopt.h>
+#ifdef __CYGWIN__
+   #include <sys/syslimits.h>
+#endif
 
 #include "LinuxList.h"
 
@@ -25,10 +28,6 @@
 #define DBG(a...) fprintf(stderr,a)
 #else
 #define DBG(a...)
-#endif
-
-#ifndef LINE_MAX
-#define LINE_MAX 2048
 #endif
 
 static char * const currentString = "Current";
@@ -421,7 +420,7 @@ bool GetBestVersion(struct parse_data *data, struct search_options *options)
 			fprintf(stderr, "WARNING: No packages were found for dependency %s\n", data->depname);
 		return false;
 	}
-	
+
 	memset(latest, 0, sizeof(latest));
 	for (i=0; versions[i]; i++) {
 		entry = versions[i];

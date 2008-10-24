@@ -31,6 +31,13 @@
 #else
    #include <sys/statfs.h>
    #include <sys/vfs.h>
+   #if defined (__CYGWIN__)
+      #define MAJOR(dev)      (long long) ((dev)>>8)
+      #define MINOR(dev)      (long long) ((dev) & 0xff)
+      #define MKDEV(ma,mi)    (long long) ((ma)<<8 | (mi))
+   #else
+      #include <linux/kdev_t.h>
+   #endif
    #include <linux/kdev_t.h>
 #endif
 #include "List.h"
