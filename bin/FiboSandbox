@@ -129,8 +129,8 @@ then
 
     make_restore_cmd() {
         Exists "$1" || { Log_Verbose "'$1' does not exist"; return 1; }
-        local owner=`stat -c %U "$1"`
-        local group=`stat -c %G "$1"`
+        local owner=`stat -c %u "$1"`
+        local group=`stat -c %g "$1"`
         # default owner for the directory
         echo "chown -R $owner:$group \"$1\""
         # exceptions
