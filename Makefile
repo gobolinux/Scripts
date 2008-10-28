@@ -1,6 +1,6 @@
 
 PROGRAM=Scripts
-VERSION=svn-$(shell date +%Y%m%d)
+VERSION=2.9.5
 PACKAGE_DIR=$(HOME)
 PACKAGE_FILE=$(PACKAGE_DIR)/$(PROGRAM)--$(VERSION)--$(shell uname -m).tar.bz2
 TARBALL_BASE=$(PROGRAM)-$(VERSION)
@@ -11,7 +11,7 @@ PREFIX=
 DESTDIR=$(goboPrograms)/$(PROGRAM)/$(VERSION)
 SVNTAG:=$(shell echo $(PROGRAM)_$(VERSION) | tr "[:lower:]" "[:upper:]" | sed  's,\.,_,g')
 
-PYTHON_VERSION=2.3
+PYTHON_VERSION=2.9.5
 PYTHON_LIBS=FindPackage GetAvailable GuessLatest CheckDependencies DescribeProgram UseFlags
 PYTHON_SITE=lib/python$(PYTHON_VERSION)/site-packages
 
@@ -44,7 +44,7 @@ python:
 
 version_check:
 ifeq (,$(findstring svn,$(VERSION)))
-	@[ "$(VERSION)" = "" ] && { echo -e "Error: run make with VERSION=<version-number>.\n"; exit 1 ;} || exit 0
+	@[ "$(VERSION)" = "" ] && { echo -e "Error: run make with VERSION=2.9.5
 else
 	@echo "You must specify a version when you run \"make dist\""
 	@exit 1
@@ -65,7 +65,7 @@ verify:
 	@{ svn status 2>&1 | grep "^M" ;} && { echo -e "Error: modified files exist. Please checkin/revert them first.\n"; exit 1 ;} || exit 0
 
 update_version: version_check verify
-	sed -i "s/CURRENT_SCRIPTS_VERSION=.*#/CURRENT_SCRIPTS_VERSION="${VERSION}" #/g" bin/CreateRootlessEnvironment
+	sed -i "s/CURRENT_SCRIPTS_VERSION=2.9.5
 	svn commit -m "Update version for CreateRootlessEnvironment." bin/CreateRootlessEnvironment
 
 dist: update_version manuals tarball
@@ -76,7 +76,7 @@ dist: update_version manuals tarball
 tag: version_check verify
 	svn cp http://svn.gobolinux.org/tools/trunk/$(PROGRAM) http://svn.gobolinux.org/tools/tags/$(SVNTAG) -m"Tagging $(PROGRAM) $(VERSION)"
 	svn switch http://svn.gobolinux.org/tools/tags/$(SVNTAG)
-	sed -i 's/VERSION=.*/VERSION='"$(VERSION)"'/' Makefile
+	sed -i 's/VERSION=2.9.5
 	svn commit -m"Updating version in Makefile." Makefile
 	svn switch http://svn.gobolinux.org/tools/trunk/$(PROGRAM)
 
