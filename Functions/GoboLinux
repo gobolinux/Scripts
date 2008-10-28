@@ -115,7 +115,7 @@ then
       orig="$(echo ${data} | cut -d';' -f2)"
       eval repl="$(echo ${data} | cut -d';' -f3)"
       eval catalog="$(echo ${data} | cut -d';' -f4)"
-      [ -f "${catalog}" ] || xmlcatalog --noout --create "${catalog}"
+      [ -f "${catalog}" ] || { Assert_Dir $(dirname "${catalog}"); xmlcatalog --noout --create "${catalog}"; }
       xmlcatalog --noout --add ${type} "${orig}" "${repl}" "${catalog}"
    done < "${xmldatafile}"
 fi
