@@ -9,7 +9,7 @@ TARBALL_FILE=$(PACKAGE_DIR)/$(PROGRAM)-$(VERSION).tar.gz
 goboPrograms ?= /Programs
 PREFIX=
 DESTDIR=$(goboPrograms)/$(PROGRAM)/$(VERSION)
-SVNTAG:=`echo $(PROGRAM)_$(VERSION) | tr "[:lower:]" "[:upper:]" | sed  's,\.,_,g'`
+SVNTAG:=$(shell echo $(PROGRAM)_$(VERSION) | tr "[:lower:]" "[:upper:]" | sed  's,\.,_,g')
 
 PYTHON_VERSION=2.3
 PYTHON_LIBS=FindPackage GetAvailable GuessLatest CheckDependencies DescribeProgram UseFlags
