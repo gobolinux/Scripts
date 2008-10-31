@@ -1,61 +1,296 @@
 #!/usr/bin/env python
-# Copyright (C) 2008 Michael Homer <=mwh>
-# Gives information about the state of use flags
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
 
+import os
+import sys
 from PythonUtils import getGoboVariable, colorCyan, colorNormal, colorGray
-import sys, os.path
 
-class proxy(object):
-	"""Proxy object that allows adding extra attributes."""
-	def __init__(self, obj):
-		self.obj = obj
+goboSettings = getGoboVariable('goboSettings')
+goboPrograms = getGoboVariable('goboPrograms')
+goboUserSettings = getGoboVariable('goboUserSettings')
 
-	def __getattr__(self, attr):
-		return getattr(self.obj, attr)
+class UseFlagEngine:
+	program = None
+	depth = 0
+	execute_depth = 0
+	block_stack = []
+	on_dict = {}
+	capture_text = None
+	_potentialflags = None
+	_generic_flags = {'DEFINED_GENERICS': [], 'INSTALLED_PROGRAMS': []}
+	_flags = set(['GENERIC_FLAGS', 'MUTUALLY_EXCLUSIVES', 'INSTALLED'])
+	_postchangehook = None
+	_changes = []
+	_changedata = {}
 
-	def __iter__(self):
-		return self.obj.__iter__()
+	def __init__(self, program, potentialflags=None, postchangehook=None):
+		self.commands = {
+			'+': self.setflag,
+			'-': self.unsetflag,
+			'#': lambda *x: None,
+			'define_generic': self.define_generic,
+			'if': self.if_handler,
+			'generic_prepend': self.generic_prepend,
+			'on': self.on_handler,
+			'loop': self.loop_handler,
+			'break': self.break_handler,
+			'include': self.include_handler,
+		}
+		self.program = program
+		self._potentialflags = potentialflags
+		self._postchangehook = postchangehook
+		self._generic_flags['INSTALLED_PROGRAMS'] = list(installed_programs())
 
-	def __add__(self, other):
-		return self.obj + other
+	def setflag(self, flag, *programs):
+		if not programs or self.program in programs:
+			self._flags.add(flag)
+		if flag in self.on_dict:
+			for depth, text in self.on_dict[flag]:
+				self.execute_at_depth(text, depth)
 
-	def __sub__(self, other):
-		return self.obj - other
+	def unsetflag(self, flag, *programs):
+		if not programs or self.program in programs:
+			self._flags.discard(flag)
+		if '*' == flag:
+			for flag in frozenset(self._flags):
+				self.unsetflag(flag)
+		if '-' + flag in self.on_dict:
+			for depth, text in self.on_dict['-' + flag]:
+				self.execute_at_depth(text, depth)
 
-	def radd(self, other):
-		return other + self.obj
+	def define_generic(self, generic, *components):
+		self._generic_flags[generic] = list(components)
+		self._generic_flags['DEFINED_GENERICS'].append(generic)
 
-# A frozen set of the global set of flags (program=None, or any program
-# with no special flags specified)
-global_use_flags_cache = None
-# A dict of program=>set of flags for each program that has been evaluated
-global_program_use_flags_cache = None
-# A dict of recipe dir=>set of potential flags
-global_program_potential_flags_cache = None
-# A dict of generic flag=>(specific flag,...)
-generic_to_specific = None
-# A dict of specific flag=>parent generic flag
-specific_to_generic = None
-# A set of /Programs entries, normalised into flag form
-installed_programs = set()
+	def if_handler(self, *args):
+		flag, query = args[0], args[1:]
+		if query:
+			if ('is', 'available') == query:
+				if flag in self._potentialflags:
+					self.execute_depth += 1
+		elif args[0] in self._flags:
+			self.execute_depth += 1
+		self.block_stack.append(None)
 
-def UseFlags(program=None, postchangehook=None):
+	def loop_handler(self, *args):
+		self.block_stack.append((self.loop_done, self.depth + 1, args))
+		self.capture_text = ''
+
+	def loop_done(self, depth, args, text):
+		generic, variable = args
+		stack = self._generic_flags[generic]
+		for value in stack:
+			to_execute = text.replace('$' + variable, value)
+			ret = self.execute_at_depth(to_execute, depth)
+			if ret:
+				ret -= 1
+				break
+
+	def break_handler(self, *args):
+		if args:
+			return int(args[0])
+		else:
+			return 1
+
+	def include_handler(self, *args):
+		for path in (goboUserSettings + '/Scripts/UseFlags/',
+			goboSettings + '/Scripts/UseFlags/',
+			goboPrograms + '/Scripts/Current/Data/UseFlags/'):
+			if os.path.exists(path + args[0] + '.useflags'):
+				self.execute_file(path + args[0] + '.useflags',
+					'include "' + args[0] + '"')
+				break
+
+	def on_handler(self, *args):
+		self.block_stack.append((self.on_done, self.depth + 1, args))
+		self.capture_text = ''
+
+	def on_done(self, depth, flags, text):
+		for flag in flags:
+			if flag not in self.on_dict:
+				self.on_dict[flag] = []
+			self.on_dict[flag].append((depth, text))
+
+	def generic_prepend(self, generic, *args):
+		if not self._generic_flags[generic]:
+			self.define_generic(generic)
+		self._generic_flags[generic][0:0] = args
+
+	def execute_at_depth(self, text, depth):
+		d, ed = self.depth, self.execute_depth
+		self.depth = depth
+		self.execute_depth = depth
+		ret = self.execute_string(text)
+		self.depth, self.execute_depth = d, ed
+		return ret
+
+	def _scope_handle(self, line):
+		depth = 0
+		for char in line:
+			if ' ' == char:
+				depth += 1
+			else:
+				break
+		if depth < self.depth and depth <= self.execute_depth:
+			self._leave_scope()
+		self.depth = depth
+		if depth < self.execute_depth:
+			self.execute_depth = depth
+		if self.capture_text is not None:
+			self.capture_text += line + '\n'
+		if self.depth > self.execute_depth:
+			return True
+
+	def _leave_scope(self, final_end = False):
+		if final_end and not (self.depth > self.execute_depth):
+			return
+		b = self.block_stack.pop()
+		if b:
+			b[0](b[1], b[2], self.capture_text)
+			self.capture_text = None
+
+	def _begin_changeset(self, name):
+		self._changes.append(name)
+		self._changedata[name] = (frozenset(self._flags),)
+
+	def _end_changeset(self, name):
+		startflags, = self._changedata[name]
+		endflags = frozenset(self._flags)
+		self._changedata[name] = (startflags, endflags,
+			endflags-startflags, startflags-endflags)
+
+	def execute_string(self, text):
+		for line in text.splitlines():
+			ret = self.execute_line(line)
+			if ret:
+				return ret
+		self._leave_scope(True)
+	
+	def execute_line(self, line):
+		self.debug(line)
+		if not line:
+			return
+		if self._scope_handle(line):
+			return
+		tokens = line.split()
+		cmd = tokens[0]
+		args = tokens[1:]
+		if cmd.startswith(('+', '-', '#')):
+			args[0:0] = [cmd[1:]]
+			cmd = cmd[0]
+		elif cmd.endswith(':'):
+			args[0:0] = [cmd[0:-1]]
+			cmd = 'define_generic'
+		if cmd in self.commands:
+			ret = self.commands[cmd](*args)
+			if ret:
+				self.debug('returned ' + str(ret))
+				self._leave_scope(True)
+				return ret
+		else:
+			print "Error: invalid command", cmd
+
+	def execute_file(self, path, name=None):
+		f = None
+		try:
+			self._begin_changeset(name)
+			f = open(path)
+			for line in f:
+				if self.execute_line(line):
+					break
+			self._leave_scope(True)
+			self._end_changeset(name)
+		except IOError:
+			pass
+		finally:
+			if f:
+				f.close()
+
+	def add_installed_programs(self):
+		if 'INSTALLED' not in self._flags:
+			return
+		if 'USE' in os.environ and '-INSTALLED' in os.environ['USE'].split():
+			return
+		self._begin_changeset('installed')
+		self._flags.update(installed_programs())
+		self._end_changeset('installed')
+
+	def parse_environ(self):
+		if 'USE' in os.environ:
+			self._begin_changeset('environ')
+			for spec in os.environ['USE'].split():
+				comps = spec.split('@')
+				mode, flag = comps[0][0], comps[0][1:]
+				progs = comps[1:]
+				if '+' == mode:
+					self.setflag(flag, *progs)
+				elif '-' == mode:
+					self.unsetflag(flag, *progs)
+			self._end_changeset('environ')
+
+	def finalise(self):
+		if 'GENERIC_FLAGS' in self._flags:
+			self._begin_changeset('generictospecific')
+			for generic in self._generic_flags:
+				if generic not in self._flags:
+					continue
+				found = None
+				for flag in self._generic_flags[generic]:
+					if not found and flag in self._potentialflags:
+						found = flag
+					if flag in self._flags:
+						found = None
+						break
+				if found:
+					self.setflag(found)
+			self._end_changeset('generictospecific')
+		if 'MUTUALLY_EXCLUSIVE' in self._flags:
+			self._begin_changeset('mutuallyexclusive')
+			for generic in self._generic_flags:
+				if '*' + generic in self._potentialflags:
+					found = False
+					for flag in self._generic_flags[generic]:
+						if found:
+							self._flags.discard(flag)
+						elif flag in self._flags:
+							found = True
+			self._end_changeset('mutuallyexclusives')
+
+	def standard_run(self):
+		files = (
+			(goboPrograms + '/Scripts/Current/Data/DistUseFlags.conf', 'distflags'),
+			(goboSettings + '/GenericFlags.conf', 'genericflags'),
+			(goboUserSettings+'/Scripts/GenericFlags.conf','usergenerics'),
+			(goboSettings + '/UseFlags.conf', 'systemflags'),
+			(goboUserSettings + '/Scripts/UseFlags.conf', 'userflags')
+		)
+		for path, name in files:
+			if 'systemflags' == name:
+				self.add_installed_programs()
+			if os.path.exists(path):
+				self.execute_file(path, name=name)
+		if 'USE' in os.environ:
+			self.parse_environ()
+		self.finalise()
+
+
+	def flags(self):
+		return frozenset(self._potentialflags & self._flags)
+
+	def allflags(self):
+		return frozenset(self._flags)
+
+	def potentialflags(self):
+		return frozenset(self._potentialflags)
+
+	debug_on = False
+	def debug(self, line):
+		if self.debug_on:
+			print 'with line:', line
+			print ' flags:', ', '.join(sorted(self._flags))
+
+def UseFlags(program=None, return_engine=False):
 	"""Return the set of flags enabled for program"""
-	global global_use_flags_cache, global_program_use_flags_cache
-	global generic_to_specific, specific_to_generic, installed_programs
-	if generic_to_specific is None:
-		_parseGenerics()
 	potentialflags = None
-	potentialswithgenerics = None
 	if program and program.startswith('/'):
 		catch = False
 		recipedir = str(program)
@@ -70,120 +305,14 @@ def UseFlags(program=None, postchangehook=None):
 		if not potentialFlags:
 			# There can't possibly be any flags enabled, so just return.
 			return frozenset()
-		potentialswithgenerics = set()
-		for flag in potentialflags:
-			potentialswithgenerics.add(flag)
-			if flag in specific_to_generic:
-				potentialswithgenerics.add(specific_to_generic[flag])
-
-	# When program is specified and a cached set is available, use it.
-	if (program and global_program_use_flags_cache and program in
-		global_program_use_flags_cache):
-		return global_program_use_flags_cache[program]
-	# When a program is *not* specified and a cached global set exists,
-	# use it
-	elif global_use_flags_cache is not None and not program:
-		return global_use_flags_cache
-	# Otherwise, generate the set of flags now.
+	e = UseFlagEngine(program, potentialflags=potentialflags)
+	e.standard_run()
+	if return_engine:
+		return e
 	else:
-		goboSettings = getGoboVariable('goboSettings')
-		goboPrograms = getGoboVariable('goboPrograms')
-		flags = set()
-		# Import default use flags
-		if os.path.exists(goboPrograms +
-		'/Scripts/Current/Data/DistUseFlags.conf'):
-			f = open(goboPrograms +
-				'/Scripts/Current/Data/DistUseFlags.conf')
-			_mergeFlags(flags, f, program)
-			f.close()
-		_callhook(postchangehook, 'distflags', flags, potentialswithgenerics)
-		# Include all /Programs entries, appropriately normalised,
-		# where they can be overridden in UseFlags.conf.
-		if not installed_programs:
-			for prog in os.listdir(goboPrograms):
-				prog = prog.lower().replace('-', '_')
-				prog = filter(lambda p: p.isalpha() or p.isdigit() or
-										p=='_', prog)
-				if 'qt' == prog:
-					for ver in os.listdir(goboPrograms + '/Qt'):
-						if ver.startswith('3'):
-							installed_programs.add('qt3')
-						elif ver.startswith('4'):
-							installed_programs.add('qt4')
-				elif 'gtk' == prog:
-					for ver in os.listdir(goboPrograms + '/GTK+'):
-						if ver.startswith('2'):
-							installed_programs.add('gtk2')
-						elif ver.startswith('1'):
-							installed_programs.add('gtk1')
-				else:
-					installed_programs.add(prog)
-		flags.update(installed_programs)
-		_callhook(postchangehook, 'installed', flags, potentialswithgenerics)
-		# Import site-specific use flags
-		if os.path.exists(goboSettings + '/UseFlags.conf'):
-			f = open(goboSettings + '/UseFlags.conf')
-			_mergeFlags(flags, f, program)
-			f.close()
-		_callhook(postchangehook, 'useflags', flags, potentialswithgenerics)
-		# Flags set in the environment for a specific run of Compile are
-		# merged, and overwrite any previous specifications for the same flag.
-		if 'USE' in os.environ:
-			_mergeFlags(flags, os.environ['USE'].split(), program)
-		_callhook(postchangehook, 'environ', flags, potentialswithgenerics)
-		if potentialflags:
-			for generic in generic_to_specific:
-				if generic in flags:
-					child = False
-					first = None
-					for specific in generic_to_specific[generic]:
-						if specific not in potentialflags:
-							continue
-						# Save the first available flag, but continue
-						# looping in case a later one is enabled specifically.
-						if not first:
-							first = specific
-						if specific in flags:
-							child = True
-							break
-					# When there is no component flag enabled but one of them
-					# is available, enable it now.
-					if not child and first:
-						flags.add(first)
-		_callhook(postchangehook, 'generictospecific', flags,
-					potentialswithgenerics)
-		if potentialflags:
-			for generic in potentialflags.mutuallyexclusives:
-				remove = False
-				for specific in generic_to_specific[generic]:
-					if remove:
-						flags.discard(specific)
-					# Need to specify that it's in potentials too, or auto-
-					# enabled but unsupported flags will break it.
-					elif specific in potentialflags and specific in flags:
-						remove = True
-		_callhook(postchangehook, 'mutuallyexclusive', flags,
-					potentialswithgenerics)
-		# These should be handled *after* generic-to-specific mapping
-		# occurs, so that there's no e.g. +sqlite->+sql->+mysql
-		for specific in specific_to_generic:
-			if specific in flags:
-				flags.add(specific_to_generic[specific])
-		_callhook(postchangehook, 'specifictogeneric', flags,
-					potentialswithgenerics)
-		# If program is specified, the flags should be saved in the program
-		# cache. Otherwise they are the global flags and can be saved there.
-		if program:
-			if not global_program_use_flags_cache:
-				global_program_use_flags_cache = dict()
-			if potentialflags is not None:
-				flags.intersection_update(potentialflags)
-			flags = frozenset(flags)
-			global_program_use_flags_cache[program] = flags
-			return flags
-		else:
-			global_use_flags_cache = frozenset(flags)
-	return global_use_flags_cache
+		return e.flags()
+
+global_program_potential_flags_cache = None
 
 def potentialFlags(recipedir):
 	global global_program_potential_flags_cache
@@ -201,167 +330,105 @@ def potentialFlags(recipedir):
 			for dep in open(depfile):
 				m = flagre.match(dep)
 				if m:
-					if '*' == m.group(1)[0]:
-						mutuallyexclusives.add(m.group(1)[1:])
-					else:
-						potentialflags.update(m.group(1).split(','))
+					potentialflags.update(m.group(1).split(','))
 	potentialflags.discard('cross')
 	potentialflags.discard('!cross')
-	potentialflags = proxy(frozenset(potentialflags))
-	potentialflags.mutuallyexclusives = mutuallyexclusives
+	potentialflags = frozenset(potentialflags)
 	global_program_potential_flags_cache[recipedir] = potentialflags
 	return potentialflags
 
-def _mergeFlags(flagSet, iterable, program=None):
-	"""Merges all the flag specifications from iterable into the set
-	   flagSet, relative to program if specified. Calls
-	   _modifyFlagSetFromSpec for each element.
-	   """
-	for spec in iterable:
-		_modifyFlagSetFromSpec(spec.strip(), flagSet, program)
-
-def _modifyFlagSetFromSpec(specStr, flagSet, program=None):
-	"""Update the set flagSet with the flag specification in specStr.
-	   
-	   Flag specifications are of the form [-+][a-z0-9]+|-*
-	   
-	   Each flag specification may have a list of programs after it to
-	   which it applies. This list of programs can be separated by
-	   spaces or @ signs (space is preferred, @ is available for the
-	   USE environment variable's sake).
-	   """
-	
-	# specComponents[0] wil be initialised with the flag itself, and [1:] will
-	# contain the list of programs it applies to.
-	specComponents = []
-	# Split by strudels if present, to allow program-specific specifications
-	# in USE: USE="-bar@baz +foo@baz"
-	if '@' in specStr: specComponents = specStr.split('@')
-	# Otherwise, split by any whitespace.
-	else: specComponents = specStr.split()
-	
-	flagSpec = specComponents[0]
-	
-	# Apply this specification iff there is no program list, or there is and
-	# the given program is in it.
-	if len(specComponents) == 1 or (program
-		and program in specComponents[1:]):
-		if flagSpec == '-*': flagSet.clear()
-		elif flagSpec[0] == '-': flagSet.discard(flagSpec[1:])
-		elif flagSpec[0] == '+': flagSet.add(flagSpec[1:])
-		elif flagSpec[0] == '#': pass
-		else: flagSet.add(flagSpec)
-
-def _parseGenerics():
-	"""Parse GenericFlags.conf and initialise its module variables.
-
-	GenericFlags.conf is in the format generic: specific1 specific2...
-
-	generic_to_specific and specific_to_generic in the global scope
-	will be initialised as dicts in the corresponding direction;
-	generic_to_specific will be string=>iterable, specific_to_generic
-	string=>string
-	"""
-	global generic_to_specific, specific_to_generic
-	fn = os.path.join(getGoboVariable('goboSettings'),
-						'GenericFlags.conf')
-	generic_to_specific = dict()
-	specific_to_generic = dict()
-	if not os.path.exists(fn):
-		return
-	for line in open(fn):
-		components = line.split()
-		generic = components[0][:-1]
-		specifics = components[1:]
-		generic_to_specific[generic] = specifics
-		for specific in specifics:
-			specific_to_generic[specific] = generic
-
-def _callhook(hook, *args):
-	if hook:
-		hook(*args)
-
-def _vchook(desc, flags, potentials = None):
-	"""Hook method to display information on origin of flags.
-
-	This method is called from within UseFlags after each phase of
-	the process, and displays detailed information on which flags
-	have been set or unset, and what transformations have been applied
-	to generic flags, in the preceding phase.
-
-	desc is a human-readable, but unfriendly, string describing the
-	phase that has just completed.
-	flags is the set of flags at the end of that phase.
-	potentials, if given, is the set of flags that the recipe has
-	indicated it can use, and if given only flags in this set will
-	have their information displayed.
-	"""
-	if not hasattr(_vchook, 'lastflags'):
-		_vchook.lastflags = frozenset()
-	if potentials is not None:
-		flags = flags.intersection(potentials)
-	else:
-		return
-	if 'distflags' == desc:
-		desc = 'distribution flags'
-	elif 'installed' == desc:
-		desc = 'installed programs'
-	elif 'useflags' == desc:
-		desc = 'system UseFlags'
-	elif 'environ' == desc:
-		desc = 'USE environment variable'
-	elif 'mutuallyexclusive' == desc:
-		desc = 'mutually-exclusive flags'
-	elif 'specifictogeneric' == desc:
-		_vchook.lastflags = frozenset()
-		return
-	added = flags - _vchook.lastflags
-	removed = _vchook.lastflags - flags
-	if 'generictospecific' == desc:
-		for gen in generic_to_specific:
-			if gen not in flags:
-				continue
-			available = set(generic_to_specific[gen]).intersection(potentials)
-			enabled = flags.intersection(available) - added
-			if enabled:
+def _change_report(e):
+	potentials = e.potentialflags()
+	generics = dict((gen, e._generic_flags[gen])
+		for gen in e._generic_flags['DEFINED_GENERICS'])
+	potentialgenerics = set()
+	specific_to_generic = {}
+	for generic in generics:
+		for flag in generics[generic]:
+			if flag in potentials:
+				potentialgenerics.add(generic)
+			specific_to_generic[flag] = generic
+	pwg = potentials | potentialgenerics
+	for name in e._changes:
+		if 'distflags' == name:
+			desc = 'distribution flags'
+		elif 'installed' == name:
+			desc = 'installed programs'
+		elif 'genericflags' == name:
+			desc = 'system GenericFlags'
+		elif 'usergenerics' == name:
+			desc = 'user-specific GenericFlags'
+		elif 'systemflags' == name:
+			desc = 'system UseFlags'
+		elif 'userflags' == name:
+			desc = 'user-specific UseFlags'
+		elif 'environ' == name:
+			desc = 'USE environment variable'
+		elif 'mutuallyexclusive' == name:
+			desc = 'mutually-exclusive flags'
+		else:
+			desc = 'somewhere unknown (' + name + ')'
+		startflags,endflags,setflags,unsetflags = e._changedata[name]
+		setflags = setflags & pwg
+		unsetflags = unsetflags & pwg
+		if name == 'generictospecific':
+			for gen in generics:
+				for flag in generics[gen]:
+					if flag in startflags and flag in pwg:
+						avail = set(generics[gen]) & pwg
+						avail.discard(flag)
+						sys.stderr.write(colorGray+'UseFlags: '+colorCyan)
+						sys.stderr.write('Transformed generic flag ' + gen +
+							' into already-enabled flag ' + flag)
+						if avail:
+							sys.stderr.write('; also available ' + ', '.join(avail))
+						sys.stderr.write(colorNormal + '\n')
+						break
+			for flag in setflags:
+				gen = specific_to_generic[flag]
 				sys.stderr.write(colorGray + 'UseFlags: ' + colorCyan)
-				sys.stderr.write('Generic flag ' + gen +
-					' transformed into already-enabled flag')
-				if len(enabled) > 1:
-					sys.stderr.write('s')
-				sys.stderr.write(' ' + ', '.join(enabled))
-				alsos = available - enabled
-				if alsos:
-					sys.stderr.write(' - also available ' + ', '.join(alsos))
+				sys.stderr.write('Transformed generic flag ' + gen +
+					' into ' + flag)
+				if avail:
+					sys.stderr.write('; also available ' + ', '.join(avail))
 				sys.stderr.write(colorNormal + '\n')
-	if desc == 'generictospecific' and added:
-		for flag in added:
-			gen = specific_to_generic[flag]
-			alsos = set(generic_to_specific[gen])
-			alsos.discard(flag)
-			alsos.intersection_update(potentials)
+			continue
+		if setflags:
 			sys.stderr.write(colorGray + 'UseFlags: ' + colorCyan)
-			sys.stderr.write('Transforming generic flag ' + gen +
-				' into ' + flag)
-			if alsos:
-				sys.stderr.write(' - also available ' +
-				','.join(alsos))
-			sys.stderr.write(colorNormal + '\n')
-	elif added:
-		sys.stderr.write(colorGray + 'UseFlags: ' + colorCyan)
-		sys.stderr.write('Added from ' + desc + ': ' +
-				', '.join(added) + colorNormal + '\n')
-	if removed:
-		sys.stderr.write(colorGray + 'UseFlags: ' + colorCyan)
-		sys.stderr.write('Unset from ' + desc + ': ' +
-				', '.join(removed) + colorNormal + '\n')
-	_vchook.lastflags = flags
+			sys.stderr.write('Added from ' + desc + ': ' +
+				', '.join(setflags) + colorNormal + '\n')
+		if unsetflags:
+			sys.stderr.write(colorGray + 'UseFlags: ' + colorCyan)
+			sys.stderr.write('Unset from ' + desc + ': ' +
+				', '.join(unsetflags) + colorNormal + '\n')
+
+def installed_programs():
+	if not hasattr(installed_programs, 'cache'):
+		installed_programs.cache = set()
+		for prog in os.listdir(goboPrograms):
+			prog = prog.lower().replace('-', '_')
+			prog = filter(lambda p: p.isalpha() or p.isdigit() or
+									p=='_', prog)
+			if 'qt' == prog:
+				for ver in os.listdir(goboPrograms + '/Qt'):
+					if ver.startswith('3'):
+						installed_programs.cache.add('qt3')
+					elif ver.startswith('4'):
+						installed_programs.cache.add('qt4')
+			elif 'gtk' == prog:
+				for ver in os.listdir(goboPrograms + '/GTK+'):
+					if ver.startswith('2'):
+						installed_programs.cache.add('gtk2')
+					elif ver.startswith('1'):
+						installed_programs.cache.add('gtk1')
+			else:
+				installed_programs.cache.add(prog)
+	return installed_programs.cache
+
 
 
 # Executable code when run from the command line.
 if __name__ == '__main__':
-	verbose = False
-	goboSettings = getGoboVariable('goboSettings')
 	args = sys.argv[1:]
 	# "verbose" mode applies when a program AND flag are given: it will output
 	# a message as well as setting the return code
@@ -371,10 +438,10 @@ if __name__ == '__main__':
 	elif args and '--help' == args[0]:
 		sys.stdout.write("""
 UseFlags
-Usage: UseFlags [-v] [<program> [<flag-to-test>]]
+Usage: UseFlags [<program> [<flag-to-test>]]
 
 When program and flag both specified, the return code is true if the flag is
-enabled, and false otherwise. -v will output a message as well.
+enabled, and false otherwise.
 
 If only program is specified, or `UseFlags` is called alone, output the set
 of flags enabled for that program or overall.
@@ -396,23 +463,20 @@ used by prog.
 			f = os.popen('GetRecipe %s 2>/dev/null'%(args[0]))
 		program = f.read().strip()
 		f.close()
-	hook = None
+	e = UseFlags(program, return_engine=True)
+	report = False
 	if 'USE' in os.environ:
-		hook = _vchook
-	if not hook and os.path.exists(goboSettings + '/UseFlags.conf'):
-		f = None
-		try:
-			f = open(goboSettings + '/UseFlags.conf')
-			for line in f:
-				if not line.startswith('#'):
-					hook = _vchook
-					break
-		except IOError:
-			pass
-		finally:
-			if f:
+		report = True
+	if os.path.exists(goboSettings + '/UseFlags.conf'):
+		f = open(goboSettings + '/UseFlags.conf')
+		for line in f:
+			if not line.startswith('#'):
+				report = True
 				f.close()
-	flags = UseFlags(program, postchangehook=hook)
+				break
+	if report:
+		_change_report(e)
+	flags = e.flags()
 	# If no flag is specified, output all the enabled flags for this program
 	if len(args) < 2:
 		for flag in flags:
@@ -422,8 +486,6 @@ used by prog.
 	# accordingly. If -v was given, also output "<flag> on|off"
 	else:
 		if args[1] in flags:
-			if verbose: sys.stdout.write(args[1] + ' on\n')
 			sys.exit(0)
 		else:
-			if verbose: sys.stdout.write(args[1] + ' off\n')
 			sys.exit(1)
