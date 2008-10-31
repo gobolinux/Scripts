@@ -419,6 +419,10 @@ static void Link_Or_Expand(char* new) {
 }
 
 int main(int argc, char** argv) {
+   if (argc < 2 || strcmp(argv[1], "--help") == 0) {
+      fprintf(stderr, "Usage: %s <dir> [--overwrite] [--relative] [--no-follow] [--always-expand]\n", argv[0]);
+      exit(1);
+   }
    goboPrograms = getenv("goboPrograms");
    if (!goboPrograms) {
       Log_Error("Could not determine $goboPrograms");
@@ -430,10 +434,6 @@ int main(int argc, char** argv) {
    // if goboPrograms ends with a '/'
    if (realpathGoboPrograms[lenGoboPrograms - 1] == '/')
       lenGoboPrograms--;
-   if (argc < 2 || strcmp(argv[1], "--help") == 0) {
-      fprintf(stderr, "Usage: %s <dir> [--overwrite] [--relative] [--no-follow] [--always-expand]\n", argv[0]);
-      exit(1);
-   }
    while (argc > 2) {
       argc--;
       if (strcmp(argv[argc], "--relative") == 0) {
