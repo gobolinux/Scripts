@@ -244,6 +244,8 @@ class UseFlagEngine:
 		if 'GENERIC_FLAGS' in self._flags:
 			self._begin_changeset('generictospecific')
 			for generic in self._generic_flags:
+				if generic not in self._flags:
+					continue
 				found = None
 				for flag in self._generic_flags[generic]:
 					if flag not in self._potentialflags:
