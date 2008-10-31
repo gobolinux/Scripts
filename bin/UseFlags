@@ -387,6 +387,7 @@ def _change_report(e):
 			for flag in setflags:
 				gen = specific_to_generic[flag]
 				avail = set(generics[gen]) & pwg
+				avail.discard(flag)
 				sys.stderr.write(colorGray + 'UseFlags: ' + colorCyan)
 				sys.stderr.write('Transformed generic flag ' + gen +
 					' into ' + flag)
