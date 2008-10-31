@@ -39,6 +39,8 @@ class UseFlagEngine:
 		self._potentialflags = potentialflags
 		self._postchangehook = postchangehook
 		self._generic_flags['INSTALLED_PROGRAMS'] = list(installed_programs())
+		self.on_dict['-INSTALLED'] = [(None, lambda:
+			self._flags.difference_update(self._changedata['installed'][2]))]
 
 	def setflag(self, flag, *programs):
 		if not programs or self.program in programs:
@@ -116,6 +118,8 @@ class UseFlagEngine:
 		self._generic_flags[generic][0:0] = args
 
 	def execute_at_depth(self, text, depth):
+		if depth is None:
+			return text()
 		d, ed = self.depth, self.execute_depth
 		self.depth = depth
 		self.execute_depth = depth
@@ -206,10 +210,6 @@ class UseFlagEngine:
 				f.close()
 
 	def add_installed_programs(self):
-		if 'INSTALLED' not in self._flags:
-			return
-		if 'USE' in os.environ and '-INSTALLED' in os.environ['USE'].split():
-			return
 		self._begin_changeset('installed')
 		self._flags.update(installed_programs())
 		self._end_changeset('installed')
@@ -386,6 +386,7 @@ def _change_report(e):
 						break
 			for flag in setflags:
 				gen = specific_to_generic[flag]
+				avail = set(generics[gen]) & pwg
 				sys.stderr.write(colorGray + 'UseFlags: ' + colorCyan)
 				sys.stderr.write('Transformed generic flag ' + gen +
 					' into ' + flag)
