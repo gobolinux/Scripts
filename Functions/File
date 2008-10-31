@@ -29,7 +29,7 @@ function Is_Link() { [ -L "$1" -a -e "$1" ] ;}
 
 function Is_Broken_Link() { [ -L "$1" -a ! -e "$1" ] ;}
 
-function Executable_Exists_In_Path() { [ -n "$(which "${1}" 2>/dev/null)" ] ;}
+function Executable_Exists_In_Path() { [ -n "$(type -p "${1}" 2>/dev/null)" ] ;}
 
 # These functions provide basic tests to see if a file qualifies as a GoboLinux 
 # package or recipe. These test could (should) be extended to use 'file' to find
