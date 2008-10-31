@@ -11,7 +11,12 @@ then
    fi
 fi
 
-export goboUserSettings="$HOME/.Settings"
+if [ -e "$HOME/.Settings" ]
+then
+   export goboUserSettings="$HOME/.Settings"
+else
+   export goboUserSettings="${XDG_CONFIG_HOME:-"$HOME/.config"}"
+fi
 
 export goboUsers="${goboPrefix}/Users"
 export goboMount="${goboPrefix}/Mount"

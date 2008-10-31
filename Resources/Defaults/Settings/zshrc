@@ -31,7 +31,7 @@ fi
 
 export HISTCONTROL=ignoredups
 export HISTIGNORE="ls:exit"
-export HISTFILE="${goboUserPrefix}/.Settings/zsh_history"
+export HISTFILE="${XDG_CACHE_HOME:-"${goboUserPrefix}/.cache"}/zsh_history"
 export HISTSIZE=100
 export SAVEHIST=200
 export COLUMNS
@@ -42,7 +42,7 @@ export INFOPATH="${goboPrefix}/System/Links/Manuals/info${INFOPATH:+:$INFOPATH}"
 export TMPDIR="${goboPrefix}/System/Variable/tmp"
 
 path=("${goboPrefix}/System/Links/Executables" $path)
-fpath=("${goboPrefix}/System/Links/Shared/zsh/functions" "${goboUserPrefix}/.Settings/zsh/functions" $fpath)
+fpath=("${goboPrefix}/System/Links/Shared/zsh/functions" "${XDG_DATA_HOME:-"${goboUserPrefix}/.local/share"}/zsh/functions" "${XDG_CONFIG_HOME:-"${goboUserPrefix}/.config"}/zsh/functions" "${goboUserPrefix}/.Settings/zsh/functions" $fpath)
 
 unset goboUserPrefix
 
