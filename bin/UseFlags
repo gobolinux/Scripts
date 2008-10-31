@@ -18,11 +18,10 @@ class UseFlagEngine:
 	_potentialflags = None
 	_generic_flags = {'DEFINED_GENERICS': [], 'INSTALLED_PROGRAMS': []}
 	_flags = set(['GENERIC_FLAGS', 'MUTUALLY_EXCLUSIVES', 'INSTALLED'])
-	_postchangehook = None
 	_changes = []
 	_changedata = {}
 
-	def __init__(self, program, potentialflags=None, postchangehook=None):
+	def __init__(self, program, potentialflags=None):
 		self.commands = {
 			'+': self.setflag,
 			'-': self.unsetflag,
@@ -30,6 +29,8 @@ class UseFlagEngine:
 			'define_generic': self.define_generic,
 			'if': self.if_handler,
 			'generic_prepend': self.generic_prepend,
+			'generic_remove': self.generic_remove,
+			'generic_pop': self.generic_pop,
 			'on': self.on_handler,
 			'loop': self.loop_handler,
 			'break': self.break_handler,
@@ -37,7 +38,6 @@ class UseFlagEngine:
 		}
 		self.program = program
 		self._potentialflags = potentialflags
-		self._postchangehook = postchangehook
 		self._generic_flags['INSTALLED_PROGRAMS'] = list(installed_programs())
 		self.on_dict['-INSTALLED'] = [(None, lambda:
 			self._flags.difference_update(self._changedata['installed'][2]))]
@@ -61,7 +61,8 @@ class UseFlagEngine:
 
 	def define_generic(self, generic, *components):
 		self._generic_flags[generic] = list(components)
-		self._generic_flags['DEFINED_GENERICS'].append(generic)
+		if generic.islower():
+			self._generic_flags['DEFINED_GENERICS'].append(generic)
 
 	def if_handler(self, *args):
 		flag, query = args[0], args[1:]
@@ -113,9 +114,21 @@ class UseFlagEngine:
 			self.on_dict[flag].append((depth, text))
 
 	def generic_prepend(self, generic, *args):
-		if not self._generic_flags[generic]:
+		if not generic in self._generic_flags:
 			self.define_generic(generic)
 		self._generic_flags[generic][0:0] = args
+
+	def generic_remove(self, generic, *args):
+		if generic in self._generic_flags:
+			self._generic_flags[generic] = list(filter(lambda x: x not in args,
+				self._generic_flags[generic]))
+
+	def generic_pop(self, generic, *args):
+		if generic in self._generic_flags:
+			popped = self._generic_flags[generic][0]
+			self._generic_flags[generic] = self._generic_flags[generic][1:]
+			if args:
+				self.generic_prepend(args[0], popped)
 
 	def execute_at_depth(self, text, depth):
 		if depth is None:
@@ -231,10 +244,10 @@ class UseFlagEngine:
 		if 'GENERIC_FLAGS' in self._flags:
 			self._begin_changeset('generictospecific')
 			for generic in self._generic_flags:
-				if generic not in self._flags:
-					continue
 				found = None
 				for flag in self._generic_flags[generic]:
+					if flag not in self._potentialflags:
+						continue
 					if not found and flag in self._potentialflags:
 						found = flag
 					if flag in self._flags:
@@ -373,6 +386,8 @@ def _change_report(e):
 		unsetflags = unsetflags & pwg
 		if name == 'generictospecific':
 			for gen in generics:
+				if gen not in e._flags:
+					continue
 				for flag in generics[gen]:
 					if flag in startflags and flag in pwg:
 						avail = set(generics[gen]) & pwg
