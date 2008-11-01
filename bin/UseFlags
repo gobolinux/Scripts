@@ -268,7 +268,7 @@ class UseFlagEngine:
 							self._flags.discard(flag)
 						elif flag in self._flags:
 							found = True
-			self._end_changeset('mutuallyexclusives')
+			self._end_changeset('mutuallyexclusive')
 
 	def standard_run(self):
 		files = (
