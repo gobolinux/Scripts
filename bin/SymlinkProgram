@@ -8,6 +8,7 @@ Import String
 Import Requirements
 Import Versions
 Import Directories
+Import MetadataInstallation
 
 helpOnNoArguments=yes
 scriptDescription="Link a program from the ${goboPrograms} hierarchy in the ${goboSystem} tree."
@@ -55,35 +56,6 @@ then
 fi
 
 ################################################################################
-
-# Creates links from one directory into another.
-function link_directory() {
-   Parameters "$@" from to
-   local rfrom here j
-
-   rfrom=`readlink -f "$from"`
-
-   if ! Is_Empty_Directory "$rfrom"
-   then
-      here=`readlink -f "$to"`
-      [ -d "$here" ] || mkdir "$here"
-      cd "$here"
-
-      Boolean "relative" && relative="--relative" || relative=""
-      [ "${conflict}" = "overwrite" ] && overwrite="--overwrite" || overwrite=""
-      if [ -n "$(type -p LinkOrExpandAll)" ]
-      then
-         LinkOrExpandAll "$rfrom" "$overwrite" "$relative"
-      else
-         Log_Error "LinkOrExpandAll not found.  Fallback to python code."
-         Boolean "relative" && relative="True" || relative="False"         
-         Link_Or_Expand_All "$rfrom" "$overwrite" "$relative"
-      fi
-      cd "$here"
-   else
-      Quiet rmdir "$rfrom"
-   fi
-}
 
 function system_is_ok() {
    #TODO: check more needed stuff (sed, awk, head, ...)
