@@ -127,3 +127,13 @@ function Downcase() {
 function Uppercase() {
    echo "$*" | tr '[:lower:]' '[:upper:]'
 }
+
+function String_Revision() {
+   Parameters "$@" versionandrevision
+   echo $versionandrevision | sed -nr 's,.*-(r[0-9]+(p[0-9]+)?)$,\1,p'
+}
+
+function String_Version() {
+   Parameters "$@" versionandrevision
+   echo $versionandrevision | sed -r 's/-r[0-9]+(p[0-9]+)?$//g'
+}
