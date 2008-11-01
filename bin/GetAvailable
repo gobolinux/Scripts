@@ -7,7 +7,7 @@
 # (C) 2004 Andre Detsch. Released under the GNU GPL.
 #
 
-import os.path, sys, string, time, os, threading
+import os.path, sys, string, time, os, thread, threading
 
 from PythonUtils import *
 
@@ -55,9 +55,11 @@ def loadConfig():
 globalSettings = loadConfig()
 
 downloadedCount = 0
+downloadedLock = thread.allocate_lock()
 
 def downloadFiles(files, force=False, hook=None, message=''):
 	global downloadedCount
+	global downloadedLock
 	downloadedCount = 0
 	def doDownload(url, localfile, timeout=10):
 		has_wget = not bash('wget --help &> /dev/null', 'v')
@@ -76,10 +78,12 @@ def downloadFiles(files, force=False, hook=None, message=''):
 				sys.stderr.write('Timeout\n')
 
 		global downloadedCount
+		global downloadedLock
+		downloadedLock.acquire()
 		downloadedCount = downloadedCount + 1
 		if hook:
 			hook(message, downloadedCount, len(files), False)
-
+		downloadedLock.release()
 
 	threads = []
 	if files and not os.access(cacheDir, os.W_OK):
@@ -104,32 +108,33 @@ def downloadFiles(files, force=False, hook=None, message=''):
 			import urllib
 			t = threading.Thread(target=doDownload, args=(url, cacheDir+filename, timeout))
 			t.setDaemon(True) # program exits on long timeout
-			t.start()
 			threads.append(t)
  		else:
 			downloadedCount = downloadedCount + 1
-
+	
 	if threads and hook:
 		hook(message, downloadedCount, len(files))
 
+	for thread in threads:
+		thread.start();
+
 	begin = time.time()
 	try:
-		for thread in threads:
-			loopStartDownloadedCount = downloadedCount
-			while downloadedCount < len(files) and loopStartDownloadedCount == downloadedCount:
-				waitTime = 0.05
-				if hook:
-					aborted = hook(message, downloadedCount, len(files), False)
-					if aborted:
-						return downloadedCount >= len(threads)
-
-				#if (timeout + begin) > time.time():
-				thread.join(waitTime)
-				#else:
-				#	sys.stderr.write('<Timeout>')
-				#	if not hook:
-				#		sys.stderr.write('\n')
-				#	return downloadedCount >= len(threads)
+		while (time.time() - begin) <= timeout:
+			downloadedLock.acquire()
+			if downloadedCount >= len(files):
+				downloadedLock.release()
+				break
+			if hook:
+				aborted = hook(message, downloadedCount, len(files), False)
+				if aborted:
+					break
+			downloadedLock.release()
+			time.sleep(1)
+		if (time.time() - begin) > timeout:
+			sys.stderr.write('<Timeout>')
+			if not hook:
+				sys.stderr.write('\n')
 	except KeyboardInterrupt:
 		sys.stderr.write('<Interrupted>')
 		if not hook:
