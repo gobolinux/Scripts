@@ -48,7 +48,7 @@ function Parse_Version() {
 
 # Creates links from one directory into another.
 function Link_Directory() {
-   Parameters "$@" from to
+   Parameters "$@" from to relative overwrite
    local rfrom here j
 
    rfrom=`readlink -f "$from"`
@@ -59,8 +59,6 @@ function Link_Directory() {
       [ -d "$here" ] || mkdir "$here"
       cd "$here"
 
-      Boolean "relative" && relative="--relative" || relative=""
-      [ "${conflict}" = "overwrite" ] && overwrite="--overwrite" || overwrite=""
       if [ -n "$(type -p LinkOrExpandAll)" ]
       then
          LinkOrExpandAll "$rfrom" "$overwrite" "$relative"
@@ -589,7 +587,7 @@ function Verify_Superuser() {
          # Revalidate password for another 5 mins.
          $sudo_validate
          # Run with superuser's HOME.
-         exec $sudo_exec -H env SUDO_OK=1 $0 "${savedOptions[@]}"
+         exec $sudo_exec -H env $0 "${savedOptions[@]}"
       fi
    fi
 }
@@ -602,7 +600,7 @@ function Release_Superuser() {
       # Revalidate password for another 5 mins.
       $sudo_validate
       # Run with superuser's HOME.
-      exec $sudo_exec -u "$SUDO_USER" -H env SUDO_OK=1 $0 "${savedOptions[@]}"
+      exec $sudo_exec -u "$SUDO_USER" -H env $0 "${savedOptions[@]}"
    fi
 }
 
