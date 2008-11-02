@@ -47,7 +47,7 @@ function Parse_Version() {
 }
 
 # Creates links from one directory into another.
-function link_directory() {
+function Link_Directory() {
    Parameters "$@" from to
    local rfrom here j
 

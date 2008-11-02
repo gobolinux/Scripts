@@ -161,7 +161,7 @@ fi
 if [ "$linksettings" != "no" ]
 then
    Log_Normal "Symlinking global settings..."
-   link_directory "$packageDir/Settings" "$goboSettings"
+   Link_Directory "$packageDir/Settings" "$goboSettings"
 fi
 
 ################################################################################
@@ -169,7 +169,7 @@ fi
 if [ "$linktasks" != "no" ]
 then
    Log_Normal "Symlinking tasks..."
-   link_directory "$current/Resources/Tasks" "$goboTasks"
+   Link_Directory "$current/Resources/Tasks" "$goboTasks"
 fi
 
 ################################################################################
@@ -197,7 +197,7 @@ fi
 if [ "$linklibraries" != "no" ] 
 then
    Log_Normal "Symlinking libraries..."
-   link_directory "$current/lib" "$goboLibraries" && {
+   Link_Directory "$current/lib" "$goboLibraries" && {
       Is_Real_Nonempty_Directory "${current}/lib/gtk-2.0" && Rebuild_GDK_Pixbuf_Loaders
       Log_Normal "Updating library database (ldconfig)..."
       [ -x "$goboPrograms/Glibc/Current/sbin/ldconfig" ] && Quiet "$goboPrograms/Glibc/Current/sbin"/ldconfig || Quiet ldconfig
@@ -219,7 +219,7 @@ fi
 if [ "$linkheaders" != "no" ]
 then
    Log_Normal "Symlinking headers..."
-   link_directory "$current/include" "$goboHeaders"
+   Link_Directory "$current/include" "$goboHeaders"
 fi
 
 ################################################################################
@@ -228,7 +228,7 @@ if ! Boolean "no-doc"
 then
    Log_Normal "Symlinking info..."
    Quiet rm -- "$current/info/dir"
-   link_directory "$current/info" "$goboManuals/info"
+   Link_Directory "$current/info" "$goboManuals/info"
    Log_Normal "Updating info dir..."
    for f in `ls -1 "${current}/info/" 2> /dev/null | grep "[^0-9]$" | sed 's%.*/%%g'`
    do
@@ -241,25 +241,25 @@ then
    # SymlinkManuals
    if Dir_Set Manuals
    then
-      link_directory "$current/man/man0" "$goboManuals/man0"
-      link_directory "$current/man/man1" "$goboManuals/man1"
-      link_directory "$current/man/man2" "$goboManuals/man2"
-      link_directory "$current/man/man3" "$goboManuals/man3"
-      link_directory "$current/man/man4" "$goboManuals/man4"
-      link_directory "$current/man/man5" "$goboManuals/man5"
-      link_directory "$current/man/man6" "$goboManuals/man6"
-      link_directory "$current/man/man7" "$goboManuals/man7"
-      link_directory "$current/man/man8" "$goboManuals/man8"
+      Link_Directory "$current/man/man0" "$goboManuals/man0"
+      Link_Directory "$current/man/man1" "$goboManuals/man1"
+      Link_Directory "$current/man/man2" "$goboManuals/man2"
+      Link_Directory "$current/man/man3" "$goboManuals/man3"
+      Link_Directory "$current/man/man4" "$goboManuals/man4"
+      Link_Directory "$current/man/man5" "$goboManuals/man5"
+      Link_Directory "$current/man/man6" "$goboManuals/man6"
+      Link_Directory "$current/man/man7" "$goboManuals/man7"
+      Link_Directory "$current/man/man8" "$goboManuals/man8"
    else
-      link_directory "$current/Shared/man/man0" "$goboManuals/man0"
-      link_directory "$current/Shared/man/man1" "$goboManuals/man1"
-      link_directory "$current/Shared/man/man2" "$goboManuals/man2"
-      link_directory "$current/Shared/man/man3" "$goboManuals/man3"
-      link_directory "$current/Shared/man/man4" "$goboManuals/man4"
-      link_directory "$current/Shared/man/man5" "$goboManuals/man5"
-      link_directory "$current/Shared/man/man6" "$goboManuals/man6"
-      link_directory "$current/Shared/man/man7" "$goboManuals/man7"
-      link_directory "$current/Shared/man/man8" "$goboManuals/man8"
+      Link_Directory "$current/Shared/man/man0" "$goboManuals/man0"
+      Link_Directory "$current/Shared/man/man1" "$goboManuals/man1"
+      Link_Directory "$current/Shared/man/man2" "$goboManuals/man2"
+      Link_Directory "$current/Shared/man/man3" "$goboManuals/man3"
+      Link_Directory "$current/Shared/man/man4" "$goboManuals/man4"
+      Link_Directory "$current/Shared/man/man5" "$goboManuals/man5"
+      Link_Directory "$current/Shared/man/man6" "$goboManuals/man6"
+      Link_Directory "$current/Shared/man/man7" "$goboManuals/man7"
+      Link_Directory "$current/Shared/man/man8" "$goboManuals/man8"
    fi   
    cd "$current"
 fi
@@ -269,8 +269,8 @@ fi
 if [ "$linkexecutables" != "no" ]
 then
    Log_Normal "Symlinking executables..."
-   link_directory "$current/bin" "$goboExecutables"
-   link_directory "$current/sbin" "$goboExecutables"
+   Link_Directory "$current/bin" "$goboExecutables"
+   Link_Directory "$current/sbin" "$goboExecutables"
 fi
 
 if [ "$linkwrappers" != "no" ]
@@ -280,7 +280,7 @@ then
    if [ -d "$wrapdir" ]
    then
       chmod +x "$wrapdir"/*
-      link_directory "$wrapdir" "$goboExecutables"
+      Link_Directory "$wrapdir" "$goboExecutables"
    fi
 fi
 
@@ -291,7 +291,7 @@ then
    if [ "$goboIndex" ]
    then
       Log_Normal "Symlinking shared..."
-      link_directory "$current/share" "$goboShared"
+      Link_Directory "$current/share" "$goboShared"
    else
       Log_Normal "Symlinking shared..."
       cd "$current"
@@ -315,7 +315,7 @@ then
                Quiet ln -snf "$goboShared" share
             fi
          fi
-         link_directory "$current/Shared" "$goboShared"
+         Link_Directory "$current/Shared" "$goboShared"
       fi
       if ! Is_Real_Directory "Shared" && Is_Link "share"
       then
