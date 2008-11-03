@@ -128,6 +128,7 @@ def downloadFiles(files, force=False, hook=None, message=''):
 			if hook:
 				aborted = hook(message, downloadedCount, len(files), False)
 				if aborted:
+					downloadedLock.release()
 					break
 			downloadedLock.release()
 			time.sleep(1)
