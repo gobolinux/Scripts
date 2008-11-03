@@ -64,13 +64,13 @@ def downloadFiles(files, force=False, hook=None, message=''):
 	def doDownload(url, localfile, timeout=10):
 		has_wget = not bash('wget --help &> /dev/null', 'v')
 		if has_wget:
-			has_cert_support = bash('wget --help | grep "no-check-certificate"')
+			has_cert_support = not bash('wget --help | grep -q "no-check-certificate"', 'v')
 			if has_cert_support:
 				wget_cmd = 'wget --no-check-certificate'
 			else:
 				wget_cmd = 'wget'
 			cmd = '%s --timeout=%d --tries=1 --quiet %s -O "%s" && touch "%s" || rm -f "%s"'%(wget_cmd, timeout, url, localfile, localfile, localfile)
-			bash(cmd)
+			bash(cmd, 'v')
 		else:
 			try:
 				urllib.urlretrieve(url, localfile)
