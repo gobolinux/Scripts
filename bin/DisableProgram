@@ -6,6 +6,7 @@ Import GoboLinux
 Import Log
 Import OptionParser
 Import Versions
+Import MetadataInstallation
 
 ### Options ###################################################################
 
