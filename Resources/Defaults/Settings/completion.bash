@@ -516,7 +516,7 @@ _find()
 		;;
 	-fstype)
 		# this is highly non-portable
-		COMPREPLY=( $( cut -d$'\t' -f 2 /proc/filesystems | grep ^$cur))
+		COMPREPLY=( $( GetSupportedFilesystems | cut -d$'\t' -f 2 | grep ^$cur))
 		return 0
 		;;
 	-gid)
