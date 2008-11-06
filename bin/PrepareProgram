@@ -231,12 +231,6 @@ then
    then ln -nfs "$programdir/man" "$programdir/share/man"
    fi
 
-   if Boolean "tree" && Dir_Set Current
-   then
-      rm -f -- "$baseprogramdir/Current"
-      ( cd "$baseprogramdir" ; ln -s "$versionnumber" "Current" )
-   fi
-
    exit 0
 fi
 

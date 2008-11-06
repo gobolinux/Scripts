@@ -79,7 +79,8 @@ vdir=`Get_Dir runtime "$package" "$requested_version"`
 if { ! Is_Directory "$vdir" ;} && { ! Boolean "no-sandbox" ;}
 then Die "There is no version $requested_version for package $package."
 fi
-Dir_Set Current && [ "$version" != "$requested_version" ] && ln -sfn `basename "$vdir"` "$current"
+
+Dir_Set Current && [ -n "$version" -a "$version" != "$requested_version" ] && ln -sfn `basename "$vdir"` "$current"
 version="$requested_version"
 
 # exports to UnionSandbox
