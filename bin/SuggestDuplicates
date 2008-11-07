@@ -1,4 +1,15 @@
 #!/bin/bash
+#
+# Originally written by MJ Ray. (c) 2005 GNU GPL v2
+# Updated by Nathan Middleton <nathan.middleton@gmail.com>
+#
+# updated:
+#   * Disabled "RemoveProgram" suggestion for output
+#   * Changed from zsh to bash script and reworked loop to be compatible
+#   * Removed copyright banners and replaced with in-code notification
+#   * Add verbose flag to toggle the display of program size information
+#   * Consolidated output into a single echo statement at end
+#
 source ScriptFunctions
 Import OptionParser
 
@@ -14,48 +25,38 @@ Parse_Options "$@"
 #
 #
 
-function banner_top() {
-    cat <<EOF >&2
-# SuggestDuplicates 1.2 - check for non-current installed versions
-# (Copyright 2005 MJ Ray. Released under GNU GPL v2.)
-#
-EOF
-}
-
-function banner_bottom() {
-    echo -e "#\n#End of list: ${1} not current" >&2
-}
-
 # Iterate over installed programs, reading Current symlink
 find ${goboPrograms}/ -maxdepth 2 -mindepth 2 -name Current -printf '%P/%l\n' | \
 sort | sed -e 's|/| |g' | \
 {
-    updates=0
-    output=""
-    while read prog cur ver junk ; do
-	export prog
-	for cver in $(find ${goboPrograms}/$prog -maxdepth 1 -type d -printf '%P ') ; do
-        # output a suggestion if a dir isn't the current version or a special
-	    case "$cver" in
-		"$ver"|Settings|Current|Resources|Variable) 
-		    ;;
-		*)
-		    if [ "${output}" ]; then 
-			output="${output}\n${prog} ${cver}"
-		    else
-			output="${prog} ${cver}"
-		    fi
-		    if Boolean "verbose"
-		    then
-		        output="${output} #(current: $ver)(space used:  $(du -sh ${goboPrograms}/$prog/$ver 2>/dev/null|cut -f1))"
-                    fi
-		    updates=$(($updates + 1))
-		    ;;
-	    esac
-	done 
-    done
+   updates=0
+   output=""
+   while read prog cur ver junk
+   do
+   export prog
+   for cver in $(find ${goboPrograms}/$prog -maxdepth 1 -type d -printf '%P ')
+   do
+      # output a suggestion if a dir isn't the current version or a special
+      case "$cver" in
+      "$ver"|Settings|Current|Resources|Variable)
+         ;;
+      *)
+         if [ "$output" ]
+         then
+            output="$output\n$prog $cver"
+               else
+                  output="$prog $cver"
+               fi
+         if Boolean "verbose"
+               then
+                  output="$output # (current: $ver) (space used: $(du -sh $goboPrograms/$prog/$ver 2>/dev/null|cut -f1))"
+               fi
 
-    banner_top
-    echo -e $output
-    banner_bottom $updates
+         updates=$(($updates + 1))
+         ;;
+      esac
+   done
+   done
+   echo -e $output
+   if Boolean "verbose"; then printf "%s are not current.\n" $updates; fi
 }
