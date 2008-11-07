@@ -15,7 +15,7 @@ Parse_Options "$@"
 #
 
 function banner_top() {
-    cat <<EOF
+    cat <<EOF >&2
 # SuggestDuplicates 1.2 - check for non-current installed versions
 # (Copyright 2005 MJ Ray. Released under GNU GPL v2.)
 #
@@ -23,7 +23,7 @@ EOF
 }
 
 function banner_bottom() {
-    echo -e "#\n#End of list: ${1} not current"    
+    echo -e "#\n#End of list: ${1} not current" >&2
 }
 
 # Iterate over installed programs, reading Current symlink
@@ -45,6 +45,10 @@ sort | sed -e 's|/| |g' | \
 		    else
 			output="${prog} ${cver}"
 		    fi
+		    if Boolean "verbose"
+		    then
+		        output="${output} #(current: $ver)(space used:  $(du -sh ${goboPrograms}/$prog/$ver 2>/dev/null|cut -f1))"
+                    fi
 		    updates=$(($updates + 1))
 		    ;;
 	    esac
