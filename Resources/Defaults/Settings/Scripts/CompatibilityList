@@ -15,5 +15,6 @@ JDK: Sun-JDK IBM-JDK
 Giflib: LibUngif
 LibUngif: Giflib
 Xorg: Xorg-Lib
+XFree86: Xorg
 Util-Linux: Util-Linux-NG
 Util-Linux-NG: Util-Linux
