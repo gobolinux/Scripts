@@ -68,8 +68,8 @@ update_version: version_check verify
 	sed -i "s/CURRENT_SCRIPTS_VERSION=.*#/CURRENT_SCRIPTS_VERSION="${VERSION}" #/g" bin/CreateRootlessEnvironment
 	svn commit -m "Update version for CreateRootlessEnvironment." bin/CreateRootlessEnvironment
 
-dist: update_version manuals tarball
-	@echo; echo "Press enter to create a subversion tag for version $(VERSION) or ctrl-c to abort."
+dist: update_version manuals
+	@echo; echo "Press enter to create a subversion tag and tarball for version $(VERSION) or ctrl-c to abort."
 	@read
 	@$(MAKE) tag
 
@@ -78,6 +78,7 @@ tag: version_check verify
 	svn switch http://svn.gobolinux.org/tools/tags/$(SVNTAG)
 	sed -i 's/^VERSION=.*/VERSION='"$(VERSION)"'/' Makefile
 	svn commit -m"Updating version in Makefile." Makefile
+	$(MAKE) tarball
 	svn switch http://svn.gobolinux.org/tools/trunk/$(PROGRAM)
 
 tarball: $(PACKAGE_FILE)
