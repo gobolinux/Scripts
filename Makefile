@@ -76,7 +76,7 @@ dist: update_version manuals tarball
 tag: version_check verify
 	svn cp http://svn.gobolinux.org/tools/trunk/$(PROGRAM) http://svn.gobolinux.org/tools/tags/$(SVNTAG) -m"Tagging $(PROGRAM) $(VERSION)"
 	svn switch http://svn.gobolinux.org/tools/tags/$(SVNTAG)
-	sed -i 's/VERSION=.*/VERSION='"$(VERSION)"'/' Makefile
+	sed -i 's/^VERSION=.*/VERSION='"$(VERSION)"'/' Makefile
 	svn commit -m"Updating version in Makefile." Makefile
 	svn switch http://svn.gobolinux.org/tools/trunk/$(PROGRAM)
 
