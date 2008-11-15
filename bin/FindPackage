@@ -118,7 +118,7 @@ if __name__ == '__main__':
 	try:
 		if not sys.argv[1:]:
 			sys.argv[1:] = [ '--help' ]
-		opts, args = getopt.getopt(sys.argv[1:], 't:Wslhnp:', ['types=', 'type=', 'local-dirs=', 'full-list', 'force-update', 'substring', 'no-web', 'help', 'newest-on-server', 'gobo-programs='])
+		opts, args = getopt.gnu_getopt(sys.argv, 't:Wslhnp:', ['types=', 'type=', 'local-dirs=', 'full-list', 'force-update', 'substring', 'no-web', 'help', 'newest-on-server', 'gobo-programs='])
 	except getopt.GetoptError, detail:
 		print sys.argv[0].split('/')[-1]+': '+str(detail)
 		sys.exit(1)
@@ -221,13 +221,13 @@ Examples of usage:
  """
 			sys.exit(0)
 
-	if len (args) >= 1:
-		p = args[0]
+	if len (args) >= 2:
+		p = args[1]
 	else:
 		sys.exit(1)
 
-	if len (args) >= 2:
-		v,r = Split_Version_Revision(args[1])
+	if len (args) >= 3:
+		v,r = Split_Version_Revision(args[2])
 	else :
 		v = ''
 		r = ''
