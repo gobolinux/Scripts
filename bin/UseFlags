@@ -8,7 +8,7 @@ goboSettings = getGoboVariable('goboSettings')
 goboPrograms = getGoboVariable('goboPrograms')
 goboUserSettings = getGoboVariable('goboUserSettings')
 
-class UseFlagEngine:
+class UseFlagEngine(object):
 	program = None
 	depth = 0
 	execute_depth = 0
@@ -22,6 +22,17 @@ class UseFlagEngine:
 	_changedata = {}
 
 	def __init__(self, program, potentialflags=None):
+		self.program = program
+		self._potentialflags = potentialflags
+		self._generic_flags['INSTALLED_PROGRAMS'] = list(installed_programs())
+		self.on_dict['-INSTALLED'] = [(None,
+		(lambda:
+			self._flags.difference_update(self._changedata['installed'][2]),
+			"self._flags.difference_update(self._changedata['installed'][2])"
+		))]
+		self._initialiseCommands()
+
+	def _initialiseCommands(self):
 		self.commands = {
 			'+': self.setflag,
 			'-': self.unsetflag,
@@ -36,11 +47,23 @@ class UseFlagEngine:
 			'break': self.break_handler,
 			'include': self.include_handler,
 		}
-		self.program = program
-		self._potentialflags = potentialflags
-		self._generic_flags['INSTALLED_PROGRAMS'] = list(installed_programs())
-		self.on_dict['-INSTALLED'] = [(None, lambda:
-			self._flags.difference_update(self._changedata['installed'][2]))]
+
+	def __getstate__(self):
+		d = dict(self.__dict__)
+		d['commands'] = None
+		od = dict(self.on_dict)
+		d['on_dict'] = od
+		for flag in od:
+			for index in range(0, len(od[flag])):
+				depth, text = od[flag][index]
+				if depth is None and isinstance(text, tuple):
+					od[flag][index] = (depth, text[1])
+		return d
+
+	def __setstate__(self, d):
+		for k in d:
+			setattr(self, k, d[k])
+		self._initialiseCommands
 
 	def setflag(self, flag, *programs):
 		if not programs or self.program in programs:
@@ -132,7 +155,12 @@ class UseFlagEngine:
 
 	def execute_at_depth(self, text, depth):
 		if depth is None:
-			return text()
+			if isinstance(text, str):
+				return eval(text)
+			elif isinstance(text, tuple):
+				text[0]()
+			else:
+				return text()
 		d, ed = self.depth, self.execute_depth
 		self.depth = depth
 		self.execute_depth = depth
