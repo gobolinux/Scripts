@@ -325,6 +325,9 @@ class UseFlagEngine(object):
 	def potentialflags(self):
 		return frozenset(self._potentialflags)
 
+	def disabledflags(self):
+		return frozenset(self._potentialflags - self._flags)
+
 	debug_on = False
 	def debug(self, line):
 		if self.debug_on:
