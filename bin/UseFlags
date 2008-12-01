@@ -340,8 +340,7 @@ def UseFlags(program=None, return_engine=False):
 	if program and program.startswith('/'):
 		catch = False
 		recipedir = str(program)
-		components = os.path.split(recipedir)
-		for comp in components:
+		for comp in program.split('/'):
 			if catch:
 				program = comp
 				break
