@@ -60,6 +60,7 @@ export               PATH="${goboPrefix}/System/Links/Executables${PATH:+:$PATH}
 export            MANPATH="${goboPrefix}/System/Links/Manuals:${goboPrefix}/System/Links/Shared/man${MANPATH:+:$MANPATH}:$(manpath 2> /dev/null)"
 export            MANPATH="${MANPATH%:}"
 export           INFOPATH="${goboPrefix}/System/Links/Manuals/info${INFOPATH:+:$INFOPATH}"
+export             TMPDIR="${goboPrefix}/System/Variable/tmp"
 
 source "${goboPrefix}/System/Settings/completion.bash"
 
