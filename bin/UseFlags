@@ -507,8 +507,8 @@ used by prog.
 	elif args:
 		# Otherwise, call GetRecipe to fetch/find the local copy
 		f = None
-		if len(args) == 2:
-			f = os.popen('GetRecipe %s %s2> /dev/null'%args)
+		if len(args) >= 2:
+			f = os.popen('GetRecipe %s %s 2> /dev/null'%(args[0], args[1]))
 		elif len(args) == 1:
 			f = os.popen('GetRecipe %s 2>/dev/null'%(args[0]))
 		program = f.read().strip()
@@ -535,7 +535,7 @@ used by prog.
 	# Otherwise, test whether the flag is enabled and set the return code
 	# accordingly. If -v was given, also output "<flag> on|off"
 	else:
-		if args[1] in flags:
+		if (len(args) == 3 and args[2] in flags) or (len(args) == 2 and args[1] in flags):
 			sys.exit(0)
 		else:
 			sys.exit(1)
