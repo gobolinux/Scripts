@@ -192,7 +192,7 @@ echo "mkdir -p $goboDevices; mount -t tmpfs none $goboDevices" >> "${sandbox_mp}
 echo "mkdir -p $goboStatus; mount -t proc none $goboStatus" >> "${sandbox_mp}/.wrapper"
 echo "cp -aR \"${goboLibraries}/udev/devices/\"* $goboDevices" >> "${sandbox_mp}/.wrapper"
 if Executable_Exists_In_Path "udevadm"
-then echo "udevadm trigger && udevadm settle" >> "${sandbox_mp}/.wrapper"
+then echo "udevadm trigger && udevadm settle --timeout=10" >> "${sandbox_mp}/.wrapper"
 else echo "udevtrigger && udevsettle" >> "${sandbox_mp}/.wrapper"
 fi
 echo "exec \"\${command[@]}\"" >>"${sandbox_mp}/.wrapper"
