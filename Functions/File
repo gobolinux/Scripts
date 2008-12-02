@@ -298,3 +298,14 @@ sys.exit(errors)
    Quiet popd
    return $rtn
 }
+
+function Get_Size() {
+   Parameters "$@" file
+   ls -l "$file" | awk '{print $5}'
+}
+
+function Get_MD5() {
+   Parameters "$@" file
+   md5sum "$file" | awk '{print $1}'
+}
+
