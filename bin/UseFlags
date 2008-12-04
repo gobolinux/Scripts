@@ -98,6 +98,8 @@ class UseFlagEngine(object):
 			if ('is', 'available') == query:
 				if flag in self._potentialflags:
 					self.execute_depth += 1
+			elif 'program' == flag and ('is', self.program) == query:
+				self.execute_depth += 1
 		elif args[0] in self._flags:
 			self.execute_depth += 1
 		self.block_stack.append(None)
@@ -193,10 +195,11 @@ class UseFlagEngine(object):
 	def _leave_scope(self, final_end = False):
 		if final_end and not (self.depth > self.execute_depth):
 			return
-		b = self.block_stack.pop()
-		if b:
-			b[0](b[1], b[2], self.capture_text)
-			self.capture_text = None
+		if self.block_stack:
+			b = self.block_stack.pop()
+			if b:
+				b[0](b[1], b[2], self.capture_text)
+				self.capture_text = None
 
 	def _begin_changeset(self, name):
 		self._changes.append(name)
@@ -222,6 +225,8 @@ class UseFlagEngine(object):
 		if self._scope_handle(line):
 			return
 		tokens = line.split()
+		if not tokens:
+			return
 		cmd = tokens[0]
 		args = tokens[1:]
 		if cmd.startswith(('+', '-', '#')):
@@ -305,7 +310,8 @@ class UseFlagEngine(object):
 
 	def standard_run(self):
 		files = (
-			(goboPrograms + '/Scripts/Current/Data/DistUseFlags.conf', 'distflags'),
+			(goboPrograms + '/Scripts/Current/Data/DistUseFlags.conf',
+				'distflags'),
 			(goboSettings + '/GenericFlags.conf', 'genericflags'),
 			(goboUserSettings+'/Scripts/GenericFlags.conf','usergenerics'),
 			(goboSettings + '/UseFlags.conf', 'systemflags'),
