@@ -274,7 +274,7 @@ class UseFlagEngine(object):
 			self._end_changeset('environ')
 
 	def finalise(self):
-		if 'GENERIC_FLAGS' in self._flags:
+		if 'GENERIC_FLAGS' in self._flags and self._potentialflags:
 			self._begin_changeset('generictospecific')
 			for generic in self._generic_flags:
 				if generic not in self._flags:
@@ -321,13 +321,17 @@ class UseFlagEngine(object):
 		self.finalise()
 
 	def flags(self):
-		return frozenset(self._potentialflags & self._flags)
+		if self._potentialflags is not None:
+			return frozenset(self._potentialflags & self._flags)
+		return frozenset(self._flags)
 
 	def allflags(self):
 		return frozenset(self._flags)
 
 	def potentialflags(self):
-		return frozenset(self._potentialflags)
+		if self._potentialflags:
+			return frozenset(self._potentialflags)
+		return frozenset()
 
 	def disabledflags(self):
 		return frozenset(self._potentialflags - self._flags)
