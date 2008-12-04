@@ -17,7 +17,8 @@ class UseFlagEngine(object):
 	capture_text = None
 	_potentialflags = None
 	_generic_flags = {'DEFINED_GENERICS': [], 'INSTALLED_PROGRAMS': []}
-	_flags = set(['GENERIC_FLAGS', 'MUTUALLY_EXCLUSIVES', 'INSTALLED'])
+	_flags = set(['GENERIC_FLAGS', 'MUTUALLY_EXCLUSIVES', 'INSTALLED',
+		'SPOOKY_ACTION_AT_A_DISTANCE'])
 	_changes = []
 	_changedata = {}
 
@@ -30,8 +31,6 @@ class UseFlagEngine(object):
 			self._flags.difference_update(self._changedata['installed'][2]),
 			"self._flags.difference_update(self._changedata['installed'][2])"
 		))]
-		self.on_dict['SPOOKY_ACTION_AT_A_DISTANCE'] = [(None,
-			self._enable_spookiness)]
 		self._initialiseCommands()
 
 	def _initialiseCommands(self):
@@ -77,12 +76,16 @@ class UseFlagEngine(object):
 	def unsetflag(self, flag, *programs):
 		if not programs or self.program in programs:
 			self._flags.discard(flag)
-		if '*' == flag:
-			for flag in frozenset(self._flags):
-				self.unsetflag(flag)
-		if '-' + flag in self.on_dict:
-			for depth, text in self.on_dict['-' + flag]:
-				self.execute_at_depth(text, depth)
+			if '*' == flag:
+				for flag in frozenset(self._flags):
+					self.unsetflag(flag)
+			if '-' + flag in self.on_dict:
+				for depth, text in self.on_dict['-' + flag]:
+					self.execute_at_depth(text, depth)
+			if 'SPOOKY_ACTION_AT_A_DISTANCE' in self._flags:
+				for gen in self._generic_flags['DEFINED_GENERICS']:
+					if flag in self._generic_flags[gen]:
+						self._generic_flags[gen].remove(flag)
 
 	def define_generic(self, generic, *components):
 		self._generic_flags[generic] = list(components)
@@ -328,19 +331,6 @@ class UseFlagEngine(object):
 
 	def disabledflags(self):
 		return frozenset(self._potentialflags - self._flags)
-
-	def _enable_spookiness(self):
-		for gen in self._generic_flags['DEFINED_GENERICS']:
-			for flag in self._generic_flags[gen]:
-				if not '-' + flag in self.on_dict:
-					self.on_dict['-' + flag] = []
-				self.on_dict['-' + flag].append((None,
-					self._generic_remover(gen, flag)))
-
-	def _generic_remover(self, generic, flag):
-		def foo():
-			self.generic_remove(generic, flag)
-		return foo
 
 	debug_on = False
 	def debug(self, line):
