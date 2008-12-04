@@ -30,6 +30,8 @@ class UseFlagEngine(object):
 			self._flags.difference_update(self._changedata['installed'][2]),
 			"self._flags.difference_update(self._changedata['installed'][2])"
 		))]
+		self.on_dict['SPOOKY_ACTION_AT_A_DISTANCE'] = [(None,
+			self._enable_spookiness)]
 		self._initialiseCommands()
 
 	def _initialiseCommands(self):
@@ -315,7 +317,6 @@ class UseFlagEngine(object):
 			self.parse_environ()
 		self.finalise()
 
-
 	def flags(self):
 		return frozenset(self._potentialflags & self._flags)
 
@@ -327,6 +328,19 @@ class UseFlagEngine(object):
 
 	def disabledflags(self):
 		return frozenset(self._potentialflags - self._flags)
+
+	def _enable_spookiness(self):
+		for gen in self._generic_flags['DEFINED_GENERICS']:
+			for flag in self._generic_flags[gen]:
+				if not '-' + flag in self.on_dict:
+					self.on_dict['-' + flag] = []
+				self.on_dict['-' + flag].append((None,
+					self._generic_remover(gen, flag)))
+
+	def _generic_remover(self, generic, flag):
+		def foo():
+			self.generic_remove(generic, flag)
+		return foo
 
 	debug_on = False
 	def debug(self, line):
