@@ -45,7 +45,9 @@ unionbackend=`Union_Backend`
 [ "$unionSandboxRW" = "" ] && Die "Please set unionSandboxRW in Settings/Scripts/Directories.conf"
 
 sandbox_mp=`mktemp -d "${unionSandboxMP}.tmp.XXXXXXXXXXX"` 2>/dev/null || Die "Unable to create UnionSandbox mount point at $unionSandboxMP"
+chmod a+rx "$sandbox_mp"
 sandbox_rw=`mktemp -d "${unionSandboxRW}.tmp.XXXXXXXXXXX"` 2>/dev/null || Die "Unable to create UnionSandbox read/write mount point at $unionSandboxRW"
+chmod a+rx "$sandbox_rw"
 
 function RealPath {
     readlink -f $@
