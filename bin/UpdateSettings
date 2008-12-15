@@ -177,7 +177,7 @@ function list_diffs()
       #  1 new: $version/Resources/Defaults/Settings/<file>
       #  2 del: Settings/<file>
       #  3 mod: Settings/<file>
-      LANG=en_EN.utf8 LC_ALL=en_EN.utf8 diff -rq Settings $version/Resources/Defaults/Settings\
+      LANG=C LC_ALL=C diff -rq Settings $version/Resources/Defaults/Settings\
          | sed '
             s,Only in \('$version'[^:]*\): \(.*\),new: \1/\2,
             s,Only in \(Settings[^:]*\): \(.*\),del: \1/\2,
