@@ -48,6 +48,7 @@ unset goboUserPrefix
 
 autoload -U promptinit
 promptinit
+autoload colors
 colors
 
 # This line has to come first for dircolors.
