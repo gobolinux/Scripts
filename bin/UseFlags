@@ -295,7 +295,7 @@ class UseFlagEngine(object):
 				if found:
 					self.setflag(found)
 			self._end_changeset('generictospecific')
-		if 'MUTUALLY_EXCLUSIVE' in self._flags:
+		if 'MUTUALLY_EXCLUSIVES' in self._flags:
 			self._begin_changeset('mutuallyexclusive')
 			for generic in self._generic_flags:
 				if '*' + generic in self._potentialflags:
