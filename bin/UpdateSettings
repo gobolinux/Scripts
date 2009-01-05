@@ -18,6 +18,7 @@ Import Array
 Import GoboLinux
 Import Versions
 Import Hints
+Import MetadataInstallation
 
 ##################################################
 # Default Configuration
