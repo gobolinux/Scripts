@@ -301,6 +301,8 @@ class UseFlagEngine(object):
 				if '*' + generic in self._potentialflags:
 					found = False
 					for flag in self._generic_flags[generic]:
+						if flag not in self._potentialflags:
+							continue
 						if found:
 							self._flags.discard(flag)
 						elif flag in self._flags:
