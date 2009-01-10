@@ -578,11 +578,9 @@ function Parse_Conf() {
             value="$(eval echo \$${scriptname}Option_${opt})"
             if [ -n "${value}" ]
             then
-               echo Set_Option "$option" "${value}" >&2
                Set_Option "$option" "${value}" || Die "Bad configuration ${scriptname}Option_${opt}=$value in $conf/$1"
             fi
          done
-         echo $(Entry "no-sign")
       return 0
       fi
    done
