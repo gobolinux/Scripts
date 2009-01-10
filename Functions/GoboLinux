@@ -2,6 +2,7 @@
 
 Import File
 Import String
+Import OptionParser
 
 function Get_Architecture() {
    [ "$1" = "" ] && arch=`uname -m` || arch="$1"
@@ -559,6 +560,7 @@ function Color_Output() {
 
 # Parse the script's configuration
 function Parse_Conf() {
+   scriptname=$(Downcase $(basename $0))
    local mandatory=''
    if [ "$1" = "--mandatory" ]
    then
@@ -567,7 +569,22 @@ function Parse_Conf() {
    fi
    for conf in "${conflocations[@]}"
    do
-      Exists "$conf/$1" && source "$conf/$1" && return 0
+      if Exists "$conf/$1"
+      then
+         source "$conf/$1" || return 2
+         for option in "${optionsLongList[@]}"
+         do
+            opt=$(echo "$option" | sed 's/-/_/')
+            value="$(eval echo \$${scriptname}Option_${opt})"
+            if [ -n "${value}" ]
+            then
+               echo Set_Option "$option" "${value}" >&2
+               Set_Option "$option" "${value}" || Die "Bad configuration ${scriptname}Option_${opt}=$value in $conf/$1"
+            fi
+         done
+         echo $(Entry "no-sign")
+      return 0
+      fi
    done
    if [ "$mandatory" = "yes" ]
    then

@@ -523,10 +523,74 @@ function Boolean() {
       then
          # We've found the option we're looking for, either its
          # shortening or its full name.
-         if [ "${optionsStateList[i]}" = "on" ]
+         if [ -n "$(echo ${optionsStateList[i]} | sed -r -e "s/((Y|y)(ES|es)?|(O|o)(N|n)|(T|t)(RUE|rue)?)//")" ]
          then return 0
          else return 1
          fi
+      fi
+   done
+   # No option found.
+   return 2
+}
+
+#######################################################################
+#
+# Name:
+#       Set_Option
+# Description:
+#       Set an options value as specified by the argument.
+# Arguments:
+#       name  -- char/string : Option's shortening/full name
+#       value -- string : Option's value.
+# Output:
+#       none.
+# Return:
+#       0 : The option was set correctly.
+#       1 : An argument was missing
+#       2 : The option doesn't exist.
+# Notes:
+#       Note that for boolean options every other string other
+#       than 'on' or 'yes' will be interpreted as false by scripts.
+# Usage:
+#       Set_Option <option> <value>
+# Example:
+#       Set_Option "batch" "on"
+#
+#######################################################################
+
+function Set_Option() {
+   local i
+   
+   [ -z "$1" -o -z "$2" ] && return 1
+   # Loop through options.
+   for i in `seq $optionsListSize`
+   do
+      if [ "$1" = "${optionsShortList[i]}" -o "$1" = "${optionsLongList[i]}" ]
+      then
+         if [ -n "${optionsValidStateList[i]}" ]
+         then
+            # Not all values can be assigned to this option.
+            for avail in ${optionsValidStateList[j]}
+            do
+               if [ "${avail}" == "${val}" ]
+               then
+                  # The value is valid, add it to the array
+                  # and exit the loop.
+                  optionsStateList[j]="${val}"
+                  break 2
+               fi
+            done
+            # The value is not valid, unfortunately.
+            Log_Verbose "Unknown entry '${2}' for option ${opt}"
+            return 2
+         else
+            # Whichever value is ok
+            optionsStateList[j]="${val}"
+         fi
+         # We've found the option we're looking for, either its
+         # shortening or its full name.
+         optionsStateList[i]="$2"
+         return 0
       fi
    done
    # No option found.
@@ -547,12 +611,13 @@ function Boolean() {
 #       none.
 # Return:
 #       0 : The option was set correctly.
+#       1 : Option name was missing
 #       2 : The option doesn't exist.
 # Notes:
-#       Note that, in fact, every other string other than 'on' will be
-#       interpreted as false by scripts.
+#       Note that, in fact, every other string other than 'on' or 'yes' 
+#       will be interpreted as false by scripts.
 # Usage:
-#       Set_Boolean [<value>]
+#       Set_Boolean <boolean_option> [<value>]
 # Example:
 #       Set_Boolean "batch" "on"
 # Example:
@@ -561,24 +626,14 @@ function Boolean() {
 #######################################################################
 
 function Set_Boolean() {
-   local i
-   
-   # Loop through options.
-   for i in `seq $optionsListSize`
-   do
-      if [ "$1" = "${optionsShortList[i]}" -o "$1" = "${optionsLongList[i]}" ]
-      then
-         # We've found the option we're looking for, either its
-         # shortening or its full name.
-         if [ "$2" ]
-         then optionsStateList[i]="$2"
-         else optionsStateList[i]="on"
-         fi
-         return 0
-      fi
-   done
-   # No option found.
-   return 2
+   [ -z "$1" ] && return 1
+   if [ "$2" ]
+   then
+      Set_Option "$1" "$2" || return $?
+   else 
+      Set_Option "$1" "on" || return $?
+   fi
+   return 0
 }
 
 #######################################################################
