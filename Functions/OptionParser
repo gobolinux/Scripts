@@ -523,7 +523,7 @@ function Boolean() {
       then
          # We've found the option we're looking for, either its
          # shortening or its full name.
-         if [ -n "$(echo ${optionsStateList[i]} | sed -r -e "s/((Y|y)(ES|es)?|(O|o)(N|n)|(T|t)(RUE|rue)?)//")" ]
+         if [ -n "${optionsStateList[i]}" -a -z "$(echo ${optionsStateList[i]} | sed -r -e "s/((Y|y)(ES|es)?|(O|o)(N|n)|(T|t)(RUE|rue)?)//")" ]
          then return 0
          else return 1
          fi
@@ -570,13 +570,13 @@ function Set_Option() {
          if [ -n "${optionsValidStateList[i]}" ]
          then
             # Not all values can be assigned to this option.
-            for avail in ${optionsValidStateList[j]}
+            for avail in ${optionsValidStateList[i]}
             do
                if [ "${avail}" == "${val}" ]
                then
                   # The value is valid, add it to the array
                   # and exit the loop.
-                  optionsStateList[j]="${val}"
+                  optionsStateList[i]="${val}"
                   break 2
                fi
             done
@@ -585,7 +585,7 @@ function Set_Option() {
             return 2
          else
             # Whichever value is ok
-            optionsStateList[j]="${val}"
+            optionsStateList[i]="${val}"
          fi
          # We've found the option we're looking for, either its
          # shortening or its full name.
