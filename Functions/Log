@@ -27,6 +27,7 @@ function Question_Line() {
 }
 
 function Log_Function() {
+    local message
     Parameters "$@" message color FD
     [ $FD == $questionFD ] && Question_Line
     echo -e "${colorGray}${scriptName}:${colorNormal} ${color}$message${colorNormal}" >&$FD
