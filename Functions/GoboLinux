@@ -516,33 +516,33 @@ function Post_Installation_Clean_Up() {
    appname="$1"
    appver="$2"
    failedinstallation="$3"
-   if [ -n "${failedinstallation}" -a -e "${goboPrograms}/${appname}/${appver}" ]
+   if [ -n "${failedinstallation}" -a -e "${goboPrograms}/${appname}/${appver}-safelinking" ]
    then
       [ -d "${goboPrograms}/${appname}/${appver}-failed" ] && $sudo_exec rm -rf "${goboPrograms}/${appname}/${appver}-failed"
-      $sudo_exec mv "${goboPrograms}/${appname}/${appver}" "${goboPrograms}/${appname}/${appver}-failed"
-      Log_Terse "Installation was moved to ${goboPrograms}/${appname}/${appver}-failed"
-
-      if [ -e "${goboPrograms}/${appname}/${appver}-safelinking" ]
+      if [ -e "${goboPrograms}/${appname}/${appver}" ]
       then
-         programfiles=$(find "${goboPrograms}/${appname}/${appver}-safelinking")
-         $sudo_exec cp -R "${goboPrograms}/${appname}/${appver}-safelinking" "${goboPrograms}/${appname}/${appver}"
-         for f in ${programfiles[@]}
-         do
-            systempath="$(Programs_To_System_Path "${f}")"
-            [ "$(dirname "$(readlink -f "${systempath}")")" != "$(dirname "${f}")" ] && continue
-            reallink="${systempath}"
-            while [ ! -L "${reallink}" -a -n "${reallink}" ]
-            do
-                reallink="${reallink%/*}"
-            done
-      
-            [ -n "${reallink}" ] && {
-               $sudo_exec ln -sf "$(System_To_Programs_Path "${reallink}" "${goboPrograms}/${appname}/${appver}")" "$(dirname ${reallink})"
-            }
-         done
+         $sudo_exec mv "${goboPrograms}/${appname}/${appver}" "${goboPrograms}/${appname}/${appver}-failed"
+         Log_Terse "Installation was moved to ${goboPrograms}/${appname}/${appver}-failed"
       fi
+
+      programfiles=$(find "${goboPrograms}/${appname}/${appver}-safelinking")
+      $sudo_exec cp -R "${goboPrograms}/${appname}/${appver}-safelinking" "${goboPrograms}/${appname}/${appver}"
+      for f in ${programfiles[@]}
+      do
+         systempath="$(Programs_To_System_Path "${f}")"
+         [ "$(dirname "$(readlink -f "${systempath}")")" != "$(dirname "${f}")" ] && continue
+         reallink="${systempath}"
+         while [ ! -L "${reallink}" -a -n "${reallink}" ]
+         do
+             reallink="${reallink%/*}"
+         done
+   
+         [ -n "${reallink}" ] && {
+            $sudo_exec ln -sf "$(System_To_Programs_Path "${reallink}" "${goboPrograms}/${appname}/${appver}")" "$(dirname ${reallink})"
+         }
+      done
+      $sudo_exec rm -rf "${goboPrograms}/${appname}/${appver}-safelinking"
    fi
-   [ -e "${goboPrograms}/${appname}/${appver}-safelinking" ] && $sudo_exec rm -rf "${goboPrograms}/${appname}/${appver}-safelinking"
 }
 
 function Dependencies_File() {
