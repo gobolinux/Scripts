@@ -3,7 +3,6 @@
 Import File
 Import String
 Import OptionParser
-Import GoboLinux.sh
 
 function Get_Architecture() {
    [ "$1" = "" ] && arch=`uname -m` || arch="$1"

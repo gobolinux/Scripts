@@ -37,6 +37,10 @@ Import() {
                  "${goboScripts}/../Functions/$1" \
                  "/Programs/Scripts/Current/Functions/$1"
       do
+         if [ -e "$try.sh" ]
+         then
+            . "$try.sh"
+         fi
          if [ -e "$try" ]
          then
             . "$try"
