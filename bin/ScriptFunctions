@@ -1,4 +1,4 @@
-#!/bin/bash (source)
+#!/bin/sh (source)
 
 # If user runs script with sudo respawn as current user
 if [ -n "$SUDO_USER" -a -z "$SUDO_OK" ]
@@ -26,11 +26,12 @@ scriptOptions="${goboSettings}/Scripts/Options"
 userOptions="${goboUserSettings}/Scripts/Options"
 [ -e "$userOptions" ] && source "$userOptions"
 
-function Import() {
-   local cmd="echo \${Imported$1}"
+Import() {
+   var="$(echo $1|sed 's/\./_/g')"
+   local cmd="echo \${Imported$var}"
    if ! [ `eval $cmd` ]
    then
-      eval "Imported$1=$1"
+      eval "Imported$var=$1"
       for try in "${scriptPath}/$1.import" \
                  "${scriptPath}/../Functions/$1" \
                  "${goboScripts}/../Functions/$1" \
@@ -51,16 +52,19 @@ function Import() {
 # Pass to this function: (a) your function's received parameters
 # and (b) their names, like in 'Parameters "$@" first second'.
 # Variables according to the given names will be created.
-function Parameters() {
-   shopt -s expand_aliases
+Parameters() {
+   shopt -s expand_aliases 2>/dev/null
    # (( $# % 2 == 0 )) || { echo "Invalid number of parameters"; exit 1; }
-   shopt -u expand_aliases
-   local entries middle i
-   entries=("$@")
-   (( middle=$#/2 ))
-   for (( i = 0 ; i < middle; i++ ))
+   shopt -u expand_aliases 2>/dev/null
+   local var val middle i
+   middle=$(($#/2))
+   i=1
+   while [ $i -le $middle ]
    do
-      eval ${entries[$[middle+i]]}'="'"${entries[$i]}"'"'
+      eval var='${'$((middle + i))'}'
+      val='${'$i'}'
+      eval ${var}'="'"$val"'"'
+      i=$((i+1))
    done
 }
 

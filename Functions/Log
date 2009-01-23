@@ -10,56 +10,63 @@ logLevelDebug=50
 
 [ "$logMode" ] || logMode="Normal"
 
-export verboseFD=100
-export normalFD=101
-export terseFD=102
-export errorFD=103
-export debugFD=104
-export logFD=105
-export questionFD=106
+export verboseFD=3
+export normalFD=4
+export terseFD=5
+export errorFD=6
+export debugFD=7
+export logFD=8
+export questionFD=9
 
-function Is_Log_Mode() {
-   [ "$1" = "$logMode" ]
+if [ -n "$(echo -e)" ]
+then
+   echo=echo
+else
+   echo="echo -e"
+fi
+
+Is_Log_Mode() {
+   [ "$logMode" = "$1" ]
 }
 
-function Question_Line() {
-   echo -e -n ${colorNormal}${colorNormal}
+Question_Line() {
+   $echo -n ${colorNormal}${colorNormal}
 }
 
-function Log_Function() {
+Log_Function() {
     local message
     Parameters "$@" message color FD
-    [ $FD == $questionFD ] && Question_Line
-    echo -e "${colorGray}${scriptName}:${colorNormal} ${color}$message${colorNormal}" >&$FD
-    echo "$scriptName: $message" >&$logFD
+    [ $questionFD = $FD ] && Question_Line
+    $echo "${colorGray}${scriptName}:${colorNormal} ${color}$message${colorNormal}" >&$FD
+    $echo "$scriptName: $message" >&$logFD
 }
 
-function Log_Error() {
+Log_Error() {
     Log_Function "$*" "${colorBoldRed}" "${errorFD}"
 }
 
-function Log_Normal() {
+Log_Normal() {
     Log_Function "$*" "${colorCyan}" "${normalFD}"
 }
 
-function Log_Terse() {
+Log_Terse() {
     Log_Function "$*" "${colorBoldCyan}" "${terseFD}"
 }
 
-function Log_Verbose() {
+Log_Verbose() {
     Log_Function "$*" "${colorNormal}" "${verboseFD}"
 }
 
-function Log_Debug() {
+Log_Debug() {
     Log_Function "$*" "${colorRedWhite}" "${debugFD}"
 }
 
-function Quiet() { "$@" &> /dev/null ;}
+Quiet() { "$@" &> /dev/null ;}
 
-function Verbose() { "$@" 1>&$verboseFD 2>&$verboseFD ;}
+Verbose() { "$@" 1>&$verboseFD 2>&$verboseFD ;}
 
 # Ask a question. If the answer is "n", quit.
-function Ask_Continue() {
+Ask_Continue() {
     if [ "$logLevel" -lt "$logLevelNormal" ]
     then return 0
     fi
@@ -82,11 +89,11 @@ function Ask_Continue() {
     fi
 }
 
-function Log_Question() {
+Log_Question() {
     Log_Function "$*" "${colorBoldCyan}" "${questionFD}"
 }
 
-function Ask_Option() {
+Ask_Option() {
     local question=$1
     local defaultanswer=$2
     local lambda=$3
@@ -103,7 +110,7 @@ function Ask_Option() {
           Log_Verbose "Using default answer (${defaultanswer})"
           REPLY="${defaultanswer}"
        fi
-       if [ "$REPLY" != "" -a -n "$lambda" ]
+       if [ "$REPLY" != "" ] && [ -n "$lambda" ]
        then
           if eval ${lambda}
           then break
@@ -120,17 +127,17 @@ function Ask_Option() {
     fi
 }
 
-function Ask() {
+Ask() {
    Parameters "$@" question
    REPLY=foo
    Ask_Option "$question [Y/n]" "yes" '[ -n "$REPLY" -a -z "$(echo $REPLY | sed -r -e "s/((Y|y)(ES|es)?|(N|n)(O|o)?)//")" ]'
-   if [[ "$REPLY" == [Nn]* ]]
+   if expr "$REPLY" : "N" >/dev/null || expr "$REPLY" : "n" >/dev/null
    then return 1
    else return 0
    fi
 }
 
-function Progress_Start() {
+Progress_Start() {
     Parameters "$@" message
 
     echo -n "$message" 1>&2
@@ -138,7 +145,7 @@ function Progress_Start() {
     spinControl=0
 }
 
-function Progress_Move() {
+Progress_Move() {
    case "$spinControl" in
    0) echo -n "|" 1>&2 ; spinControl=1 ;;
    1) echo -n "/" 1>&2 ; spinControl=2 ;;
@@ -147,13 +154,13 @@ function Progress_Move() {
    esac # esac is ridiculous.
 }
 
-function Progress_End() {
+Progress_End() {
     echo 1>&2
 }
 
 # Prints an error message and exits
-function Die() {
-   [[ "$@" != "" ]] && Log_Error "$@"
+Die() {
+   [ "" = "$*" ] || Log_Error "$@"
    exit 1
 }
 
@@ -161,15 +168,15 @@ function Die() {
 export errorNotFound=2
 
 # Prints an error message and exits with a given code
-function Die_With() {
+Die_With() {
    status=$1
    shift
-   [[ "$@" != "" ]] && Log_Error "$@"
+   [ "" = "$*" ] || Log_Error "$@"
    exit $status
 }
 
 # Prints a message and exits successfully
-function Pass_Away() {
-   [[ "$@" != "" ]] && Log_Error "$@"
+Pass_Away() {
+   [ "" = "$*" ] || Log_Error "$@"
    exit 0
 }
