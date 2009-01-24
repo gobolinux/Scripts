@@ -232,6 +232,16 @@ existingpackage=`ls "${goboPrograms}" | grep -i "^$packagename$"`
    fi
 }
 
+function cleanup() {
+   Post_Installation_Clean_Up ${packagename} ${packageversion} "$1"
+}
+
+function installation_failed() {
+   cleanup "failed"
+   Die "${1}"
+}
+
+trap "installation_failed 'Caught signal. Exiting...'" SIGHUP SIGINT SIGTERM
 [ "yes" = "$doremove" ] && Pre_Installation_Preparation ${packagename} ${packageversion}
 
 Log_Normal "Installing $packagename, version $packageversion."
@@ -307,14 +317,12 @@ else
    then
       Log_Error "Invalid signature. FileHash could not be verified."
       Log_Error "Suspect package in ${goboPrograms}/$packagename/$packageversion"
-      [ "yes" = "$doremove" ] && Post_Installation_Clean_Up ${packagename} ${packageversion} "failed"
-      exit 1
+      installation_failed
    elif [ $result -eq 1 ]
    then
       Log_Error "Invalid FileHash. Package has been modified"
       Log_Error "Suspect package in ${goboPrograms}/$packagename/$packageversion"
-      [ "yes" = "$doremove" ] && Post_Installation_Clean_Up ${packagename} ${packageversion} "failed"
-      exit 1
+      installation_failed
    fi
 fi
 
@@ -368,7 +376,6 @@ case "${symlink}" in
 "force") SymlinkProgram ${unmanaged} --conflict=overwrite "$packagename" "$packageversion" ;;
 esac
 
-[ "yes" = "$doremove" ] && Post_Installation_Clean_Up ${packagename} ${packageversion}
 [ "$package_verified" = "true" ] && Run_PostInstall "$packagename" "$packageversion" "" ""
 
 
@@ -402,3 +409,4 @@ then
       Log_Verbose "from '$existingpackage' to '$packagename'."
    fi
 fi
+cleanup
