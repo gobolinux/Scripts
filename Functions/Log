@@ -37,28 +37,28 @@ Log_Function() {
     local message
     Parameters "$@" message color FD
     [ $questionFD = $FD ] && Question_Line
-    $echo "${colorGray}${scriptName}:${colorNormal} ${color}$message${colorNormal}" >&$FD
-    $echo "$scriptName: $message" >&$logFD
+    $echo -n "${colorGray}${scriptName}:${colorNormal} ${color}$message${colorNormal}" >&$FD
+    $echo -n "$scriptName: $message" >&$logFD
 }
 
 Log_Error() {
-    Log_Function "$*" "${colorBoldRed}" "${errorFD}"
+    Log_Function "$*\n" "${colorBoldRed}" "${errorFD}"
 }
 
 Log_Normal() {
-    Log_Function "$*" "${colorCyan}" "${normalFD}"
+    Log_Function "$*\n" "${colorCyan}" "${normalFD}"
 }
 
 Log_Terse() {
-    Log_Function "$*" "${colorBoldCyan}" "${terseFD}"
+    Log_Function "$*\n" "${colorBoldCyan}" "${terseFD}"
 }
 
 Log_Verbose() {
-    Log_Function "$*" "${colorNormal}" "${verboseFD}"
+    Log_Function "$*\n" "${colorNormal}" "${verboseFD}"
 }
 
 Log_Debug() {
-    Log_Function "$*" "${colorRedWhite}" "${debugFD}"
+    Log_Function "$*\n" "${colorRedWhite}" "${debugFD}"
 }
 
 Quiet() { "$@" &> /dev/null ;}
@@ -90,7 +90,7 @@ Ask_Continue() {
 }
 
 Log_Question() {
-    Log_Function "$*" "${colorBoldCyan}" "${questionFD}"
+    Log_Function "$*\n" "${colorBoldCyan}" "${questionFD}"
 }
 
 Ask_Option() {
@@ -128,6 +128,7 @@ Ask_Option() {
 }
 
 Ask() {
+   local question
    Parameters "$@" question
    REPLY=foo
    Ask_Option "$question [Y/n]" "yes" '[ -n "$REPLY" -a -z "$(echo $REPLY | sed -r -e "s/((Y|y)(ES|es)?|(N|n)(O|o)?)//")" ]'
@@ -138,24 +139,25 @@ Ask() {
 }
 
 Progress_Start() {
-    Parameters "$@" message
-
-    echo -n "$message" 1>&2
-    echo -n " *" 1>&2
-    spinControl=0
+   local message
+   Parameters "$@" message
+   Log_Function "$message *" "${colorCyan}" "${normalFD}"
+   spinControl=0
 }
 
 Progress_Move() {
+   $echo -n "${colorCyan}"
    case "$spinControl" in
-   0) echo -n "|" 1>&2 ; spinControl=1 ;;
-   1) echo -n "/" 1>&2 ; spinControl=2 ;;
-   2) echo -n "-" 1>&2 ; spinControl=3 ;;
-   3) echo -n "\\" 1>&2 ; spinControl=0 ;;
+   0) echo -n "|" >&${normalFD} ; spinControl=1 ;;
+   1) echo -n "/" >&${normalFD} ; spinControl=2 ;;
+   2) echo -n "-" >&${normalFD} ; spinControl=3 ;;
+   3) echo -n "\\" >&${normalFD} ; spinControl=0 ;;
    esac # esac is ridiculous.
+   $echo -n ${colorNormal}
 }
 
 Progress_End() {
-    echo 1>&2
+    $echo "${colorNormal}" 1>&2
 }
 
 # Prints an error message and exits
