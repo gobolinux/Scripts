@@ -21,7 +21,7 @@ gp=`which GoboPath`
 [ "$goboSettings" ] || goboSettings=/System/Settings
 
 Get_Program_Version() {
-   ver="$(basename "$(readlink -f $goboPrograms/$1/Current)")"
+   ver="$(basename "$(readlink -f "$goboPrograms/$1/Current")")"
    if [ -e "$goboPrograms/$1/Current/Resources/Revision" ]
    then
       rev="-$(cat "$goboPrograms/$1/Current/Resources/Revision")"
@@ -38,14 +38,19 @@ echo
 
 for i in "$@"
 do
-   echo "BuildInformation for $i"
-   cat "$goboPrograms/$i/Current/Resources/BuildInformation"
-   echo
    echo "Installed versions of $i"
-   echo "$(ls $goboPrograms/$i)"
+   ls "$goboPrograms/$i"
    echo
-   find $goboPrograms/$i/Settings -type f | while read x
+   find "$goboPrograms/$i/Settings" -type f | while read x
    do
+      echo "---$x"
+      cat "$x"
+      echo
+   done
+   for x in "$goboPrograms/$i/Current/Resources"/*
+   do
+      [ -f "$x" ] || continue
+      [ "FileHash" = "$(basename "$x")" ] && continue
       echo "---$x"
       cat "$x"
       echo
@@ -53,12 +58,12 @@ do
 done
 
 echo Compile.conf
-cat $goboSettings/Compile/Compile.conf
+cat "$goboSettings/Compile/Compile.conf"
 
 echo
 echo UseFlags.conf
-cat $goboSettings/UseFlags.conf
+cat "$goboSettings/UseFlags.conf"
 
 echo
 echo GenericFlags.conf
-cat $goboSettings/GenericFlags.conf
+cat "$goboSettings/GenericFlags.conf"
