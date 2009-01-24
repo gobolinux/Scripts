@@ -1,0 +1,64 @@
+#!/bin/sh
+# Copyright (C) 2009 Michael Homer <=mwh>
+# A script to generate helpful problem reports for GoboLinux systems.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+gp=`which GoboPath`
+[ "$gp" ] && . $gp
+[ "$goboPrograms" ] || goboPrograms=/Programs
+[ "$goboSettings" ] || goboSettings=/System/Settings
+
+Get_Program_Version() {
+   ver="$(basename "$(readlink -f $goboPrograms/$1/Current)")"
+   if [ -e "$goboPrograms/$1/Current/Resources/Revision" ]
+   then
+      rev="-$(cat "$goboPrograms/$1/Current/Resources/Revision")"
+   fi
+   echo $ver$rev
+}
+
+for i in Scripts Compile BootScripts Glibc Linux-Headers Xorg-Lib GCC Python KDE-Libs Linux "$@"
+do
+   echo "$i version: $(Get_Program_Version $i)"
+done
+
+echo
+
+for i in "$@"
+do
+   echo "BuildInformation for $i"
+   cat "$goboPrograms/$i/Current/Resources/BuildInformation"
+   echo
+   echo "Installed versions of $i"
+   echo "$(ls $goboPrograms/$i)"
+   echo
+   find $goboPrograms/$i/Settings -type f | while read x
+   do
+      echo "---$x"
+      cat "$x"
+      echo
+   done
+done
+
+echo Compile.conf
+cat $goboSettings/Compile/Compile.conf
+
+echo
+echo UseFlags.conf
+cat $goboSettings/UseFlags.conf
+
+echo
+echo GenericFlags.conf
+cat $goboSettings/GenericFlags.conf
