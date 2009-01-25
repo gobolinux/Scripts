@@ -134,6 +134,17 @@ function Remove_From_Array() {
    done
 }
 
+function Combine_Arrays() {
+   merge="$1=("
+   shift
+   while [ "$1" ]
+   do eval '[ -n "${'$1'[*]}" ] && merge=$merge'\'' "${'$1'[@]}" '\'
+      shift
+   done
+   merge=$merge")"
+   echo "$merge"
+}
+
 function Array_Contains() {
    local arrayname="$1"
    local element="$2"
