@@ -548,6 +548,7 @@ function Boolean() {
 #       0 : The option was set correctly.
 #       1 : An argument was missing
 #       2 : The option doesn't exist.
+#       3 : Invalid value for the given option
 # Notes:
 #       Note that for boolean options every other string other
 #       than 'on' or 'yes' will be interpreted as false by scripts.
@@ -560,36 +561,36 @@ function Boolean() {
 
 function Set_Option() {
    local i
+   local option="$1"
+   local value="$2"
    
-   [ -z "$1" -o -z "$2" ] && return 1
+   [ -z "${option}" ] || [ -z "${value]" ] && return 1
    # Loop through options.
    for i in `seq $optionsListSize`
    do
-      if [ "$1" = "${optionsShortList[i]}" -o "$1" = "${optionsLongList[i]}" ]
+      if [ "${option}" = "${optionsShortList[i]}" -o "${option}" = "${optionsLongList[i]}" ]
       then
          if [ -n "${optionsValidStateList[i]}" ]
          then
             # Not all values can be assigned to this option.
             for avail in ${optionsValidStateList[i]}
             do
-               if [ "${avail}" == "${val}" ]
+               if [ "${avail}" == "${value}" ]
                then
                   # The value is valid, add it to the array
                   # and exit the loop.
-                  optionsStateList[i]="${val}"
-                  break 2
+                  optionsStateList[i]="${value}"
+                  return 0
                fi
             done
             # The value is not valid, unfortunately.
-            Log_Verbose "Unknown entry '${2}' for option ${opt}"
-            return 2
-         else
-            # Whichever value is ok
-            optionsStateList[i]="${val}"
+            Log_Verbose "Unknown entry '${value}' for option ${option}"
+            return 3
          fi
+         # Whichever value is ok
          # We've found the option we're looking for, either its
          # shortening or its full name.
-         optionsStateList[i]="$2"
+         optionsStateList[i]="${value}"
          return 0
       fi
    done
