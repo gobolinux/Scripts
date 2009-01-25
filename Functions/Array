@@ -97,7 +97,7 @@ function Map() {
    shift
    while [ $# -gt 0 ]
    do
-      "$fun" "$1"
+      $fun "$1"
       shift
    done
 }
