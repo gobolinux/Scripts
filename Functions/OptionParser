@@ -564,7 +564,7 @@ function Set_Option() {
    local option="$1"
    local value="$2"
    
-   [ -z "${option}" ] || [ -z "${value]" ] && return 1
+   [ -z "${option}" ] || [ -z "${value}" ] && return 1
    # Loop through options.
    for i in `seq $optionsListSize`
    do
