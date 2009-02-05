@@ -622,7 +622,7 @@ function Get_System_Paths () {
    while read path
    do
       Programs_To_System_Path "${path}"
-   done < <(find "${programpath}" -mindepth 2 )
+   done < $(find "${programpath}" -mindepth 2 )
 }
 
 # Inspect to which package a linked file points to
