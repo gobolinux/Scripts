@@ -616,13 +616,13 @@ function System_To_Programs_Path() {
    [ -n "${newpath}" ] && echo "${newpath}"
    return 0
 }
-   
+
 function Get_System_Paths () {
    Parameters "$1" programpath
    while read path
    do
       Programs_To_System_Path "${path}"
-   done < $(find "${programpath}" -mindepth 2 )
+   done < <(find "${programpath}" -mindepth 2 )
 }
 
 # Inspect to which package a linked file points to
