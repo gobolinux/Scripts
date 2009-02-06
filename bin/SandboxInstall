@@ -190,6 +190,7 @@ then
    rm -rf Files/Compile/Sources
    rm -f Programs/Glibc/Settings/ld.so.cache
    rm -f System/Variable/cache/ldconfig/aux-cache
+   rm -rf System/Variable/cache/fontconfig
    if [ "$package" != "Python" -a -d Programs/Python ]
    then find Programs/Python -type f -name "*.pyc" -or -name "*.pyo" | xargs rm -f &> /dev/null
    fi
