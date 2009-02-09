@@ -2,6 +2,7 @@
 
 #Exec "Stopping mouse driver"                 Mouse Stop
 #Exec "Storing sound settings"                 Alsactl Stop
+Exec "Stopping hardware abstraction layer..." HAL Stop
 Exec "Saving system time"                     SetClock Stop
 Exec "Stopping kernel log daemon"            killall klogd
 Exec "Stopping system log daemon"            killall syslogd
