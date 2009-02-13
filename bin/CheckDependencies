@@ -62,19 +62,26 @@ def get_rules_of_files(depfiles, t=None, no_compatlist=False, cross_compile=Fals
 			f = open(depfile)
 			for line in f.readlines():
 				options=line.split("|")
-				last_rule = None
+				prev_rule = None
+				first_rule = None
 				for o in options:
 					try:
 						rule = interpret_dependency_line(o,t, cross_compile=cross_compile, flags=flags)
 					except ParseError, e:
 						Log_Terse("At file '%s': "%depfile + e.message, 'CheckDependencies')
-					if last_rule:
-						last_rule['option'] = rule
-						last_rule = rule
-				if rule:
+					if rule:
+						# Precedence is left-right. Save this to return later.
+						if not first_rule:
+							first_rule = rule
+						# Build a chain of ['option'] values hanging off
+						# each rule.
+						if prev_rule:
+							prev_rule['option'] = rule
+						prev_rule = rule
+				if first_rule:
 					if not no_compatlist:
-						add_compatible_dependencies(rule)
-					toReturn.append(rule)
+						add_compatible_dependencies(first_rule)
+					toReturn.append(first_rule)
 			f.close()
 	return toReturn
 
