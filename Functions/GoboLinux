@@ -493,7 +493,7 @@ function Pre_Installation_Preparation() {
    then
       programfiles=$(find "${goboPrograms}/${appname}/${appver}")
       Progress_Start "Making a safe copy of installed version"
-      $sudo_exec cp -R "${goboPrograms}/${appname}/${appver}" "${goboPrograms}/${appname}/${appver}-safelinking"
+      $sudo_exec cp -a "${goboPrograms}/${appname}/${appver}" "${goboPrograms}/${appname}/${appver}-safelinking"
       for f in ${programfiles[@]}
       do
          systempath="$(Programs_To_System_Path "${f}")"
@@ -528,7 +528,7 @@ function Post_Installation_Clean_Up() {
       fi
 
       programfiles=$(find "${goboPrograms}/${appname}/${appver}-safelinking")
-      $sudo_exec cp -R "${goboPrograms}/${appname}/${appver}-safelinking" "${goboPrograms}/${appname}/${appver}"
+      $sudo_exec cp -a "${goboPrograms}/${appname}/${appver}-safelinking" "${goboPrograms}/${appname}/${appver}"
       Progress_Start "Restoring safe copy"
       for f in ${programfiles[@]}
       do
