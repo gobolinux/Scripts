@@ -21,7 +21,7 @@ class UseFlagEngine(object):
 	_changes = []
 	_changedata = {}
 
-	def __init__(self, program, potentialflags=None):
+	def __init__(self, program, potentialflags=frozenset()):
 		self.program = program
 		self._potentialflags = potentialflags
 		self._generic_flags['INSTALLED_PROGRAMS'] = list(installed_programs())
