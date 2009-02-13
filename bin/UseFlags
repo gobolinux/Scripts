@@ -15,7 +15,7 @@ class UseFlagEngine(object):
 	block_stack = []
 	on_dict = {}
 	capture_text = None
-	_potentialflags = None
+	_potentialflags = frozenset()
 	_generic_flags = {'DEFINED_GENERICS': [], 'INSTALLED_PROGRAMS': []}
 	_flags = set(['GENERIC_FLAGS', 'MUTUALLY_EXCLUSIVES', 'INSTALLED'])
 	_changes = []
@@ -351,7 +351,7 @@ class UseFlagEngine(object):
 
 def UseFlags(program=None, return_engine=False):
 	"""Return the set of flags enabled for program"""
-	potentialflags = None
+	potentialflags = frozenset()
 	if program and program.startswith('/'):
 		catch = False
 		recipedir = str(program)
