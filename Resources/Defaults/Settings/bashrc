@@ -83,3 +83,8 @@ envcachefile="${goboPrefix}/System/Links/Environment/Cache"
 source "$envcachefile"
 unset envcachefile
 
+# Introduced in Bash 4.0, this hook triggers when a command search fails.
+# Use it to hook into the CNF system for Bash users.
+command_not_found_handle() {
+   CommandNotFound $1 || echo "bash: $1: command not found" >&2
+}
