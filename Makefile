@@ -27,7 +27,7 @@ exec_files = $(patsubst src/%.c,bin/%,$(wildcard src/*.c))
 
 default: all
 
-all: python $(exec_files)
+all: python $(exec_files) manuals
 
 debug: python
 	cd src; $(MAKE) debug
@@ -68,7 +68,7 @@ update_version: version_check verify
 	sed -i "s/CURRENT_SCRIPTS_VERSION=.*#/CURRENT_SCRIPTS_VERSION="${VERSION}" #/g" bin/CreateRootlessEnvironment
 	svn commit -m "Update version for CreateRootlessEnvironment." bin/CreateRootlessEnvironment
 
-dist: update_version manuals
+dist: update_version
 	@echo; echo "Press enter to create a subversion tag and tarball for version $(VERSION) or ctrl-c to abort."
 	@read
 	@$(MAKE) tag
@@ -81,7 +81,7 @@ tag: version_check verify
 	$(MAKE) tarball
 	svn switch http://svn.gobolinux.org/tools/trunk/$(PROGRAM)
 
-tarball: $(PACKAGE_FILE)
+tarball: manuals $(PACKAGE_FILE)
 	@echo; echo "Tarball at $(PACKAGE_FILE)"
 
 $(PACKAGE_FILE): $(all_files)
