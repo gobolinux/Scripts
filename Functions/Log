@@ -182,3 +182,15 @@ Pass_Away() {
    [ "" = "$*" ] || Log_Error "$@"
    exit 0
 }
+
+Exit_With() {
+   ret=$1
+   shift
+   if [ 0 -eq $ret ]
+   then
+      [ -n "$*" ] && Log_Terse "$@"
+   else
+      [ -n "$*" ] && Log_Error "$@"
+   fi
+   exit $ret
+}
