@@ -897,6 +897,10 @@ function Parse_Options() {
             then
                # Value assignment with =.
                opt=${option%%\=*}
+            else if echo "$option" | grep -q \ 
+	    then
+               # Split by space, as options can't contain them
+               opt=${option%%\ *}
             else
                opt=${option}
             fi
@@ -919,6 +923,10 @@ function Parse_Options() {
                      then
                         # Long option value assignment with =.
                         val=${option#*=}
+                     else if echo "$option" | grep -q \ 
+                     then
+                        # Split option at space, value is everything after first space
+                        val=${option#*\ }
                      else
                         # Else use next argument as value for the option.
                         i=$[i+1]
