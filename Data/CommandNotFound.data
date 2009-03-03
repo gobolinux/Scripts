@@ -3825,7 +3825,7 @@ unlink CoreUtils
 unlzma LZMA-Utils
 unopkg OpenOffice
 unpack200 Sun-JDK
-unrar RAR
+unrar Unrar
 unshar SharUtils
 unsquashfs SquashFS-Tools
 unzip Unzip
