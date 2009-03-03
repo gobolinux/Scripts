@@ -36,7 +36,8 @@ MouseDevice=/dev/psaux
 # (replacing the module names above by those that match your
 # hardware, of course).
 
-#UserDefinedModules=(
-#   "example_module1"
-#   "example_module2 parameter1=value parameter2=value"
-#)
+UserDefinedModules=(
+    fuse
+#   "example_module2"
+#   "example_module3 parameter1=value parameter2=value"
+)
