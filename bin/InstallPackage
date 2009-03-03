@@ -58,6 +58,7 @@ Boolean "batch"      && batch="--batch"
 Boolean "keep"       && keep="--keep"
 Boolean "no-symlink" && symlink="no"
 Boolean "no-install" && noinstall="--no-install" && keep="--keep"
+Boolean "no-updatesettings" && noupdatesettings="--no-updatesettings"
 Boolean "use-contrib"&& contrib="contrib_package" && usecontrib="--use-contrib"
 Boolean "no-sign-check" && nosigncheck="--no-sign-check"
 Is_Writable "${goboPrograms}" || Verify_Superuser
@@ -84,13 +85,13 @@ then
 
       if mv "${goboTemp}/${filename}" "${defaultLocalPackagesPaths[0]}/${filename}"
       then 
-         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${defaultLocalPackagesPaths[0]}/${filename}"
+         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${defaultLocalPackagesPaths[0]}/${filename}"
       else
          Log_Error "Could not move package."
-         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${goboTemp}/${filename}"
+         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${goboTemp}/${filename}"
       fi
    else
-      InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${goboTemp}/${filename}"
+      InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${goboTemp}/${filename}"
       Log_Normal "Removing downloaded package ${goboTemp}/${filename}."
       rm -f -- "${goboTemp}/${filename}"
    fi
@@ -130,7 +131,7 @@ then
          if [ "${found}" ]
          then 
             Log_Normal "Found package for ${name} ${version}: ${found}"
-            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${found}"
+            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${found}"
          else
             Die_With $errorNotFound "Package for ${name} ${version} not found."
          fi
@@ -139,7 +140,7 @@ then
          if [ "${found}" ]
          then
             [ ! "$batch" ] && Ask_Continue "Installing ${found}"
-            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${found}"
+            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${found}"
          else
             Die_With $errorNotFound "Package for ${name} not found."
          fi
@@ -391,7 +392,7 @@ then
       set +o pipefail
       for d_url in $selecteddeps
       do
-         InstallPackage --no-dependencies ${unmanaged} ${usecontrib} ${noinstall} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} $d_url || {
+         InstallPackage --no-dependencies ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} $d_url || {
             ret=$?
             exit $ret
          }
