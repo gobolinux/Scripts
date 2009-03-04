@@ -43,22 +43,22 @@ def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, 
 					break
 
 		d = availables[t]['programs']
-		for p in matched_programs :
+		for mp in matched_programs :
 			if v:
-				if d[p].has_key(v):
+				if d[mp].has_key(v):
 					if r:
-						if d[p][v].has_key(r):
-							for u in d[p][v][r]:
-								relevant_items.append((p,v,r,t,u))
+						if d[mp][v].has_key(r):
+							for u in d[mp][v][r]:
+								relevant_items.append((mp,v,r,t,u))
 					else:
-						for fr in d[p][v]:
-							for u in d[p][v][fr]:
-								relevant_items.append((p,v,fr,t,u))
+						for fr in d[mp][v]:
+							for u in d[mp][v][fr]:
+								relevant_items.append((mp,v,fr,t,u))
 			else:
-				for fv in d[p].keys():
-					for fr in d[p][fv]:
-						for u in d[p][fv][fr]:
-							relevant_items.append((p,fv,fr,t,u))
+				for fv in d[mp].keys():
+					for fr in d[mp][fv]:
+						for u in d[mp][fv][fr]:
+							relevant_items.append((mp,fv,fr,t,u))
 
 	#################################################################################
 	# Phase 3: Prepare the output, sorting if required
