@@ -144,7 +144,7 @@ do
    unmanagedmap="${installPackageDir}/${version}/Resources/Unmanaged${unmanaged}=${goboPrefix}${unmanaged}${unmanagedmap:+:${unmanagedmap}}"
 done
 
-if [ "$unionsandbox" ] 
+if [ -n "$unionsandbox" ] 
 then
    sandbox_rw="$installPackageDir/$version/.SandboxInstall_Root"
    rm -rf -- "$sandbox_rw"
@@ -159,7 +159,7 @@ Boolean "no-sandbox" && sandbox=
 
 # If not using UnionSandbox (including --no-sandbox" and rootless)
 # symlink Settings to Defaults/Settings
-if ! [ "$unionsandbox" ]
+if [ -z "$unionsandbox" ]
 then
     Assert_Dir $default_settings
     Is_Directory "${settings}" && mv "${settings}" "${settings}.hold"
@@ -191,6 +191,8 @@ then
    rm -f Programs/Glibc/Settings/ld.so.cache
    rm -f System/Variable/cache/ldconfig/aux-cache
    rm -rf System/Variable/cache/fontconfig
+   rm -rf System/Variable/scrollkeeper
+   rm -f System/Variable/log/scrollkeeper.log
    if [ "$package" != "Python" -a -d Programs/Python ]
    then find Programs/Python -type f -name "*.pyc" -or -name "*.pyo" | xargs rm -f &> /dev/null
    fi
