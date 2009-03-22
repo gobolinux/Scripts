@@ -367,10 +367,13 @@ def UseFlags(program=None, return_engine=False):
 			return frozenset()
 	e = UseFlagEngine(program, potentialflags=potentialflags)
 	e.standard_run()
+	print program
 	if return_engine:
 		return e
-	else:
+	elif program:
 		return e.flags()
+	else:
+		return e.allflags()
 
 global_program_potential_flags_cache = None
 
@@ -539,6 +542,8 @@ used by prog.
 	if report:
 		_change_report(e)
 	flags = e.flags()
+	if not program:
+		flags = e.allflags()
 	# If no flag is specified, output all the enabled flags for this program
 	if len(args) < 2:
 		for flag in flags:
