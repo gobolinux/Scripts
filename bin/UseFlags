@@ -164,7 +164,7 @@ class UseFlagEngine(object):
 			if isinstance(text, str):
 				return eval(text)
 			elif isinstance(text, tuple):
-				text[0]()
+				return text[0]()
 			else:
 				return text()
 		d, ed = self.depth, self.execute_depth
