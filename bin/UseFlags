@@ -234,6 +234,12 @@ class UseFlagEngine(object):
 		elif cmd.endswith(':'):
 			args[0:0] = [cmd[0:-1]]
 			cmd = 'define_generic'
+		elif cmd.endswith(':+'):
+			args[0:0] = [cmd[0:-2]]
+			cmd = 'generic_prepend'
+		elif cmd.endswith(':-'):
+			args[0:0] = [cmd[0:-2]]
+			cmd = 'generic_remove'
 		if cmd in self.commands:
 			ret = self.commands[cmd](*args)
 			if ret:
@@ -348,6 +354,7 @@ class UseFlagEngine(object):
 		if self.debug_on:
 			print 'with line:', line
 			print ' flags:', ', '.join(sorted(self._flags))
+			print ' generics:', self._generic_flags
 
 def UseFlags(program=None, return_engine=False):
 	"""Return the set of flags enabled for program"""
