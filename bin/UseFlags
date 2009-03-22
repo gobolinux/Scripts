@@ -468,25 +468,22 @@ def _change_report(e):
 
 def installed_programs():
 	if not hasattr(installed_programs, 'cache'):
+		def cacheadd(flag):
+			installed_programs.cache.add(flag)
 		installed_programs.cache = set()
-		for prog in os.listdir(goboPrograms):
-			prog = prog.lower().replace('-', '_')
+		for oprog in os.listdir(goboPrograms):
+			prog = oprog.lower().replace('-', '_')
 			prog = filter(lambda p: p.isalpha() or p.isdigit() or
-									p=='_', prog)
-			if 'qt' == prog:
-				for ver in os.listdir(goboPrograms + '/Qt'):
-					if ver.startswith('3'):
-						installed_programs.cache.add('qt3')
-					elif ver.startswith('4'):
-						installed_programs.cache.add('qt4')
-			elif 'gtk' == prog:
-				for ver in os.listdir(goboPrograms + '/GTK+'):
-					if ver.startswith('2'):
-						installed_programs.cache.add('gtk2')
-					elif ver.startswith('1'):
-						installed_programs.cache.add('gtk1')
+				      p=='_', prog)
+			if prog in ('qt', 'gtk'):
+				for ver in os.listdir(os.path.join(
+						goboPrograms, oprog)):
+					if '.' in ver:
+						major, _ = ver.split('.', 1)
+						if major.isdigit():
+							cacheadd(prog + major)
 			else:
-				installed_programs.cache.add(prog)
+				cacheadd(prog)
 	return installed_programs.cache
 
 
@@ -494,8 +491,8 @@ def installed_programs():
 # Executable code when run from the command line.
 if __name__ == '__main__':
 	args = sys.argv[1:]
-	# "verbose" mode applies when a program AND flag are given: it will output
-	# a message as well as setting the return code
+	# "verbose" mode applies when a program AND flag are given: it will
+	# output a message as well as setting the return code
 	if args and '-v' == args[0]:
 		verbose = True
 		args = args[1:]
@@ -522,7 +519,8 @@ used by prog.
 		# Otherwise, call GetRecipe to fetch/find the local copy
 		f = None
 		if len(args) >= 2:
-			f = os.popen('GetRecipe %s %s 2> /dev/null'%(args[0], args[1]))
+			f = os.popen('GetRecipe %s %s 2> /dev/null'
+				     % (args[0], args[1]))
 		elif len(args) == 1:
 			f = os.popen('GetRecipe %s 2>/dev/null'%(args[0]))
 		program = f.read().strip()
@@ -549,7 +547,8 @@ used by prog.
 	# Otherwise, test whether the flag is enabled and set the return code
 	# accordingly. If -v was given, also output "<flag> on|off"
 	else:
-		if (len(args) == 3 and args[2] in flags) or (len(args) == 2 and args[1] in flags):
+		if (len(args) == 3 and args[2] in flags) or (
+			len(args) == 2 and args[1] in flags):
 			sys.exit(0)
 		else:
 			sys.exit(1)
