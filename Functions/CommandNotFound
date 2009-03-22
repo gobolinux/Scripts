@@ -47,11 +47,11 @@ if [ "$precmd_functions" ]
 then
    precmd_functions=( "${precmd_functions[@]:#CommandNotFound_precmd}" CommandNotFound_precmd )
 else
-   precmd_functions=( precmd CommandNotFound_precmd )
+   precmd_functions=( CommandNotFound_precmd )
 fi
 if [ "$preexec_functions" ]
 then
    preexec_functions=( "${preexec_functions[@]:#CommandNotFound_preexec}" CommandNotFound_preexec )
 else
-   preexec_functions=( preexec CommandNotFound_preexec )
+   preexec_functions=(CommandNotFound_preexec )
 fi
