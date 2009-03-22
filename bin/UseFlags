@@ -374,7 +374,6 @@ def UseFlags(program=None, return_engine=False):
 			return frozenset()
 	e = UseFlagEngine(program, potentialflags=potentialflags)
 	e.standard_run()
-	print program
 	if return_engine:
 		return e
 	elif program:
