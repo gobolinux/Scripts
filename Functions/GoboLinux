@@ -518,7 +518,7 @@ function Post_Installation_Clean_Up() {
    appname="$1"
    appver="$2"
    failedinstallation="$3"
-   if [ -n "${failedinstallation}" -a -e "${goboPrograms}/${appname}/${appver}-safelinking" ]
+   if [ "${failedinstallation}" = "failed" -a -e "${goboPrograms}/${appname}/${appver}-safelinking" ]
    then
       [ -d "${goboPrograms}/${appname}/${appver}-failed" ] && $sudo_exec rm -rf "${goboPrograms}/${appname}/${appver}-failed"
       if [ -e "${goboPrograms}/${appname}/${appver}" ]
