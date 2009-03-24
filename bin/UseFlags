@@ -547,6 +547,15 @@ used by prog.
 				break
 	if report:
 		_change_report(e)
+	if os.path.exists(goboSettings + '/GenericFlags.conf'):
+		sys.stderr.write(colorGray + 'UseFlags: ' + colorCyan)
+		sys.stderr.write("GenericFlags.conf is deprecated and should "
+				 "be merged into UseFlags.conf. "
+				 "`UpdateSettings Scripts` will perform the "
+				 "merge automatically if you have not modified "
+				 "GenericFlags.conf, after which you can "
+				 "delete the file.")
+		sys.stderr.write(colorNormal + '\n')
 	flags = e.flags()
 	if not program:
 		flags = e.allflags()
