@@ -136,7 +136,8 @@ for unmanaged in "${unmanagedarray[@]}"
 do
    # If it's not a directory (it's possible that it's a non-existant directory, but that's ok), strip one level
    # Also remove any $goboPrefix, since we will add it later to ensure that it is used even for recipes that don't use it
-   [ ! -d ${unmanaged} ] && unmanaged=$(echo ${unmanaged} | sed -e 's,\(.*\)/[^/]*,\1,'${goboPrefix:+ -e 's,'"$goboPrefix"',,'} )
+   [ ! -d "${unmanaged}" ] && unmanaged=$(echo "${unmanaged}" | sed -e 's,\(.*\)/[^/]*,\1,')
+   [ "$goboPrefix" ] && unmanaged=$(echo "${unmanaged}" | sed -e 's,'"$goboPrefix"',,' )
    # Make sure the directories exist
    Assert_Dir "${goboPrefix}${unmanaged}"
    Assert_Dir "${installPackageDir}/${version}/Resources/Unmanaged${unmanaged}"
