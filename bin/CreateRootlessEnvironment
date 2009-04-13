@@ -161,7 +161,7 @@ fi
 while read pythonDirectory
 do
    PYTHONPATH="${pythonDirectory}/site-packages${PYTHONPATH:+:$PYTHONPATH}"
-done < <(find "${goboPrefix}/System/Links/Libraries" -maxdepth 1 -name 'python*' | sort)
+done < <(find "${goboPrefix}/System/Links/Libraries" -maxdepth 1 -name 'python\*' | sort)
 export PYTHONPATH
 
 export PKG_CONFIG_PATH="${goboPrefix}/System/Links/Libraries/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig"
