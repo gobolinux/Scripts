@@ -161,7 +161,7 @@ fi
 while read pythonDirectory
 do
    PYTHONPATH="${pythonDirectory}/site-packages${PYTHONPATH:+:$PYTHONPATH}"
-done < <(find "${goboPrefix}/System/Links/Libraries" -maxdepth 1 -name 'python\*' | sort)
+done < <(find "${goboPrefix}/System/Links/Libraries" -maxdepth 1 -name "python*" | sort)
 export PYTHONPATH
 
 export PKG_CONFIG_PATH="${goboPrefix}/System/Links/Libraries/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig"
@@ -183,7 +183,7 @@ fi
 
 # Without calling cd, prompt does not display ~, but ${HOME}
 { [ `readlink -f "${PWD}"` = `readlink -f "${HOME}"` ] && cd; } 2> /dev/null
-' >> "${goboPrefix}/Programs/Rootless/1.0/bin/StartRootless"
+' > "${goboPrefix}/Programs/Rootless/1.0/bin/StartRootless"
 
 # preparing a real_install (which is wrapped by Scripts install)...
 if [ ! "`our_which real_install`" ] 
