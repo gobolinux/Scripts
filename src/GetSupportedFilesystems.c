@@ -23,89 +23,64 @@
 
 #define FILESYSTEMS_FILE "/proc/filesystems"
 
-/* Get a list of supported filesystems, separated by linebreaks '\n' */
-char *getvfs(void)
-{
-#ifdef __FreeBSD__
-#define MAXLEN (sizeof(xvfsp[0].vfc_name))
 
+/* 
+ * Extract a list of supported filesystems out of sysctls and print that, 
+ * separating entries by linebreaks '\n' 
+ */
+#ifdef __FreeBSD__
+static int print_vfs_sysctl(void)
+{
 	struct xvfsconf *xvfsp = NULL;
 	size_t xvfslen;
-	size_t bufferlen;
-	char *buffer = NULL;
-	size_t copied;
 	int cnt, i;
 
 	/* get the array of xvfsconf structs */
 	if (sysctlbyname("vfs.conflist", NULL, &xvfslen, NULL, 0) < 0)
-		goto fail;
+		return -1;
 
 	if (!(xvfsp = malloc(xvfslen)))
-		goto fail;
+		return -1;
 
-	if (sysctlbyname("vfs.conflist", xvfsp, &xvfslen, NULL, 0) < 0)
-		goto fail;
-
-	/* allocate enough space for the list of filesystems */
-	cnt = xvfslen / sizeof(struct xvfsconf);
-	bufferlen = (cnt * sizeof(xvfsp[0].vfc_name))+1;
-
-	if (!(buffer = malloc(bufferlen)))
-		goto fail;
-
-	/* extract filesystem names from xvfsconf structs */
-	buffer[0] = '\0';
-	copied = 0;
-	for (i = 0; i < cnt; i++)
-	{
-		char *src = xvfsp[i].vfc_name;
-		if (src[MAXLEN-1] != '\0')
-		{
-			src[MAXLEN-1] = '\0';
-		}
-
-		copied += snprintf(buffer + copied, copied < bufferlen ? bufferlen - copied : 0, "%s\n", src);
+	if (sysctlbyname("vfs.conflist", xvfsp, &xvfslen, NULL, 0) < 0) {
+		free(xvfsp);
+		return -1;
 	}
 
-done:
-	if (xvfsp)
-		free(xvfsp), xvfsp = NULL;
+	/* extract filesystem names from xvfsconf structs */
+	cnt = xvfslen / sizeof(struct xvfsconf);
+	for (i = 0; i < cnt; i++)
+		printf("%s\n", xvfsp[i].vfc_name);
 
-	return buffer;
+	free(xvfsp);
+	return 0;
+}
+#endif
 
-fail:
-	if (buffer)
-		free(buffer), buffer = NULL;
-
-	goto done;
-
-#undef MAXLEN
-#else
-	FILE *fh = NULL;
+/* 
+ * Extract a list of supported filesystems out of FILESYSTEMS_FILE and print that, 
+ * separating entries by linebreaks '\n' 
+ */
+#ifndef __FreeBSD__
+static int print_vfs_procfs(void)
+{
+	FILE *fh;
 	char readbuffer[1024];
-	char *buffer = NULL;
-	size_t copied = 0;
-	size_t bufferlen = 0;
 
 	fh = fopen(FILESYSTEMS_FILE, "r");
-	if (!fh)
-		goto fail;
+	if (! fh)
+		return -1;
 
-	while (fgets(readbuffer, sizeof(readbuffer), fh) != NULL)
-	{
+	memset(readbuffer, 0, sizeof(readbuffer));
+	while (fgets(readbuffer, sizeof(readbuffer)-1, fh) != NULL) {
 		size_t readlen;
-		size_t fslen;
-		char *field;
-		char *fs;
-
-		/* nullterminate (fgets should actually do this for
-		 * us, but better safe than sorry)
-		 */
-		readbuffer[sizeof(readbuffer)-1] = '\0';
+		char *field, *fs;
 
 		readlen = strlen(readbuffer);
-		if (readbuffer[readlen-1] != '\n' && readbuffer[readlen-1] != '\r' && !feof(fh))
-			goto fail;
+		if (readbuffer[readlen-1] != '\n' && readbuffer[readlen-1] != '\r' && !feof(fh)) {
+			fclose(fh);
+			return -1;
+		}
 
 		/* fields are separated by tab '\t' */
 		field = readbuffer;
@@ -117,40 +92,18 @@ fail:
 		if (fs == NULL || fs[0] == '\0')
 			continue;
 		
-		fslen = strlen(fs);
-		if (copied + fslen+1 >= bufferlen)
-		{
-			char *newptr = realloc(buffer, bufferlen + sizeof(readbuffer));
-			if (newptr == NULL)
-				goto done;
-
-			buffer = newptr;
-			bufferlen += sizeof(readbuffer);
-		}
-		copied += snprintf(buffer + copied, copied < bufferlen ? bufferlen - copied : 0, "%s\n", fs);
+		printf("%s\n", fs);
 	}
-
-done:
-	if (fh != NULL)
-		fclose(fh), fh = NULL;
-
-	return buffer;
-
-fail:
-	if (buffer != NULL)
-		free(buffer), buffer = NULL;
-
-	goto done;
-#endif
+	fclose(fh);
+	return 0;
 }
+#endif
 
 int main(int argc, char* argv[])
 {
-	char *list = getvfs();
-	if (list != NULL)
-	{
-		printf("%s", list);
-		free(list);
-	}
-	return 0;
+#ifdef __FreeBSD__
+	return print_vfs_sysctl();
+#else
+	return print_vfs_procfs();
+#endif
 }
