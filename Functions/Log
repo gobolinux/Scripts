@@ -29,14 +29,9 @@ Is_Log_Mode() {
    [ "$logMode" = "$1" ]
 }
 
-Question_Line() {
-   $echo -n ${colorNormal}${colorNormal}
-}
-
 Log_Function() {
     local message
     Parameters "$@" message color FD
-    [ $questionFD = $FD ] && Question_Line
     $echo -n "${colorGray}${scriptName}:${colorNormal} ${color}$message${colorNormal}" >&$FD
     $echo -n "$scriptName: $message" >&$logFD
 }

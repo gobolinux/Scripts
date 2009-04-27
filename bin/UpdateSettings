@@ -123,7 +123,6 @@ InstructionSource=''
 
 
 function input_option() {
-   Question_Line
    echo "$*" >&$questionFD
    while true
    do
@@ -371,9 +370,9 @@ function input_action()
    
    function show_changes()
    {
-      Question_Line; echo "" >&$questionFD
-      Question_Line; echo " $num $difftype $file" >&$questionFD
-      Question_Line; echo "" >&$questionFD
+      echo "" >&$questionFD
+      echo " $num $difftype $file" >&$questionFD
+      echo "" >&$questionFD
    }
 
    local action=""
