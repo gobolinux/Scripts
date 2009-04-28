@@ -157,9 +157,6 @@ if [ "$cross_toolchain_dir" ]
 then mount_union "$cross_toolchain_dir"
 fi
 
-# unionfs doesn't follow bind-mounts, so we must mount everyone sitted on the top of /Programs
-bindprograms="`cat /proc/mounts | grep " /Programs\| /Files" | grep "Area-" | grep -v union_mp.tmp | cut -d' ' -f2 | sed 's,.*Area-.*\(/\)\(.*/\)\(.*/\)\(.*\),/\2\3\4,g'`"
-unionSandbox=( ${unionSandbox[@]} $bindprograms )
 if [ "$goboIndex" ]
 then unionSandbox=( ${unionSandbox[@]} "$goboIndex" )
 fi
