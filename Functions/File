@@ -70,6 +70,7 @@ function Assert_Dir() {
       then
          Die "Unable to create $dir"
       fi
+      $sudo_exec chmod a+rx "$dir"
    fi
 }
 
