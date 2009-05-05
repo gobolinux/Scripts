@@ -226,10 +226,10 @@ existingpackage=`ls "${goboPrograms}" | grep -i "^$packagename$"`
       doask=yes
    }
    
-   if [ -e "${goboPrograms}/$existingpackage/$packageversion" ]
+   if [ -e "${goboPrograms}/$existingpackage/$packageversion" -a "$(cat ${goboPrograms}/$existingpackage/$packageversion/Resources/Revision)" = "${packagerevision}" ]
    then
       Is_Entry "same" "cancel" && Pass_Away "Not attempting to install $packagename over same version."
-      Is_Entry "same" "remove" && doremove=yes
+      Is_Entry "same" "keep" && keepsame=yes
    fi
 }
 
@@ -243,7 +243,7 @@ function installation_failed() {
 }
 
 trap "installation_failed 'Caught signal. Exiting...'" SIGHUP SIGINT SIGTERM
-[ "yes" = "$doremove" ] && Pre_Installation_Preparation ${packagename} ${packageversion}
+[ "yes" = "$keepsame" ] || Pre_Installation_Preparation ${packagename} ${packageversion}
 
 Log_Normal "Installing $packagename, version $packageversion."
 
