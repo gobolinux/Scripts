@@ -18,6 +18,8 @@ export debugFD=7
 export logFD=8
 export questionFD=9
 
+[ -z "${logfile}" ] && logfile="/dev/null"
+
 if [ -n "$(echo -e)" ]
 then
    echo=echo

@@ -1052,6 +1052,11 @@ function Parse_Options() {
    if Boolean "verbose"
    then Import LogVerbose
    fi
+   if Entry "logfile"
+   then
+      export logfile="$(Entry logfile)"
+      touch "${logfile}" || Die "Could not open ${logfile}"
+   fi
    if [ "$helpOnNoArguments" -a -z "$(Arg 1)" ]
    then Show_Help
    fi
@@ -1061,3 +1066,4 @@ function Parse_Options() {
 Add_Option_Boolean "h" "help" "Show this help."
 Add_Option_Boolean "" "version" "Show program version."
 Add_Option_Boolean "v" "verbose" "Enable verbose mode."
+Add_Option_Entry "" "logfile" "Log all output to specified file."
