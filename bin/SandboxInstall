@@ -100,8 +100,13 @@ function cleanup() {
    settings="$installPackageDir/Settings"
    if ! [ "$unionsandbox" ]
    then
-      Is_Link "${settings}" && rm "${settings}"
-      Is_Directory "${settings}.hold" && mv "${settings}.hold" "${settings}"
+      if [ -z "$ROOTLESS_GOBOLINUX" ]
+      then
+         umount "${default_settings}"
+      else
+         Is_Link "${settings}" && rm "${settings}"
+         Is_Directory "${settings}.hold" && mv "${settings}.hold" "${settings}"
+      fi
    fi
 }
 
@@ -162,9 +167,14 @@ Boolean "no-sandbox" && sandbox=
 # symlink Settings to Defaults/Settings
 if [ -z "$unionsandbox" ]
 then
-    Assert_Dir $default_settings
-    Is_Directory "${settings}" && mv "${settings}" "${settings}.hold"
-    ln -s "${default_settings}" "${settings}"
+   Assert_Dir $default_settings
+   if [ -z "$ROOTLESS_GOBOLINUX" ]
+   then
+      mount --bind "${default_settings}" "${settings}"
+   else
+      Is_Directory "${settings}" && mv "${settings}" "${settings}.hold"
+      ln -s "${default_settings}" "${settings}"
+   fi    
 fi
 
 eval `Args_To_Array args 3`
