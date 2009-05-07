@@ -21,6 +21,7 @@ alias halt='off'
 alias poweroff='off'
 alias pd='pushd'
 alias p='popd'
+alias grep='grep --color=tty'
 # An alias for the lousy typist :)
 alias sl='ls'
 

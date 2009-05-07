@@ -19,6 +19,7 @@ alias lsh='ls -A .* -d'
 alias mkdir='mkdir -p'
 alias man='pinfo'
 alias info='pinfo'
+alias grep='grep --color=tty'
 alias off='clear ; shutdown -h -t 0 now "This system is powering off now."'
 
 unset OPS1
