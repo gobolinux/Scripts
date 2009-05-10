@@ -226,7 +226,7 @@ existingpackage=`ls "${goboPrograms}" | grep -i "^$packagename$"`
       doask=yes
    }
    
-   if [ -e "${goboPrograms}/$existingpackage/$packageversion" -a "$(cat ${goboPrograms}/$existingpackage/$packageversion/Resources/Revision)" = "${packagerevision}" ]
+   if [ -e "${goboPrograms}/$existingpackage/$packageversion" -a "$(cat ${goboPrograms}/$existingpackage/$packageversion/Resources/Revision 2>/dev/null)" = "${packagerevision}" ]
    then
       Is_Entry "same" "cancel" && Pass_Away "Not attempting to install $packagename over same version."
       Is_Entry "same" "keep" && keepsame=yes
