@@ -32,7 +32,7 @@ Compile Compile
 CompileProgram Scripts
 CompressAndBuildISO BuildLiveCD
 ContributeRecipe Compile
-ControlPanel Sun-JDK
+ControlPanel Sun-JDK Sun-JRE
 CreateInitRD Scripts
 CreatePackage Scripts
 CreateRootlessEnvironment Scripts
@@ -120,6 +120,7 @@ PerlMagick GraphicsMagick
 PrepareProgram Scripts
 PrintDesktopEntries AfterStep
 PrioritiseUpdates Scripts
+ProblemReport Scripts
 ProfileInstall Installer
 PublishRevision DevelScripts
 PutRecipe DevelScripts
@@ -284,6 +285,7 @@ ark KDE-Utils KDE-Webdev
 armagetronad ArmagetronAD
 armagetronad-uninstall ArmagetronAD
 arp Net-Tools
+arping IPUtils
 artsbuilder KDE-Multimedia
 artsc-config KDE-Libs
 artscat KDE-Libs
@@ -311,6 +313,9 @@ asgrad AfterStep
 asgtk-config AfterStep
 asi18n AfterStep
 asmerge AfterStep
+asn1Coding LibTasn1
+asn1Decoding LibTasn1
+asn1Parser LibTasn1
 aspell Aspell
 aspell-import Aspell
 asscale AfterStep
@@ -381,6 +386,7 @@ bdftogd GD
 bdftopcf Xorg Xorg-App
 bdftops ESP-Ghostscript GNU-Ghostscript Ghostscript
 bdftruncate Xorg Xorg-Font
+beep Beep
 beep-media-player BMP
 beforelight Xorg Xorg-App
 beryl Beryl-Core
@@ -503,6 +509,7 @@ cksum CoreUtils
 cleanlinks Imake Xorg
 clear Ncurses
 cln-config CLN
+clockdiff IPUtils
 cmake CMake
 cmp DiffUtils
 cmuwmtopbm Netpbm
@@ -536,6 +543,7 @@ cpanp-run-perl Perl
 cpfs.reiserfs ProgsReiserFS
 cpio Cpio
 cpp GCC
+cpphs-hugs Hugs
 cpsinfo Capseo
 cpsplay Capseo
 cpsrecode Capseo
@@ -760,6 +768,7 @@ e2fsck E2FSProgs
 e2image E2FSProgs
 e2label E2FSProgs
 e2pall TeTeX
+e2undo E2FSProgs
 earth OpenMotif
 easy_install Python-Setuptools Setuptools
 easytag EasyTAG
@@ -839,6 +848,7 @@ faac FAAC
 faad FAAD2
 factor CoreUtils
 faillog Shadow
+fakechroot FakeChroot
 false CoreUtils
 famd FAM
 fancontrol LM-Sensors
@@ -856,6 +866,7 @@ fdformat Util-Linux
 fdisk Util-Linux
 fdp Graphviz
 feedbrowser KDE-Network
+ffihugs Hugs
 ffmpeg FFmpeg
 ffplay FFmpeg
 ffserver FFmpeg
@@ -947,10 +958,13 @@ fsck E2FSProgs
 fsck.cramfs Util-Linux
 fsck.ext2 E2FSProgs
 fsck.ext3 E2FSProgs
+fsck.ext4 E2FSProgs
+fsck.ext4dev E2FSProgs
 fsck.minix Util-Linux
 fsck.msdos DosFSTools
 fsck.reiserfs ProgsReiserFS ReiserFSProgs
 fsck.vfat DosFSTools
+fsck.xfs XFSProgs
 fslsfonts Xorg Xorg-App
 fstobdf Xorg Xorg-App
 fstopgm Netpbm
@@ -1428,6 +1442,10 @@ helloint OpenMotif
 hellomotif OpenMotif
 help2man Help2Man
 hexdump Util-Linux
+hg Mercurial
+hg-relink Mercurial
+hgdiff Mercurial
+hgk Mercurial
 hibernate Hibernate-Script
 hibernate-ram Hibernate-Script
 hibernate.sh Hibernate-Script
@@ -1435,7 +1453,7 @@ hipstopgm Netpbm
 hltest GPM
 host Bind
 hostid CoreUtils
-hostname CoreUtils Net-Tools
+hostname CoreUtils InetUtils Net-Tools
 hotplug Hotplug
 hotshot2calltree KDE-SDK
 hp2ps GHC GHC-Bin
@@ -1445,6 +1463,7 @@ hpftodit Groff
 hpijs Hpijs
 hsc2hs GHC GHC-Bin
 hsc2hs-ghc GHC-Bin
+hsc2hs-hugs Hugs
 htcacheclean HTTPD
 htdbm HTTPD
 htdig HtDig
@@ -1458,6 +1477,7 @@ htop Htop
 htpasswd HTTPD
 httpd HTTPD
 httxt2dbm HTTPD
+hugs Hugs
 hw-master QuakeForge
 hwclock Util-Linux
 i18ninput OpenMotif
@@ -1491,7 +1511,7 @@ idle Python
 idlj Sun-JDK
 idn LibIDN
 iecset ALSA-Utils
-ifconfig Net-Tools
+ifconfig InetUtils Net-Tools
 ifnames Autoconf
 ifport Pcmcia-CS
 ifrename Wireless-Tools
@@ -1569,6 +1589,7 @@ ior-decode-2 ORBit2
 ipcrm Util-Linux
 ipcs Util-Linux
 iperf IPERF
+ipg IPUtils
 ipsec Openswan
 ipw3945d IPW3945d
 irb Ruby
@@ -1611,18 +1632,19 @@ jackrec JACK
 jar Sun-JDK
 jarsigner Sun-JDK
 jasper Jasper
-java Sun-JDK
+java Sun-JDK Sun-JRE
 java-rmi.cgi Sun-JDK
 java2groovy Groovy
 java2groovy.bat Groovy
+java_vm Sun-JRE
 javac Sun-JDK
 javadoc Sun-JDK
 javah Sun-JDK
 javap Sun-JDK
-javaws Sun-JDK
+javaws Sun-JDK Sun-JRE
 jbigtopnm Netpbm
 jconsole Sun-JDK
-jcontrol Sun-JDK
+jcontrol Sun-JDK Sun-JRE
 jdb Sun-JDK
 jed Jed
 jed-script Jed
@@ -1721,6 +1743,7 @@ kde-cp KDE-Base-Runtime
 kde-menu KDE-Libs
 kde-mv KDE-Base-Runtime
 kde-open KDE-Base-Runtime
+kde3 KDE-Base
 kde4 KDE-Base-Runtime
 kde4-config KDE-Libs
 kde4-menu KDE-Base-Runtime
@@ -1781,7 +1804,7 @@ kexi_delete_column KOffice
 kexi_delete_column_gui KOffice
 keylookup Signing-Party
 keytab-lilo.pl LILO
-keytool Sun-JDK
+keytool Sun-JDK Sun-JRE
 kfax KDE-Graphics
 kfaxview KDE-Graphics
 kfile KDE-Libs
@@ -2116,6 +2139,7 @@ libgnutls-extra-config GnuTLS Gnutls
 libnetcfg Perl
 libpng-config LibPNG
 libpng12-config LibPNG
+libtasn1-config LibTasn1
 libtool LibTool
 libtoolize LibTool
 libusb-config LibUSB
@@ -2217,18 +2241,18 @@ lynx Lynx
 lyx LyX Lyx
 lyxclient LyX
 lz MTools
-lzcat LZMA-Utils
-lzcmp LZMA-Utils
-lzdiff LZMA-Utils
-lzegrep LZMA-Utils
+lzcat LZMA-Utils XZ-Utils
+lzcmp LZMA-Utils XZ-Utils
+lzdiff LZMA-Utils XZ-Utils
+lzegrep LZMA-Utils XZ-Utils
 lzf LibLZF
-lzfgrep LZMA-Utils
-lzgrep LZMA-Utils
-lzless LZMA-Utils
-lzma LZMA-Utils
-lzmadec LZMA-Utils
+lzfgrep LZMA-Utils XZ-Utils
+lzgrep LZMA-Utils XZ-Utils
+lzless LZMA-Utils XZ-Utils
+lzma LZMA-Utils XZ-Utils
+lzmadec LZMA-Utils XZ-Utils
 lzmainfo LZMA-Utils
-lzmore LZMA-Utils
+lzmore LZMA-Utils XZ-Utils
 m4 M4
 macptopbm Netpbm
 madplay Mad
@@ -2322,10 +2346,13 @@ mkfs.bfs Util-Linux
 mkfs.cramfs Util-Linux
 mkfs.ext2 E2FSProgs
 mkfs.ext3 E2FSProgs
+mkfs.ext4 E2FSProgs
+mkfs.ext4dev E2FSProgs
 mkfs.minix Util-Linux
 mkfs.msdos DosFSTools
 mkfs.reiserfs ProgsReiserFS ReiserFSProgs
 mkfs.vfat DosFSTools
+mkfs.xfs XFSProgs
 mkhtmlindex Imake Xorg
 mkhybrid CDRTools
 mkindex TeTeX
@@ -2488,6 +2515,8 @@ nautilus-autorun-software Nautilus
 nautilus-cd-burner Nautilus-CD-Burner
 nautilus-connect-server Nautilus
 nautilus-file-management-properties Nautilus
+nbd-client NBD
+nbd-server NBD
 nc Netcat
 ncftp NcFTP
 ncftpbatch NcFTP
@@ -2653,7 +2682,7 @@ opera Opera
 opl2ofm TeTeX
 optimizegraphics KDE-SDK
 orage Orage
-orbd Sun-JDK
+orbd Sun-JDK Sun-JRE
 orbit-idl-2 ORBit2
 orbit2-config ORBit2
 osyncbinary OpenSync
@@ -2677,7 +2706,7 @@ outw Xorg Xorg-Server
 ovf2ovp TeTeX
 ovp2ovf TeTeX
 oxdvi TeTeX
-pack200 Sun-JDK
+pack200 Sun-JDK Sun-JRE
 pack_cis Pcmcia-CS
 package_crystalsvg KDE-SDK
 pagein OpenOffice
@@ -2901,7 +2930,8 @@ pinentry-curses Pinentry
 pinentry-gtk-2 Pinentry
 pinentry-qt Pinentry
 pinfo Pinfo
-ping InetUtils Netkit-Base
+ping IPUtils InetUtils Netkit-Base
+ping6 IPUtils InetUtils
 pinky CoreUtils
 pivot_root Util-Linux
 pixeltool Qt
@@ -2912,6 +2942,7 @@ pkill Procps
 pktogf TeTeX
 pktopbm Netpbm
 pktype TeTeX
+pl SWI-Prolog
 pl2pm Perl
 plasma KDE-Base-Workspace
 plasmaengineexplorer KDE-Base-Workspace
@@ -2920,8 +2951,12 @@ plasmoidviewer KDE-Base-Workspace
 playsound SDL_sound
 playsound_simple SDL_sound
 plipconfig Net-Tools
+plld SWI-Prolog
+plrc SWI-Prolog
 pltotf TeTeX
 pmap Procps
+pmap_dump Portmap
+pmap_set Portmap
 pmount Pmount
 pmount-hal Pmount
 pmt-ehd PAM-Mount
@@ -2996,9 +3031,10 @@ podchecker Perl Perl-Pod-Parser
 podselect Perl Perl-Pod-Parser
 podtohtml Perl-PodToHTML
 poldi-ctrl PAM-Poldi
-policytool Sun-JDK
+policytool Sun-JDK Sun-JRE
 pooltype TeTeX
 populate-dock.sh Kiba-Dock
+portmap Portmap
 post-grohtml Groff
 postcard.sh AfterStep
 poweroff Sysvinit
@@ -3228,6 +3264,7 @@ rapper Raptor
 raptor-config Raptor
 rar RAR
 rarp Net-Tools
+rarpd IPUtils
 ras2tiff TIFF
 rasqal-config Rasqal
 rasttopnm Netpbm
@@ -3255,6 +3292,7 @@ rdate Rdate
 rdesktop Rdesktop
 rdev Util-Linux
 rdfproc Redland
+rdisc IPUtils
 rdjpgcom JPEG
 rdoc Ruby
 reLyX Lyx
@@ -3313,8 +3351,8 @@ rlogin-cwd Expect
 rm CoreUtils
 rmdir CoreUtils
 rmic Sun-JDK
-rmid Sun-JDK
-rmiregistry Sun-JDK
+rmid Sun-JDK Sun-JRE
+rmiregistry Sun-JDK Sun-JRE
 rmmod Module-Init-Tools
 rnano Nano
 rndc Bind
@@ -3357,6 +3395,7 @@ run_qtparted QtParted
 rundig HtDig
 runghc GHC GHC-Bin
 runhaskell GHC GHC-Bin
+runhugs Hugs
 runit Runit
 runit-init Runit
 runlevel Sysvinit
@@ -3372,6 +3411,8 @@ s2both Uswsusp
 s2disk Uswsusp
 s2p Perl
 s2ram Uswsusp
+s3backer S3Backer
+safe_finger TCPWrappers
 safestartkde KDE-Base-Workspace
 sampler2_0 OpenMotif
 sash Sash
@@ -3432,7 +3473,7 @@ sensors-conf-convert LM-Sensors
 sensors-detect LM-Sensors
 seq CoreUtils
 serialver Sun-JDK
-servertool Sun-JDK
+servertool Sun-JDK Sun-JRE
 sessreg Xorg Xorg-App
 setDate OpenMotif
 set_color Fish
@@ -3585,6 +3626,7 @@ stream ImageMagick
 streamer Xawtv
 strigiclient Strigi
 strigicmd Strigi
+strigidaemon Strigi
 strigidaemon2 Strigi
 strings BinUtils
 strip BinUtils
@@ -3655,6 +3697,9 @@ tcdialog TeTeX
 tclsh Tcl
 tclsh8.4 Tcl
 tclsh8.5 Tcl
+tcpd TCPWrappers
+tcpdchk TCPWrappers
+tcpdmatch TCPWrappers
 tdbbackup Samba
 tdbdump Samba
 tdbtool Samba
@@ -3699,6 +3744,7 @@ texutil TeTeX
 tfmtodit Groff
 tftopl TeTeX
 tftp InetUtils TFTP-HPA
+tftpd IPUtils
 tgatoppm Netpbm
 tgz MTools
 thinkjettopbm Netpbm
@@ -3733,7 +3779,8 @@ tknewsbiff Expect
 tkpasswd Expect
 tload Procps
 tmrdemo Jasper
-tnameserv Sun-JDK
+tmux Tmux
+tnameserv Sun-JDK Sun-JRE
 toc2cddb CDRDAO
 toc2cue CDRDAO
 toc2mp3 CDRDAO
@@ -3747,7 +3794,10 @@ tp_tagger LibTunepimp
 tptestclient TPTest
 tput Ncurses
 tr CoreUtils
-traceroute TraceRoute
+tracepath IPUtils
+tracepath6 IPUtils
+traceroute InetUtils TraceRoute
+traceroute6 IPUtils
 trackgen TORCS
 transxx KDE-SDK
 trash Trash
@@ -3756,6 +3806,7 @@ tree OpenMotif
 trm LibTunepimp
 troff Groff
 true CoreUtils
+try-from TCPWrappers
 tryaffix Ispell
 tset Ncurses
 tsort CoreUtils
@@ -3822,12 +3873,13 @@ unix-lpr.sh ESP-Ghostscript GNU-Ghostscript Ghostscript
 unix_chkpwd Linux-PAM
 unix_update Linux-PAM
 unlink CoreUtils
-unlzma LZMA-Utils
+unlzma LZMA-Utils XZ-Utils
 unopkg OpenOffice
-unpack200 Sun-JDK
+unpack200 Sun-JDK Sun-JRE
 unrar Unrar
 unshar SharUtils
 unsquashfs SquashFS-Tools
+unxz XZ-Utils
 unzip Unzip
 unzip-mem ZzipLib
 unzipsfx Unzip
@@ -3858,6 +3910,7 @@ uudecode SharUtils
 uudeview UUDeview
 uuencode SharUtils
 uuenview UUDeview
+uuidd E2FSProgs
 uuidgen E2FSProgs
 uuwish UUDeview
 uvccapture UVCCapture
@@ -4092,6 +4145,23 @@ xfprint4-manager XFPrint
 xfq XFE
 xfrun4 XFCE-Utils
 xfs Xorg Xorg-App
+xfs_admin XFSProgs
+xfs_bmap XFSProgs
+xfs_check XFSProgs
+xfs_copy XFSProgs
+xfs_db XFSProgs
+xfs_freeze XFSProgs
+xfs_growfs XFSProgs
+xfs_info XFSProgs
+xfs_io XFSProgs
+xfs_logprint XFSProgs
+xfs_mdrestore XFSProgs
+xfs_metadump XFSProgs
+xfs_mkfile XFSProgs
+xfs_ncheck XFSProgs
+xfs_quota XFSProgs
+xfs_repair XFSProgs
+xfs_rtcp XFSProgs
 xfsinfo Xorg Xorg-App
 xft-config Xorg Xorg-Lib
 xftaskbar4 XFCE4-Panel
@@ -4222,6 +4292,9 @@ xwdtopnm Netpbm
 xwininfo Xorg Xorg-App
 xwud Xorg Xorg-App
 xxd Vim
+xz XZ-Utils
+xzcat XZ-Utils
+xzdec XZ-Utils
 yacc Bison
 yaf-cdda KDE-Multimedia
 yaf-mpgplay KDE-Multimedia
