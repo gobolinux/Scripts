@@ -37,7 +37,8 @@ for prog in programs:
 	# Skip various problematic entries: local or non-installable
 	# program entries, renames and case changes
 	if ("LocalScripts" == prog or 'LiveCD' == prog or 'Installer' == prog or
-		'LibUngif' == prog or 'Koffice' == prog or 'ESP-GhostScript' == prog):
+		'LibUngif' == prog or 'Koffice' == prog or 'ESP-GhostScript' == prog
+		or 'BusyBox' == prog):
 		continue
 	# Cover both executable directories
 	for dtype in ('bin', 'sbin'):
