@@ -20,23 +20,27 @@
 #define DATAFILE "/Programs/Scripts/Current/Data/CommandNotFound.data"
 #endif
 
+// Defined like this so it can easily be changed back to stderr if
+// desired.
+#define OUTPUT stdout
+
 void multiprogrammessage(char * executable, char * program, char * program2) {
-	fprintf(stderr, "The program '%s' is not currently installed.\n"
+	fprintf(OUTPUT, "The program '%s' is not currently installed.\n"
 	                "It is available in the following packages:\n",
 	                executable);
-	fprintf(stderr, " %s, %s", program, program2);
+	fprintf(OUTPUT, " %s, %s", program, program2);
 	while ((program2 = strtok(NULL, " ")))
-		fprintf(stderr, ", %s", program2);
+		fprintf(OUTPUT, ", %s", program2);
 	// The last program will include the newline in it, no need to be explicit
-	fprintf(stderr, "You can install one of these by typing (for example):\n"
+	fprintf(OUTPUT, "You can install one of these by typing (for example):\n"
                     " InstallPackage %s\nor\n Compile %s\n",
                     program, program);
 }
 
 void singleprogrammessage(char * executable, char * program) {
-	fprintf(stderr, "The program '%s' is not currently installed.\n"
+	fprintf(OUTPUT, "The program '%s' is not currently installed.\n"
 	                "You can install it by typing:\n", executable);
-	fprintf(stderr, " InstallPackage %sor\n Compile %s", program, program);
+	fprintf(OUTPUT, " InstallPackage %sor\n Compile %s", program, program);
 }
 
 int foundexecutable(char * executable, char * target) {
