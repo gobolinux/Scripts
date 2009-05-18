@@ -33,7 +33,7 @@ function Get_Archive_Format() {
 function needs_archiver() {
    Parameters "$@" format archiver
    Executable_Exists_In_Path ${archiver} || {
-      Log_Verbose "$(CommandNotFound ${archiver} 2>&1)"
+      Log_Normal "$(CommandNotFound ${archiver} 2>&1)"
       Log_Terse "Format ${format} requires ${archiver}"
       return 1
    }
