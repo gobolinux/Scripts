@@ -1,0 +1,108 @@
+#!/usr/bin/python
+# Corrections - suggest similar words to mistaken input
+# Copyright (C) 2009 Michael Homer
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# The dameraulevenshtein method is MIT-licensed, as its origin is.
+
+import sys
+import os
+
+from PythonUtils import *
+
+
+def dameraulevenshtein(seq1, seq2):
+    """Calculate the Damerau-Levenshtein distance between sequences.
+
+    This distance is the number of additions, deletions, substitutions,
+    and transpositions needed to transform the first sequence into the
+    second. Although generally used with strings, any sequences of
+    comparable objects will work.
+
+    Transpositions are exchanges of *consecutive* characters; all other
+    operations are self-explanatory.
+
+    This implementation is O(N*M) time and O(M) space, for N and M the
+    lengths of the two sequences.
+
+    >>> dameraulevenshtein('ba', 'abc')
+    2
+    >>> dameraulevenshtein('fee', 'deed')
+    2
+
+    It works with arbitrary sequences too:
+    >>> dameraulevenshtein('abcd', ['b', 'a', 'c', 'd', 'e'])
+    2
+    """
+    # codesnippet:D0DE4716-B6E6-4161-9219-2903BF8F547F
+    # Conceptually, this is based on a len(seq1) + 1 * len(seq2) + 1 matrix.
+    # However, only the current and two previous rows are needed at once,
+    # so we only store those.
+    oneago = None
+    thisrow = range(1, len(seq2) + 1) + [0]
+    for x in xrange(len(seq1)):
+        # Python lists wrap around for negative indices, so put the
+        # leftmost column at the *end* of the list. This matches with
+        # the zero-indexed strings and saves extra calculation.
+        twoago, oneago, thisrow = oneago, thisrow, [0] * len(seq2) + [x + 1]
+        for y in xrange(len(seq2)):
+            delcost = oneago[y] + 1
+            addcost = thisrow[y - 1] + 1
+            subcost = oneago[y - 1] + (seq1[x] != seq2[y])
+            thisrow[y] = min(delcost, addcost, subcost)
+            # This block deals with transpositions
+            if (x > 0 and y > 0 and seq1[x] == seq2[y - 1]
+                and seq1[x-1] == seq2[y] and seq1[x] != seq2[y]):
+                thisrow[y] = min(thisrow[y], twoago[y - 2] + 1)
+    return thisrow[len(seq2) - 1]
+
+
+def Corrections(word, dir=None, alternatives=None, threshold=0):
+    if dir:
+        alternatives = os.listdir(dir)
+    word = word.lower()
+    augmented = [(dameraulevenshtein(word, alt.lower()), alt)
+                 for alt in alternatives]
+    augmented.sort()
+    best_score = augmented[0][0]
+    cond = lambda score: score <= best_score + threshold
+    possibilities = [x[1] for x in augmented if cond(x[0])]
+    return possibilities
+
+
+if __name__ == '__main__':
+    from optparse import OptionParser
+    parser = OptionParser()
+    parser.add_option("--dir", help="take options from DIRECTORY",
+                      metavar="DIRECTORY")
+    parser.add_option("--log-name", help="name to show in log message")
+    parser.add_option("--stdin", help="read options from stdin",
+                      action="store_true")
+    parser.add_option("--threshold", help="leniency in matching",
+                      default=0, type=int)
+    options, args = parser.parse_args()
+    alternatives = args[1:]
+    if options.stdin:
+        alternatives = map(str.strip, sys.stdin.xreadlines())
+    corrections = Corrections(args[0], dir=options.dir,
+                              alternatives=alternatives,
+                              threshold=options.threshold)
+    if options.log_name:
+        if len(corrections) == 1:
+            Log_Normal("Did you mean this?", options.log_name)
+        else:
+            Log_Normal("Did you mean one of these?", options.log_name)
+    for cor in corrections:
+        print " ", cor
