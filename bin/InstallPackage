@@ -142,6 +142,8 @@ then
             [ ! "$batch" ] && Ask_Continue "Installing ${found}"
             InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${found}"
          else
+            Log_Error "Package for $name not found."
+            GetAvailable -t official_package|cut -d' ' -f2|uniq|Corrections --stdin --log-name InstallPackage "$name"
             Die_With $errorNotFound "Package for ${name} not found."
          fi
       fi
