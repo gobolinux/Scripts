@@ -27,7 +27,12 @@ appname=$(Arg 1)
 appver=$(Arg 2)
 [ "${appname}" ] || Die "Argument missing: specify the program name."
 program=`GuessProgramCase ${appname}`
-   [ ! -d "${goboPrograms}/${program}" ] && Die "${program} not found in ${goboPrograms}"
+if [ ! -d "${goboPrograms}/${program}" ]
+then
+   Log_Error "$program not found in $goboPrograms."
+   Corrections --log-name RemoveProgram --dir "$goboPrograms" "$program"
+   Die
+fi
 
 if ! [ "${appver}" ]
 then

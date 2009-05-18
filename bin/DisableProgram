@@ -31,6 +31,12 @@ if [ "$(Arg 2)" ]
 then versionnumber="$(Arg 2)"
 else versionnumber=`Get_Version "$programname" "Current"`
 fi
+if ! [ -e "$goboPrograms/$programname" ]
+then
+   Log_Error "Program $programname not found."
+   Corrections --log-name DisableProgram --dir "$goboPrograms" "$programname"
+   Die
+fi 
 if [ -z "${versionnumber}" ]
 then
    Die "No current version found and no version specified. Available versions are:\n$(All_Versions "$programname")"

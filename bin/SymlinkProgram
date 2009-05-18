@@ -94,7 +94,10 @@ current="$packageDir/Current"
 version="$(basename "$(readlink -f "${current}")" /)"
 
 if ! Is_Directory "$packageDir"
-then Die "Directory $packageDir does not exist."
+then
+   Log_Error "Directory $packageDir does not exist."
+   Corrections --log-name SymlinkProgram --dir "$goboPrograms" "$package"
+   Die
 fi
 
 if [ "$(Arg 2)" ]
