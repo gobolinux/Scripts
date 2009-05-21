@@ -1057,7 +1057,7 @@ function Parse_Options() {
       export logfile="$(Entry logfile)"
       touch "${logfile}" || Die "Could not open ${logfile}"
    fi
-   if [ "$helpOnNoArguments" -a -z "$(Arg 1)" ]
+   if [ "$helpOnNoArguments" = "yes" -a -z "$(Arg 1)" ]
    then Show_Help
    fi
 }
