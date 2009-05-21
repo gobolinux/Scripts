@@ -14,9 +14,7 @@ scriptCredits="Released under the GNU GPL."
 helpOnNoArguments=yes
 scriptUsage="<package_file>|<package_dir>"
 scriptExample="Gimp--2.0.5.tar.gz"
-scriptNotes="Default behavior for --same is 'cancel', for --old is 'keep'.
-    Notice that 'remove' may be dangerous for important system packages
-    as it can leave the system in an inconsistent state during installation."
+scriptNotes="Default behavior for --same is 'cancel', for --old is 'keep'."
 Add_Option_Boolean "b" "batch" "Do not ask for confirmation."
 Add_Option_Boolean ""  "use-contrib" "Look in contrib store as well."
 Add_Option_Boolean "D" "no-dependencies" "Do not try to fullfit dependencies."
