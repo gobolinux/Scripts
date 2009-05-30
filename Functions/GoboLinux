@@ -491,11 +491,12 @@ function Pre_Installation_Preparation() {
    local linkedfiles=()
    if [ -e "${goboPrograms}/${appname}/${appver}" ]
    then
-      programfiles=$(find "${goboPrograms}/${appname}/${appver}")
+      programfiles=$(ListProgramFiles "${goboPrograms}/${appname}/${appver}")
       Progress_Start "Making a safe copy of installed version"
       $sudo_exec cp -a "${goboPrograms}/${appname}/${appver}" "${goboPrograms}/${appname}/${appver}-safelinking"
       for f in ${programfiles[@]}
       do
+         f="${goboPrograms}/${appname}/${appver}/${f}"
          systempath="$(Programs_To_System_Path "${f}")"
          [ "$(dirname "$(readlink -f "${systempath}")")" != "$(dirname "${f}")" ] && continue
          reallink="${systempath}"
@@ -527,11 +528,12 @@ function Post_Installation_Clean_Up() {
          Log_Terse "Installation was moved to ${goboPrograms}/${appname}/${appver}-failed"
       fi
 
-      programfiles=$(find "${goboPrograms}/${appname}/${appver}-safelinking")
+      programfiles=$(ListProgramFiles "${goboPrograms}/${appname}/${appver}-safelinking")
       $sudo_exec cp -a "${goboPrograms}/${appname}/${appver}-safelinking" "${goboPrograms}/${appname}/${appver}"
       Progress_Start "Restoring safe copy"
       for f in ${programfiles[@]}
       do
+         f="${goboPrograms}/${appname}/${appver}/${f}"
          systempath="$(Programs_To_System_Path "${f}")"
          [ "$(dirname "$(readlink -f "${systempath}")")" != "$(dirname "${f}")" ] && continue
          reallink="${systempath}"
