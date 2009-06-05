@@ -276,7 +276,7 @@ def find_matching_package(rule, acceptable_types, noWeb=False, goboPrograms=None
 		return global_matches_cache[string_rule]
 
 	if not availables:
-		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb)
+		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb, localdirs=localdirs)
 
 	available_options = FindPackage(rule['program'], types=acceptable_types, availables=availables, accessWeb=not noWeb, fulllist=True, goboPrograms=goboPrograms, localdirs=localdirs)
 
