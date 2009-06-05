@@ -369,6 +369,7 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	                                    all_matches = None, no_compatlist=False, cross_compile=False, depfile=None,
 	                                    goboPrograms=None, localdirs=None,
 	                                    availables=None):
+	global global_dependencies_blacklist
 	ordered_matches, ordered_rules = [], []
 	self_match, self_rule = None, None
 	if availables is None:
@@ -421,6 +422,9 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	#all_rules  = [ rule for rule in all_rules if not any(pp == rule['program'] for pp,vv,tt,uu in all_matches) ]
 	missing_dependencies = [ rule for rule in all_rules if not find_matching_package(rule, ['installed'], noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs, availables=availables) ]
 	for rule in all_rules:
+		if rule['program'] in global_dependencies_blacklist:
+			continue
+		
 		if hook:
 			hook("Checking dependencies", len(all_matches), len(all_matches)+1)
 
@@ -602,7 +606,7 @@ if __name__ == '__main__':
 		try:
 			if not sys.argv[1:]:
 				sys.argv[1:] = [ '--help' ]
-			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:l:p:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'quiet-progress', 'no-compatlist', 'cross-compile', 'file=', 'help', 'local-dirs=', 'gobo-programs=', 'no-prompt'])
+			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:l:p:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'blacklist=', 'quiet-progress', 'no-compatlist', 'cross-compile', 'file=', 'help', 'local-dirs=', 'gobo-programs=', 'no-prompt'])
 		except getopt.GetoptError, detail:
 			print sys.argv[0].split('/')[-1]+': '+str(detail)
 			sys.exit(1)
@@ -650,6 +654,8 @@ if __name__ == '__main__':
 				noWeb = True
 			elif o in ['--no-blacklist', '-B']:
 				global_dependencies_blacklist = []
+			elif o in ['--blacklist']:
+				global_dependencies_blacklist = a.split(',')
 			elif o in ['--no-compatlist', '-C']:
 				no_compatlist = True
 			elif o in ['--cross-compile']:
@@ -709,6 +715,8 @@ Options:
 
  -B
  --no-blacklist       Do not skip packages listed at Dependencies.blacklist
+
+ --blacklist=         List of application names to blacklist
 
  --no-prompt          Do not prompt to install anything
 
