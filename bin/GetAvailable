@@ -356,7 +356,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 			availables['installed'] = {}
 		if not availables['installed'].has_key('programs') or not availables['installed']['programs']:
 			availables['installed']['programs'] = KeyInsensitiveDict()
-		getUnpackedLocalPackages(path, True, availables['installed']['programs'], default_revision= 'r1')
+		getUnpackedLocalPackages(path, False, availables['installed']['programs'], default_revision= 'r1')
 
 	if 'current' in types:
 		if goboPrograms:
@@ -382,7 +382,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 		import os
 		for directory in localdirs:
 			getPackedLocalPackages(os.path.expanduser(directory.strip()), availables['local_package']['programs'])
-			getUnpackedLocalPackages(os.path.expanduser(directory.strip()), True, availables['local_package']['programs'])
+			getUnpackedLocalPackages(os.path.expanduser(directory.strip()), False, availables['local_package']['programs'])
 
 	if accessWeb and (not doNotUpdate or forceupdate):
 		UpdateCache(types, forceupdate, hook)
