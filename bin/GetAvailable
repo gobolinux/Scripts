@@ -234,23 +234,24 @@ def getUnpackedLocalPackages(directory, requireCurrent=False, d=None, default_re
 
 		for v in versions:
 			# detsch, 12/11/2004: quick fix -> if not requireCurrent, assuming it is looking for recipes
-			if not requireCurrent:
-				v, r = Split_Version_Revision(v)
-				u = directory+'/'+p+'/'+v
-				if r:
-					u += '-'+r
-				else:
-					r = default_revision
-				if not os.access(u+'/'+'Recipe', os.R_OK):
-					continue
+			# jonas, 2009-06-05: why? this function is supposed to look for packages
+#			if not requireCurrent:
+#				v, r = Split_Version_Revision(v)
+#				u = directory+'/'+p+'/'+v
+#				if r:
+#					u += '-'+r
+#				else:
+#					r = default_revision
+#				if not os.access(u+'/'+'Recipe', os.R_OK):
+#					continue
+#			else:
+			u = directory+'/'+p+'/'+v
+			if os.access(u+'/'+'Resources/Revision', os.R_OK):
+				f = open(u+'/'+'Resources/Revision')
+				r = f.read().strip()
+				f.close()
 			else:
-				u = directory+'/'+p+'/'+v
-				if os.access(u+'/'+'Resources/Revision', os.R_OK):
-					f = open(u+'/'+'Resources/Revision')
-					r = f.read().strip()
-					f.close()
-				else:
-					r = default_revision
+				r = default_revision
 			addToDict(d, p,v,r,u)
 	return d
 
