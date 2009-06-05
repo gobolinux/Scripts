@@ -255,7 +255,7 @@ def getUnpackedLocalPackages(directory, requireCurrent=False, d=None, default_re
 			addToDict(d, p,v,r,u)
 	return d
 
-def getPackedLocalPackages(directory, d = None):
+def getPackedLocalPackages(directory, d = None, default_revision=''):
 	import os.path
 	if directory and directory[-1] != '/':
 		directory = directory + '/'
@@ -272,6 +272,8 @@ def getPackedLocalPackages(directory, d = None):
 		if len(l) > 2:
 			p = l[0]
 			v,r = Split_Version_Revision(l[1])
+			if not r:
+				r=default_revision
 			addToDict(d, p,v,r,directory+file)
 	return d
 
@@ -381,9 +383,11 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 			localdirs = globalSettings['defaultLocalPackagesPaths']
 
 		import os
+		# Placing local_packages in par with local recipes
+		default_revision='r'+str(sys.maxint)
 		for directory in localdirs:
-			getPackedLocalPackages(os.path.expanduser(directory.strip()), availables['local_package']['programs'])
-			getUnpackedLocalPackages(os.path.expanduser(directory.strip()), False, availables['local_package']['programs'])
+			getPackedLocalPackages(os.path.expanduser(directory.strip()), availables['local_package']['programs'], default_revision=default_revision)
+			getUnpackedLocalPackages(os.path.expanduser(directory.strip()), False, availables['local_package']['programs'], default_revision=default_revision)
 
 	if accessWeb and (not doNotUpdate or forceupdate):
 		UpdateCache(types, forceupdate, hook)
@@ -420,7 +424,8 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 		if not availables['recipe'].has_key('programs') or not availables['recipe']['programs']:
 			availables['recipe']['programs'] = KeyInsensitiveDict()
 
-		default_revision = ''
+		# searches local recipes first
+		default_revision='r'+str(sys.maxint)
 		for compileRecipeDir in compileRecipeDirs:
 			availables['recipe']['programs'] = getPackedLocalPackages(compileRecipeDir, availables['recipe']['programs'])
 			availables['recipe']['programs'] = getUnpackedLocalPackages(compileRecipeDir, False, availables['recipe']['programs'], default_revision=default_revision)
