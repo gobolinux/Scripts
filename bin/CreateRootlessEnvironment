@@ -227,7 +227,7 @@ then
       if [ "$REPLY" = "y" ]
       then
          scripts=`readlink -f /Programs/Scripts/Current`
-	 version=`basename "${scripts}"`
+         version=`basename "${scripts}"`
          mkdir "${goboPrefix}/Programs/Scripts"
          cp -r $scripts "${goboPrefix}/Programs/Scripts"
          cd "${goboPrefix}/Programs/Scripts"
