@@ -326,7 +326,7 @@ then
       then
          rm "share"
       fi
-      if Is_Real_Directory "$Shared"
+      if Is_Real_Directory "Shared"
       then
          if [ "$(find Shared -name '*.cmake' | wc -l)" != "0" ]
          then
