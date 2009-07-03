@@ -278,6 +278,11 @@ def getVersionsFromList(file, d = None):
 	if not os.access(file, os.R_OK):
 		return d
 
+	if os.path.getsize(file) == 0:
+		Log_Terse("Removing empty %s..."%(file),"GetAvailable")
+		os.remove(file)
+		return d
+
 	try:
 		if file[-4:] == '.bz2':
 			import bz2
@@ -308,6 +313,11 @@ def getVersionsFromPackagesList(file, path_prefix = '', d = None):
 	if not os.access(file, os.R_OK):
 		return d
 
+	if os.path.getsize(file) == 0:
+		Log_Terse("Removing empty %s..."%(file),"GetAvailable")
+		os.remove(file)
+		return d
+	
 	if path_prefix and path_prefix[-1] != '/':
 		path_prefix = path_prefix + '/'
 
