@@ -6,7 +6,7 @@ ROWS=${SIZE%% *}
 
 [ "$COLUMNS" ] || export COLUMNS=80
 
-if [ "$SIZE" ]
+if [ "$SIZE" -o "$goboColorScripts" = "yes" ]
 then
    colorGray="\033[1;30m"
    colorBoldBlue="\033[1;34m"
