@@ -33,29 +33,29 @@ Is_Log_Mode() {
 
 Log_Function() {
     local message
-    Parameters "$@" message color FD
-    $echo -n "${colorGray}${scriptName}:${colorNormal} ${color}$message${colorNormal}" >&$FD
-    $echo -n "$scriptName: $message" >&$logFD
+    Parameters "$@" message color FD echoflags
+    $echo $echoflags "${colorGray}${scriptName}:${colorNormal} ${color}$message${colorNormal}" >&$FD
+    $echo $echoflags "$scriptName: $message" >&$logFD
 }
 
 Log_Error() {
-    Log_Function "$*\n" "${colorBoldRed}" "${errorFD}"
+    Log_Function "$*" "${colorBoldRed}" "${errorFD}"
 }
 
 Log_Normal() {
-    Log_Function "$*\n" "${colorCyan}" "${normalFD}"
+    Log_Function "$*" "${colorCyan}" "${normalFD}"
 }
 
 Log_Terse() {
-    Log_Function "$*\n" "${colorBoldCyan}" "${terseFD}"
+    Log_Function "$*" "${colorBoldCyan}" "${terseFD}"
 }
 
 Log_Verbose() {
-    Log_Function "$*\n" "${colorNormal}" "${verboseFD}"
+    Log_Function "$*" "${colorNormal}" "${verboseFD}"
 }
 
 Log_Debug() {
-    Log_Function "$*\n" "${colorRedWhite}" "${debugFD}"
+    Log_Function "$*" "${colorRedWhite}" "${debugFD}"
 }
 
 Quiet() { "$@" &> /dev/null ;}
@@ -87,7 +87,8 @@ Ask_Continue() {
 }
 
 Log_Question() {
-    Log_Function "$*\n" "${colorBoldCyan}" "${questionFD}"
+   # Manager expects ${colorNormal}${colorNormal} in questions
+   Log_Function "$*" "${colorNormal}${colorNormal}${colorBoldCyan}" "${questionFD}"
 }
 
 Ask_Option() {
@@ -138,7 +139,7 @@ Ask() {
 Progress_Start() {
    local message
    Parameters "$@" message
-   Log_Function "$message *" "${colorCyan}" "${normalFD}"
+   Log_Function "$message *" "${colorCyan}" "${normalFD}" "-n"
    spinControl=0
 }
 
