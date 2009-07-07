@@ -276,7 +276,7 @@ def find_matching_package(rule, acceptable_types, noWeb=False, goboPrograms=None
 		return global_matches_cache[string_rule]
 
 	if not availables:
-		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb, localdirs=localdirs)
+		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb, localdirs=localdirs, goboPrograms=goboPrograms)
 
 	available_options = FindPackage(rule['program'], types=acceptable_types, availables=availables, accessWeb=not noWeb, fulllist=True, goboPrograms=goboPrograms, localdirs=localdirs)
 
@@ -372,7 +372,7 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	ordered_matches, ordered_rules = [], []
 	self_match, self_rule = None, None
 	if availables is None:
-		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb, localdirs=localdirs)
+		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb, localdirs=localdirs, goboPrograms=goboPrograms)
 
 	if all_matches == None:
 		global_always_do = None
@@ -602,7 +602,7 @@ if __name__ == '__main__':
 		try:
 			if not sys.argv[1:]:
 				sys.argv[1:] = [ '--help' ]
-			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:l:p:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'quiet-progress', 'no-compatlist', 'cross-compile', 'file=', 'help', 'local-dirs=', 'gobo-programs', 'no-prompt'])
+			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:l:p:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'quiet-progress', 'no-compatlist', 'cross-compile', 'file=', 'help', 'local-dirs=', 'gobo-programs=', 'no-prompt'])
 		except getopt.GetoptError, detail:
 			print sys.argv[0].split('/')[-1]+': '+str(detail)
 			sys.exit(1)
@@ -720,7 +720,7 @@ Options:
  --file               Check for the dependencies listed in the given file.
 
  -p
- --gobo-programs      Override default """+getGoboVariable("goboPrograms")+""" as path of installed packages
+ --gobo-programs=     Override default """+getGoboVariable("goboPrograms")+""" as path of installed packages
 
  --local-dirs=[d1,..] Where to look for local binary packages. By default,
                       uses the paths defined at GetAvailable.conf.
