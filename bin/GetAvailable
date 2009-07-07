@@ -234,23 +234,24 @@ def getUnpackedLocalPackages(directory, requireCurrent=False, d=None, default_re
 
 		for v in versions:
 			# detsch, 12/11/2004: quick fix -> if not requireCurrent, assuming it is looking for recipes
-			if not requireCurrent:
-				v, r = Split_Version_Revision(v)
-				u = directory+'/'+p+'/'+v
-				if r:
-					u += '-'+r
-				else:
-					r = default_revision
-				if not os.access(u+'/'+'Recipe', os.R_OK):
-					continue
+			# jonas, 2009-06-05: why? this function is supposed to look for packages
+#			if not requireCurrent:
+#				v, r = Split_Version_Revision(v)
+#				u = directory+'/'+p+'/'+v
+#				if r:
+#					u += '-'+r
+#				else:
+#					r = default_revision
+#				if not os.access(u+'/'+'Recipe', os.R_OK):
+#					continue
+#			else:
+			u = directory+'/'+p+'/'+v
+			if os.access(u+'/'+'Resources/Revision', os.R_OK):
+				f = open(u+'/'+'Resources/Revision')
+				r = f.read().strip()
+				f.close()
 			else:
-				u = directory+'/'+p+'/'+v
-				if os.access(u+'/'+'Resources/Revision', os.R_OK):
-					f = open(u+'/'+'Resources/Revision')
-					r = f.read().strip()
-					f.close()
-				else:
-					r = default_revision
+				r = default_revision
 			addToDict(d, p,v,r,u)
 	return d
 
@@ -366,7 +367,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 			availables['installed'] = {}
 		if not availables['installed'].has_key('programs') or not availables['installed']['programs']:
 			availables['installed']['programs'] = KeyInsensitiveDict()
-		getUnpackedLocalPackages(path, True, availables['installed']['programs'], default_revision= 'r1')
+		getUnpackedLocalPackages(path, False, availables['installed']['programs'], default_revision= 'r1')
 
 	if 'current' in types:
 		if goboPrograms:
@@ -392,7 +393,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 		import os
 		for directory in localdirs:
 			getPackedLocalPackages(os.path.expanduser(directory.strip()), availables['local_package']['programs'])
-			getUnpackedLocalPackages(os.path.expanduser(directory.strip()), True, availables['local_package']['programs'])
+			getUnpackedLocalPackages(os.path.expanduser(directory.strip()), False, availables['local_package']['programs'])
 
 	if accessWeb and (not doNotUpdate or forceupdate):
 		UpdateCache(types, forceupdate, hook)
