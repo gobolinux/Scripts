@@ -111,7 +111,7 @@ def downloadFiles(files, force=False, hook=None, message=''):
 			threads.append(t)
  		else:
 			downloadedCount = downloadedCount + 1
-	
+
 	if threads and hook:
 		hook(message, downloadedCount, len(files))
 
@@ -233,25 +233,24 @@ def getUnpackedLocalPackages(directory, requireCurrent=False, d=None, default_re
 			continue
 
 		for v in versions:
-			# detsch, 12/11/2004: quick fix -> if not requireCurrent, assuming it is looking for recipes
-			# jonas, 2009-06-05: why? this function is supposed to look for packages
-#			if not requireCurrent:
-#				v, r = Split_Version_Revision(v)
-#				u = directory+'/'+p+'/'+v
-#				if r:
-#					u += '-'+r
-#				else:
-#					r = default_revision
-#				if not os.access(u+'/'+'Recipe', os.R_OK):
-#					continue
-#			else:
-			u = directory+'/'+p+'/'+v
-			if os.access(u+'/'+'Resources/Revision', os.R_OK):
-				f = open(u+'/'+'Resources/Revision')
-				r = f.read().strip()
-				f.close()
+			# detsch, 12/11/2004: quick fix -> if not requireCurrent, assuming it is looking for unpacked recipes
+			if not requireCurrent:
+				v, r = Split_Version_Revision(v)
+				u = directory+'/'+p+'/'+v
+				if r:
+					u += '-'+r
+				else:
+					r = default_revision
+				if not os.access(u+'/'+'Recipe', os.R_OK):
+					continue
 			else:
-				r = default_revision
+				u = directory+'/'+p+'/'+v
+				if os.access(u+'/'+'Resources/Revision', os.R_OK):
+					f = open(u+'/'+'Resources/Revision')
+					r = f.read().strip()
+					f.close()
+				else:
+					r = default_revision
 			addToDict(d, p,v,r,u)
 	return d
 
@@ -320,7 +319,7 @@ def getVersionsFromPackagesList(file, path_prefix = '', d = None):
 		Log_Terse("Removing empty %s..."%(file),"GetAvailable")
 		os.remove(file)
 		return d
-	
+
 	if path_prefix and path_prefix[-1] != '/':
 		path_prefix = path_prefix + '/'
 
