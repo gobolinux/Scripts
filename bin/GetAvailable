@@ -182,7 +182,7 @@ def addToDict(d, p, v, r, u):
 		d[p][v][r] = []
 	d[p][v][r].append(u)
 
-def getUnpackedLocalPackages(directory, requireCurrent=False, d=None, default_revision='', current_only=False):
+def getUnpackedLocalPackagesOrRecipes(directory, searching_packages=False, d=None, default_revision='', current_only=False):
 	import os, os.path
 
 	if d is None:
@@ -222,9 +222,6 @@ def getUnpackedLocalPackages(directory, requireCurrent=False, d=None, default_re
 		except:
 			continue
 
-		if requireCurrent and not 'Current' in ds:
-			continue
-
 		versions = [ v for v in ds if v not in ['Current', 'Settings', 'Variable', 'Headers'] ]
 		versions = [ v for v in versions if os.path.isdir(directory+'/'+p+'/'+v) ]
 
@@ -233,8 +230,7 @@ def getUnpackedLocalPackages(directory, requireCurrent=False, d=None, default_re
 			continue
 
 		for v in versions:
-			# detsch, 12/11/2004: quick fix -> if not requireCurrent, assuming it is looking for unpacked recipes
-			if not requireCurrent:
+			if not searching_packages:
 				v, r = Split_Version_Revision(v)
 				u = directory+'/'+p+'/'+v
 				if r:
@@ -368,7 +364,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 			availables['installed'] = {}
 		if not availables['installed'].has_key('programs') or not availables['installed']['programs']:
 			availables['installed']['programs'] = KeyInsensitiveDict()
-		getUnpackedLocalPackages(path, False, availables['installed']['programs'], default_revision= 'r1')
+		getUnpackedLocalPackagesOrRecipes(path, True, availables['installed']['programs'], default_revision= 'r1')
 
 	if 'current' in types:
 		if goboPrograms:
@@ -379,7 +375,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 			availables['current'] = {}
 		if not availables['current'].has_key('programs') or not availables['current']['programs']:
 			availables['current']['programs'] = KeyInsensitiveDict()
-		getUnpackedLocalPackages(path, True, availables['current']['programs'], default_revision= 'r1', current_only=True)
+		getUnpackedLocalPackagesOrRecipes(path, True, availables['current']['programs'], default_revision= 'r1', current_only=True)
 
 	if 'local_package' in types:
 		if not availables.has_key('local_package') or not availables['local_package']:
@@ -396,7 +392,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 		default_revision='r'+str(sys.maxint)
 		for directory in localdirs:
 			getPackedLocalPackages(os.path.expanduser(directory.strip()), availables['local_package']['programs'], default_revision=default_revision)
-			getUnpackedLocalPackages(os.path.expanduser(directory.strip()), False, availables['local_package']['programs'], default_revision=default_revision)
+			getUnpackedLocalPackagesOrRecipes(os.path.expanduser(directory.strip()), True, availables['local_package']['programs'], default_revision=default_revision)
 
 	if accessWeb and (not doNotUpdate or forceupdate):
 		UpdateCache(types, forceupdate, hook)
@@ -437,7 +433,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 		default_revision='r'+str(sys.maxint)
 		for compileRecipeDir in compileRecipeDirs:
 			availables['recipe']['programs'] = getPackedLocalPackages(compileRecipeDir, availables['recipe']['programs'])
-			availables['recipe']['programs'] = getUnpackedLocalPackages(compileRecipeDir, False, availables['recipe']['programs'], default_revision=default_revision)
+			availables['recipe']['programs'] = getUnpackedLocalPackagesOrRecipes(compileRecipeDir, False, availables['recipe']['programs'], default_revision=default_revision)
 			default_revision = ''
 		if accessWeb:
 			i=0
