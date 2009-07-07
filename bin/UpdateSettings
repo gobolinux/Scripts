@@ -23,7 +23,14 @@ Import MetadataInstallation
 ##################################################
 # Default Configuration
 ##################################################
-defaultMode='interactive'
+
+if [ "$(stty size 2> /dev/null)" ]
+then
+   defaultMode='interactive'
+else
+   defaultMode='auto'
+fi
+
 versionCheckingMethod='mtime'
 hintsEnabled='no'
 unset hintsAllowed
