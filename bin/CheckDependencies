@@ -68,7 +68,7 @@ def get_rules_of_files(depfiles, t=None, no_compatlist=False, cross_compile=Fals
 					try:
 						rule = interpret_dependency_line(o,t, cross_compile=cross_compile, flags=flags)
 					except ParseError, e:
-						Log_Terse("At file '%s': "%depfile + e.message, 'CheckDependencies')
+						Log_Terse("At file '%s': "%depfile + e.args[0], 'CheckDependencies')
 					if rule:
 						# Precedence is left-right. Save this to return later.
 						if not first_rule:
