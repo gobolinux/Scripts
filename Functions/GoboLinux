@@ -583,6 +583,148 @@ function Strip_Gobo_Programs() {
    sed "s@^${goboPrograms}@@;s@^$(readlink -f "${goboPrograms}")@@;s@^/Programs\(/[^/]*/[^/]*/[^/]*/[^/]*\)@\1@;s@^/*@@"
 }
 
+function Traverse_Program_Tree() {
+   dirop="$1"
+   linkop="$2"
+   prefix="$3"
+   
+   $dirop "$settingsdir"
+   $dirop "$variabledir"
+   $dirop "$programdir/Resources"
+   $dirop "$programdir/Resources/Defaults/Settings"
+   $dirop "$programdir/Resources/Daemons"
+   $dirop "$programdir/Resources/Tasks"
+   if Dir_Set Manuals && [ ! "$goboIndex" ]
+   then
+      $dirop "$programdir/man/man1"
+      $dirop "$programdir/man/man2"
+      $dirop "$programdir/man/man3"
+      $dirop "$programdir/man/man4"
+      $dirop "$programdir/man/man5"
+      $dirop "$programdir/man/man6"
+      $dirop "$programdir/man/man7"
+      $dirop "$programdir/man/man8"
+      $dirop "$programdir/man/man9"
+      $dirop "$programdir/man"
+      if ! Boolean "tree"
+      then
+         if Dir_Set Shared && [ ! "$goboIndex" ]
+         then Is_Directory "$programdir/man" || Quiet rm -- "$programdir/Shared/man"
+         else Is_Directory "$programdir/man" || Quiet rm -- "$programdir/share/man"
+	 fi
+      fi
+   else if [ ! "$goboIndex" ]
+   then
+      $dirop "$programdir/Shared/man/man1"
+      $dirop "$programdir/Shared/man/man2"
+      $dirop "$programdir/Shared/man/man3"
+      $dirop "$programdir/Shared/man/man4"
+      $dirop "$programdir/Shared/man/man5"
+      $dirop "$programdir/Shared/man/man6"
+      $dirop "$programdir/Shared/man/man7"
+      $dirop "$programdir/Shared/man/man8"
+      $dirop "$programdir/Shared/man/man9"
+      $dirop "$programdir/Shared/man"
+   fi
+   fi
+   if Dir_Set Shared && [ ! "$goboIndex" ]
+   then $dirop "$programdir/Shared"
+   else $dirop "$programdir/share"
+   fi
+   $dirop "$programdir/sbin"
+   $dirop "$programdir/bin"
+   $dirop "$programdir/lib"
+   $dirop "$programdir/include"
+   $dirop "$programdir/info"
+   $dirop "$programdir/doc"
+   $dirop "$programdir/libexec"
+
+   if Dir_Set Install
+   then
+      $linkop `Get_Dir installSettings "$programname" "$versionnumber"`
+      $linkop `Get_Dir installVariable "$programname" "$versionnumber"`
+   fi
+
+   if Dir_Set Shared && [ ! "$goboIndex" ]
+   then
+      if Boolean "tree"
+      then
+         [ -L "$programdir/share" ] && rm -- "$programdir/share"
+         ln -nfs "$programdir/Shared" "$programdir/share"
+      else
+         Is_Real_Directory "$programdir/Shared" || Quiet rm -- "$programdir/share"
+      fi
+   fi
+
+   if Dir_Set Manuals && [ ! "$goboIndex" ] && Boolean "tree"
+   then ln -nfs "$programdir/man" "$programdir/share/man"
+   fi
+}
+
+function Create_Program_Tree() {
+   prefix="$1"
+   [ -n "$2" ] && action="$2" || action="ask"
+
+   Is_Writable `Get_Dir runtime '' ''` || Verify_Superuser
+   Dir_Set Install && {
+      Is_Writable `Get_Dir install '' ''` || Verify_Superuser
+   }
+
+   
+   ask=yes
+   unset keepdir
+   Boolean "remove" && unset ask
+   Boolean "keep" && { unset ask; keepdir=yes; }
+   Boolean "batch" && unset ask
+
+   if [ "$action" = "ask" -a -e "$prefix" ]
+   then
+      while true
+      do
+         Ask_Option "$prefix already exists. [r]emove, [k]eep, [C]ancel?" || exit 1
+         case "$REPLY" in
+         [Rr]) break ;;
+         [Kk]) action=keep; break ;;
+         [Cc]) return 1 ;;
+         esac # esac is ridiculous.
+      done
+   fi
+
+   if [ "$action" != "keep" ]
+   then
+      if [ -e "$prefix" ]
+      then rm -rf -- "$prefix"
+      fi
+      if Dir_Set Install
+      then
+         Make_Directory `Get_Dir install "$programname"`
+         ( cd "$baseprogramdir" ; ln -s "$installdir" "$versionnumber")
+      fi
+   fi
+
+   if Dir_Set Shared && [ ! "$goboIndex" ]
+   then
+      [ -L "$prefix/share" ]  && rm -- "$prefix/share"
+      [ -d "$prefix/Shared" ] && ln -nsf "$prefix/Shared" "$prefix/share"
+   fi
+
+   if Dir_Set Manuals && [ ! "$goboIndex" ]
+   then
+      [ -d "$prefix/man" ] && ln -nsf "$prefix/man" "$prefix/Shared/man"
+   fi
+
+   Traverse_Program_Tree "Make_Directory" "make_symlink" "$prefix"
+}
+
+function Clean_Program_Tree() {
+   prefix=$1
+   Is_Writable `Get_Dir runtime '' ''` || Verify_Superuser
+   Dir_Set Install && {
+      Is_Writable `Get_Dir install '' ''` || Verify_Superuser
+   }
+   Traverse_Program_Tree "Quiet rmdir -p" "remove_symlink" "$prefix"
+}
+
 function Programs_To_System_Path() {
    programpath="$1"
    newpath="$(echo "$programpath" | Strip_Gobo_Programs | sed -e 's,/*[^/]*/*[^/]*/*\(.*\),\1,' \
