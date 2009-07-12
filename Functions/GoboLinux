@@ -72,7 +72,7 @@ function Link_Directory() {
    then
       here=`readlink -f "$to"`
       [ -d "$here" ] || mkdir "$here"
-      cd "$here"
+      Quiet pushd "$here"
 
       if [ -n "$(type -p LinkOrExpandAll)" ]
       then
@@ -82,7 +82,7 @@ function Link_Directory() {
          Boolean "relative" && relative="True" || relative="False"         
          Link_Or_Expand_All "$rfrom" "$overwrite" "$relative"
       fi
-      cd "$here"
+      Quiet popd
    else
       Quiet rmdir "$rfrom"
    fi
