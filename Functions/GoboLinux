@@ -588,56 +588,55 @@ function Traverse_Program_Tree() {
    linkop="$2"
    prefix="$3"
    
-   $dirop "$settingsdir"
-   $dirop "$variabledir"
-   $dirop "$programdir/Resources"
-   $dirop "$programdir/Resources/Defaults/Settings"
-   $dirop "$programdir/Resources/Daemons"
-   $dirop "$programdir/Resources/Tasks"
+   $dirop "${prefix}/../Settings"
+   $dirop "$prefix/Resources"
+   $dirop "$prefix/Resources/Defaults/Settings"
+   $dirop "$prefix/Resources/Daemons"
+   $dirop "$prefix/Resources/Tasks"
    if Dir_Set Manuals && [ ! "$goboIndex" ]
    then
-      $dirop "$programdir/man/man1"
-      $dirop "$programdir/man/man2"
-      $dirop "$programdir/man/man3"
-      $dirop "$programdir/man/man4"
-      $dirop "$programdir/man/man5"
-      $dirop "$programdir/man/man6"
-      $dirop "$programdir/man/man7"
-      $dirop "$programdir/man/man8"
-      $dirop "$programdir/man/man9"
-      $dirop "$programdir/man"
+      $dirop "$prefix/man/man1"
+      $dirop "$prefix/man/man2"
+      $dirop "$prefix/man/man3"
+      $dirop "$prefix/man/man4"
+      $dirop "$prefix/man/man5"
+      $dirop "$prefix/man/man6"
+      $dirop "$prefix/man/man7"
+      $dirop "$prefix/man/man8"
+      $dirop "$prefix/man/man9"
+      $dirop "$prefix/man"
       if ! Boolean "tree"
       then
          if Dir_Set Shared && [ ! "$goboIndex" ]
-         then Is_Directory "$programdir/man" || Quiet rm -- "$programdir/Shared/man"
-         else Is_Directory "$programdir/man" || Quiet rm -- "$programdir/share/man"
+         then Is_Directory "$prefix/man" || Quiet rm -- "$prefix/Shared/man"
+         else Is_Directory "$prefix/man" || Quiet rm -- "$prefix/share/man"
 	 fi
       fi
    else if [ ! "$goboIndex" ]
    then
-      $dirop "$programdir/Shared/man/man1"
-      $dirop "$programdir/Shared/man/man2"
-      $dirop "$programdir/Shared/man/man3"
-      $dirop "$programdir/Shared/man/man4"
-      $dirop "$programdir/Shared/man/man5"
-      $dirop "$programdir/Shared/man/man6"
-      $dirop "$programdir/Shared/man/man7"
-      $dirop "$programdir/Shared/man/man8"
-      $dirop "$programdir/Shared/man/man9"
-      $dirop "$programdir/Shared/man"
+      $dirop "$prefix/Shared/man/man1"
+      $dirop "$prefix/Shared/man/man2"
+      $dirop "$prefix/Shared/man/man3"
+      $dirop "$prefix/Shared/man/man4"
+      $dirop "$prefix/Shared/man/man5"
+      $dirop "$prefix/Shared/man/man6"
+      $dirop "$prefix/Shared/man/man7"
+      $dirop "$prefix/Shared/man/man8"
+      $dirop "$prefix/Shared/man/man9"
+      $dirop "$prefix/Shared/man"
    fi
    fi
    if Dir_Set Shared && [ ! "$goboIndex" ]
-   then $dirop "$programdir/Shared"
-   else $dirop "$programdir/share"
+   then $dirop "$prefix/Shared"
+   else $dirop "$prefix/share"
    fi
-   $dirop "$programdir/sbin"
-   $dirop "$programdir/bin"
-   $dirop "$programdir/lib"
-   $dirop "$programdir/include"
-   $dirop "$programdir/info"
-   $dirop "$programdir/doc"
-   $dirop "$programdir/libexec"
+   $dirop "$prefix/sbin"
+   $dirop "$prefix/bin"
+   $dirop "$prefix/lib"
+   $dirop "$prefix/include"
+   $dirop "$prefix/info"
+   $dirop "$prefix/doc"
+   $dirop "$prefix/libexec"
 
    if Dir_Set Install
    then
@@ -649,15 +648,15 @@ function Traverse_Program_Tree() {
    then
       if Boolean "tree"
       then
-         [ -L "$programdir/share" ] && rm -- "$programdir/share"
-         ln -nfs "$programdir/Shared" "$programdir/share"
+         [ -L "$prefix/share" ] && rm -- "$prefix/share"
+         ln -nfs "$prefix/Shared" "$prefix/share"
       else
-         Is_Real_Directory "$programdir/Shared" || Quiet rm -- "$programdir/share"
+         Is_Real_Directory "$prefix/Shared" || Quiet rm -- "$prefix/share"
       fi
    fi
 
    if Dir_Set Manuals && [ ! "$goboIndex" ] && Boolean "tree"
-   then ln -nfs "$programdir/man" "$programdir/share/man"
+   then ln -nfs "$prefix/man" "$prefix/share/man"
    fi
 }
 
