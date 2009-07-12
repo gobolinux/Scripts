@@ -6,6 +6,17 @@ then
    exec sudo -u "$SUDO_USER" -H env SUDO_OK=1 $0 "${@}"
 fi
 
+# Some simple define for sudo
+sudo_exec="sudo -u #0"
+sudo_validate="sudo -u `whoami` true"
+
+# If we can't sudo, we shouldn't try .
+if [ -n "$ROOTLESS_GOBOLINUX" ]
+then
+   sudo_exec=""
+   sudo_validate=""
+fi
+
 . GoboPath
 
 #not sure why we add "." to PATH. causes problems with busybox.
