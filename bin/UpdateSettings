@@ -24,12 +24,7 @@ Import MetadataInstallation
 # Default Configuration
 ##################################################
 
-if [ "$(stty size 2> /dev/null)" ]
-then
-   defaultMode='interactive'
-else
-   defaultMode='auto'
-fi
+defaultMode='interactive'
 
 versionCheckingMethod='mtime'
 hintsEnabled='no'
@@ -130,7 +125,7 @@ InstructionSource=''
 
 
 function input_option() {
-   echo "$*" >&$questionFD
+   echo -e "${colorNormal}${colorNormal}$*" >&$questionFD
    while true
    do
       read REPLY <&$stdinFD
@@ -142,7 +137,7 @@ function input_option() {
 function out()
 {
    # Echo to the user but without prepending the script name like LogNNN does
-   echo "$@" >&$questionFD
+   echo -e "${colorNormal}${colorNormal}$@" >&$questionFD
 }
 
 function expand_dirs()
