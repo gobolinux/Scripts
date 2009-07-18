@@ -66,21 +66,21 @@ fi
 function Rebuild_MIME_Database() {
 if Executable_Exists_In_Path "update-mime-database"
 then
-   mimedirectory="${goboVariable}/xdg/mime"
+   mimedirectory="${goboVariable}/lib/xdg/mime"
    if ! $sudo_exec mkdir -p ${mimedirectory} && ! $sudo_exec test -w ${mimedirectory}
    then [ -n "${XDG_DATA_HOME}" ] && mimedirectory="${XDG_DATA_HOME}/mime" || mimedirectory="$HOME/.local/share/mime"
    fi
    Assert_Dir ${mimedirectory}
    Is_Directory ${mimedirectory}/packages || $sudo_exec ln -s ${goboShared}/mime/packages ${mimedirectory}
    Log_Normal "Rebuilding MIME database..."
-   $sudo_exec update-mime-database ${mimedirectory} >/dev/null
+   $sudo_exec update-mime-database ${mimedirectory} &>/dev/null
 fi
 }
 
 function Rebuild_Desktop_Database() {
 if Executable_Exists_In_Path "update-desktop-database"
 then
-   desktopdirectory="${goboVariable}/xdg"
+   desktopdirectory="${goboVariable}/lib/xdg"
    if ! $sudo_exec mkdir -p $desktopdirectory && ! $sudo_exec test -w ${desktopdirectory}
    then [ -n "${XGD_DATA_HOME}" ] && desktopdirectory="${XDG_DATA_HOME}" || desktopdirectory="$HOME/.local/share"
    fi
