@@ -73,7 +73,7 @@ then
    Assert_Dir ${mimedirectory}
    Is_Directory ${mimedirectory}/packages || $sudo_exec ln -s ${goboShared}/mime/packages ${mimedirectory}
    Log_Normal "Rebuilding MIME database..."
-   $sudo_exec update-mime-database ${mimedirectory} >/dev/null
+   $sudo_exec update-mime-database ${mimedirectory} &>/dev/null
 fi
 }
 
