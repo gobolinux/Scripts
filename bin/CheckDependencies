@@ -422,12 +422,36 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	#all_rules  = [ rule for rule in all_rules if not any(pp == rule['program'] for pp,vv,tt,uu in all_matches) ]
 	missing_dependencies = [ rule for rule in all_rules if not find_matching_package(rule, ['installed'], noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs, availables=availables) ]
 	for rule in all_rules:
-		if rule['program'] in global_dependencies_blacklist:
+		if rule['program'].lower() in global_dependencies_blacklist:
 			continue
 		
 		if hook:
 			hook("Checking dependencies", len(all_matches), len(all_matches)+1)
-
+		if ':' in rule['program']:
+			# It's an alien
+			alientype, alienpkg  = rule['program'].split(':', 1)
+			lowerbound = ''
+			upperbound = ''
+			for comp, val in rule['versions']:
+				if comp == '>=':
+					lowerbound = val
+				elif comp == '<':
+					upperbound = val
+			# For aliens, we *only* care if the dependency is
+			# met, regardless of mode - the alien package manager
+			# deals with upgrades. If it is satisfied, do no more
+			# with this dependency.
+			if os.system('Alien-%s --met %s %s %s' % (
+					alientype, alienpkg,
+					lowerbound, upperbound)) == 0:
+				continue
+			ver = bash('Alien-%s --getinstallversion %s' %(
+					alientype, alienpkg))
+			ordered_matches.append((rule['program'],
+						ver, None, 'recipe',
+						rule['program']))
+			ordered_rules.append(rule)
+			continue
 		if mode == 'missing' and find_matching_package(rule, ['installed'], noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs, availables=availables)[3]:
 			continue
 
