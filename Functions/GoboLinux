@@ -522,7 +522,7 @@ function Post_Installation_Clean_Up() {
    if [ "${failedinstallation}" = "failed" ]
    then
       [ -d "${goboPrograms}/${appname}/${appver}-failed" ] && $sudo_exec rm -rf "${goboPrograms}/${appname}/${appver}-failed"
-      if [ -e "${goboPrograms}/${appname}/${appver}" -a "$(readlink -f ${goboPrograms}/${appname}/Current)" = "${goboPrograms}/${appname}/${appver}" ]
+      if [ -e "${goboPrograms}/${appname}/${appver}" -a "$(readlink -f ${goboPrograms}/${appname}/Current)" != "${goboPrograms}/${appname}/${appver}" ]
       then
          $sudo_exec mv "${goboPrograms}/${appname}/${appver}" "${goboPrograms}/${appname}/${appver}-failed"
          Log_Terse "Installation was moved to ${goboPrograms}/${appname}/${appver}-failed"
