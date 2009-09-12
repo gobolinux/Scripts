@@ -511,6 +511,7 @@ function Pre_Installation_Preparation() {
          }
       done
       Progress_End
+      $sudo_exec ldconfig
       $sudo_exec rm -rf "${goboPrograms}/${appname}/${appver}"
    fi
 }
@@ -550,6 +551,7 @@ function Post_Installation_Clean_Up() {
             }
          done
          Progress_End
+         $sudo_exec ldconfig
       fi
    fi
    $sudo_exec rm -rf "${goboPrograms}/${appname}/${appver}-safelinking"
