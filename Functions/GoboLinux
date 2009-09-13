@@ -732,17 +732,17 @@ function Clean_Program_Tree() {
 function Programs_To_System_Path() {
    programpath="$1"
    newpath="$(echo "$programpath" | Strip_Gobo_Programs | sed -e 's,/*[^/]*/*[^/]*/*\(.*\),\1,' \
-   -e "s,/*lib/\(.*\),${goboLinks}/Libraries/\1,g" \
-   -e "s,/*sbin/\(.*\),${goboLinks}/Executables/\1,g" \
-   -e "s,/*bin/\(.*\),${goboLinks}/Executables/\1,g" \
-   -e "s,/*man/\(.*\),${goboLinks}/Manuals/\1,g" \
-   -e "s,/*include/\(.*\),${goboLinks}/Headers/\1,g" \
-   -e "s,/*Shared/\(.*\),${goboLinks}/Shared/\1,g" \
-   -e "s,/*info/\(.*\),${goboLinks}/Manuals/info/\1,g" \
+   -e "s,/*lib/\(.*\),${goboLibraries}/\1,g" \
+   -e "s,/*sbin/\(.*\),${goboExecutables}/\1,g" \
+   -e "s,/*bin/\(.*\),${goboExecutables}\1,g" \
+   -e "s,/*man/\(.*\),${goboManuals}\1,g" \
+   -e "s,/*include/\(.*\),${goboHeaders}/\1,g" \
+   -e "s,/*Shared/\(.*\),${goboShared}/\1,g" \
+   -e "s,/*info/\(.*\),${goboManuals}/info/\1,g" \
    -e "/^\/*doc\/.*/d" \
-   -e "s,/*Resources/Wrappers/\(.*\),${goboLinks}/Executables/\1,g" \
-   -e "s,/*Resources/Tasks/\(.*\),${goboLinks}/Tasks/\1,g" \
-   -e "s,/*Resources/Environment/\(.*\),${goboLinks}/Environment/\1,g")"
+   -e "s,/*Resources/Wrappers/\(.*\),${goboExecutables}/\1,g" \
+   -e "s,/*Resources/Tasks/\(.*\),${goboTasks}/\1,g" \
+   -e "s,/*Resources/Environment/\(.*\),${goboEnvironment}/\1,g")"
    [ "${programpath}" == "${newpath}" ] && return 1
    [ -n "${newpath}" ] && echo "${newpath}"
    return 0
