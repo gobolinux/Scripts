@@ -33,6 +33,9 @@ Is_Log_Mode() {
 
 Log_Function() {
     local message
+    local echoflags
+    local color
+    local FD
     Parameters "$@" message color FD echoflags
     $echo $echoflags "${colorGray}${scriptName}:${colorNormal} ${color}$message${colorNormal}" >&$FD
     $echo $echoflags "$scriptName: $message" >&$logFD
