@@ -734,8 +734,8 @@ function Programs_To_System_Path() {
    newpath="$(echo "$programpath" | Strip_Gobo_Programs | sed -e 's,/*[^/]*/*[^/]*/*\(.*\),\1,' \
    -e "s,/*lib/\(.*\),${goboLibraries}/\1,g" \
    -e "s,/*sbin/\(.*\),${goboExecutables}/\1,g" \
-   -e "s,/*bin/\(.*\),${goboExecutables}\1,g" \
-   -e "s,/*man/\(.*\),${goboManuals}\1,g" \
+   -e "s,/*bin/\(.*\),${goboExecutables}/\1,g" \
+   -e "s,/*man/\(.*\),${goboManuals}/\1,g" \
    -e "s,/*include/\(.*\),${goboHeaders}/\1,g" \
    -e "s,/*Shared/\(.*\),${goboShared}/\1,g" \
    -e "s,/*info/\(.*\),${goboManuals}/info/\1,g" \
