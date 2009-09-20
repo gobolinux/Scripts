@@ -629,6 +629,17 @@ function Traverse_Program_Tree() {
       $dirop "$prefix/Shared/man/man8"
       $dirop "$prefix/Shared/man/man9"
       $dirop "$prefix/Shared/man"
+   else
+      $dirop "$prefix/share/man/man1"
+      $dirop "$prefix/share/man/man2"
+      $dirop "$prefix/share/man/man3"
+      $dirop "$prefix/share/man/man4"
+      $dirop "$prefix/share/man/man5"
+      $dirop "$prefix/share/man/man6"
+      $dirop "$prefix/share/man/man7"
+      $dirop "$prefix/share/man/man8"
+      $dirop "$prefix/share/man/man9"
+      $dirop "$prefix/share/man"
    fi
    fi
    if Dir_Set Shared && [ ! "$goboIndex" ]
