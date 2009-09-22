@@ -553,10 +553,10 @@ function Post_Installation_Clean_Up() {
             }
          done
          Progress_End
-         $sudo_exec ldconfig
       fi
    fi
    $sudo_exec rm -rf "${goboPrograms}/${appname}/${appver}-safelinking"
+   $sudo_exec ldconfig
 }
 
 function Dependencies_File() {
