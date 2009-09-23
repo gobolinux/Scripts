@@ -512,8 +512,8 @@ function Pre_Installation_Preparation() {
          }
       done
       Progress_End
-      $sudo_exec ldconfig
       $sudo_exec rm -rf "${goboPrograms}/${appname}/${appver}"
+      $sudo_exec ldconfig
    fi
 }
 
