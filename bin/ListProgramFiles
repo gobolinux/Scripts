@@ -13,6 +13,7 @@ helpOnNoArguments=yes
 scriptUsage="<program> [<version>] | <version_directory>"
 Add_Option_Boolean "f" "files" "List files (equivalent to -xtype f in 'find')"
 Add_Option_Boolean "l" "links" "List links (equivalent to -type l in 'find')"
+Add_Option_Boolean "R" "no-resources" "Do not list files in Resources directory"
 Add_Option_Boolean "p" "path" "Return full path, including the programs directory"
 Add_Option_Boolean "n" "null" "Separate files with null instead of newline."
 Parse_Options "$@"
@@ -46,6 +47,8 @@ elif Boolean "links"
 then type="-type l"
 fi
 
+Boolean "no-resources" && noresources="-or -name Resources -prune"
+
 if Boolean "path"
 then
    cd "${programpath%/$program/$version}"
@@ -61,4 +64,5 @@ find ${programpath} \( -path "CVS" \
       -or -path "*/CVS" \
       -or -path ".svn" \
       -or -path "*/.svn" \
-      -or -path "${programpath}Resources/SettingsBackup*" \) -prune -or ${type} ${printcommand}
+      -or -path "${programpath}Resources/SettingsBackup*" \) -prune \
+      ${noresources:+${noresources}} -or ${type} ${printcommand}
