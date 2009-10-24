@@ -32,7 +32,7 @@ then
    export goboLibraries="${goboIndex}/lib"
    export goboHeaders="${goboIndex}/include"
    export goboShared="${goboIndex}/share"
-   export goboManuals="${goboIndex}"
+   export goboManuals="${goboIndex}/share/man"
    # still needed for Tasks and Environment
    export goboLinks="${goboSystem}/Links"
 else

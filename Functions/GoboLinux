@@ -493,7 +493,8 @@ function Pre_Installation_Preparation() {
    then
       programfiles=$(ListProgramFiles "${goboPrograms}/${appname}/${appver}")
       Progress_Start "Making a safe copy of installed version"
-      $sudo_exec cp -a "${goboPrograms}/${appname}/${appver}" "${goboPrograms}/${appname}/${appver}-safelinking"
+      $sudo_exec mkdir -p "${goboPrograms}/${appname}/${appver}-safelinking"
+      $sudo_exec cp -a "${goboPrograms}/${appname}/${appver}"/* "${goboPrograms}/${appname}/${appver}-safelinking"
       for f in ${programfiles[@]}
       do
          f="${goboPrograms}/${appname}/${appver}/${f}"
@@ -512,6 +513,7 @@ function Pre_Installation_Preparation() {
       done
       Progress_End
       $sudo_exec rm -rf "${goboPrograms}/${appname}/${appver}"
+      $sudo_exec ldconfig
    fi
 }
 
@@ -519,37 +521,42 @@ function Post_Installation_Clean_Up() {
    appname="$1"
    appver="$2"
    failedinstallation="$3"
-   if [ "${failedinstallation}" = "failed" -a -e "${goboPrograms}/${appname}/${appver}-safelinking" ]
+   if [ "${failedinstallation}" = "failed" ]
    then
       [ -d "${goboPrograms}/${appname}/${appver}-failed" ] && $sudo_exec rm -rf "${goboPrograms}/${appname}/${appver}-failed"
-      if [ -e "${goboPrograms}/${appname}/${appver}" ]
+      if [ -e "${goboPrograms}/${appname}/${appver}" -a "$(readlink -f ${goboPrograms}/${appname}/Current)" != "${goboPrograms}/${appname}/${appver}" ]
       then
          $sudo_exec mv "${goboPrograms}/${appname}/${appver}" "${goboPrograms}/${appname}/${appver}-failed"
          Log_Terse "Installation was moved to ${goboPrograms}/${appname}/${appver}-failed"
       fi
-
-      programfiles=$(ListProgramFiles "${goboPrograms}/${appname}/${appver}-safelinking")
-      $sudo_exec cp -a "${goboPrograms}/${appname}/${appver}-safelinking" "${goboPrograms}/${appname}/${appver}"
-      Progress_Start "Restoring safe copy"
-      for f in ${programfiles[@]}
-      do
-         f="${goboPrograms}/${appname}/${appver}/${f}"
-         systempath="$(Programs_To_System_Path "${f}")"
-         [ "$(dirname "$(readlink -f "${systempath}")")" != "$(dirname "${f}")" ] && continue
-         reallink="${systempath}"
-         while [ ! -L "${reallink}" -a -n "${reallink}" ]
+      
+      if [ -e "${goboPrograms}/${appname}/${appver}-safelinking" ]
+      then
+         programfiles=$(ListProgramFiles "${goboPrograms}/${appname}/${appver}-safelinking")
+         Progress_Start "Restoring safe copy"
+         $sudo_exec mkdir -p "${goboPrograms}/${appname}/${appver}"
+         $sudo_exec cp -a "${goboPrograms}/${appname}/${appver}-safelinking"/* "${goboPrograms}/${appname}/${appver}"
+         for f in ${programfiles[@]}
          do
-             reallink="${reallink%/*}"
-         done
+            f="${goboPrograms}/${appname}/${appver}/${f}"
+            systempath="$(Programs_To_System_Path "${f}")"
+            [ "$(dirname "$(readlink -f "${systempath}")")" != "$(dirname "${f}")" ] && continue
+            reallink="${systempath}"
+            while [ ! -L "${reallink}" -a -n "${reallink}" ]
+            do
+               reallink="${reallink%/*}"
+            done
    
-         [ -n "${reallink}" ] && {
-            Progress_Move
-            $sudo_exec ln -sf "$(System_To_Programs_Path "${reallink}" "${goboPrograms}/${appname}/${appver}")" "$(dirname ${reallink})"
-         }
-      done
-      Progress_End
+            [ -n "${reallink}" ] && {
+               Progress_Move
+               $sudo_exec ln -sf "$(System_To_Programs_Path "${reallink}" "${goboPrograms}/${appname}/${appver}")" "$(dirname ${reallink})"
+            }
+         done
+         Progress_End
+      fi
    fi
    $sudo_exec rm -rf "${goboPrograms}/${appname}/${appver}-safelinking"
+   $sudo_exec ldconfig
 }
 
 function Dependencies_File() {
@@ -586,17 +593,17 @@ function Strip_Gobo_Programs() {
 function Programs_To_System_Path() {
    programpath="$1"
    newpath="$(echo "$programpath" | Strip_Gobo_Programs | sed -e 's,/*[^/]*/*[^/]*/*\(.*\),\1,' \
-   -e "s,/*lib/\(.*\),${goboLinks}/Libraries/\1,g" \
-   -e "s,/*sbin/\(.*\),${goboLinks}/Executables/\1,g" \
-   -e "s,/*bin/\(.*\),${goboLinks}/Executables/\1,g" \
-   -e "s,/*man/\(.*\),${goboLinks}/Manuals/\1,g" \
-   -e "s,/*include/\(.*\),${goboLinks}/Headers/\1,g" \
-   -e "s,/*Shared/\(.*\),${goboLinks}/Shared/\1,g" \
-   -e "s,/*info/\(.*\),${goboLinks}/Manuals/info/\1,g" \
+   -e "s,/*lib/\(.*\),${goboLibraries}/\1,g" \
+   -e "s,/*sbin/\(.*\),${goboExecutables}/\1,g" \
+   -e "s,/*bin/\(.*\),${goboExecutables}/\1,g" \
+   -e "s,/*man/\(.*\),${goboManuals}/\1,g" \
+   -e "s,/*include/\(.*\),${goboHeaders}/\1,g" \
+   -e "s,/*Shared/\(.*\),${goboShared}/\1,g" \
+   -e "s,/*info/\(.*\),${goboManuals}/info/\1,g" \
    -e "/^\/*doc\/.*/d" \
-   -e "s,/*Resources/Wrappers/\(.*\),${goboLinks}/Executables/\1,g" \
-   -e "s,/*Resources/Tasks/\(.*\),${goboLinks}/Tasks/\1,g" \
-   -e "s,/*Resources/Environment/\(.*\),${goboLinks}/Environment/\1,g")"
+   -e "s,/*Resources/Wrappers/\(.*\),${goboExecutables}/\1,g" \
+   -e "s,/*Resources/Tasks/\(.*\),${goboTasks}/\1,g" \
+   -e "s,/*Resources/Environment/\(.*\),${goboEnvironment}/\1,g")"
    [ "${programpath}" == "${newpath}" ] && return 1
    [ -n "${newpath}" ] && echo "${newpath}"
    return 0
