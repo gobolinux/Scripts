@@ -70,7 +70,7 @@ update_version: version_check verify
 
 dist: update_version
 	@echo; echo "Press enter to create a subversion tag and tarball for version $(VERSION) or ctrl-c to abort."
-	@read
+	@read _
 	@$(MAKE) tag
 
 tag: version_check verify
