@@ -9,6 +9,7 @@ from GuessLatest import *
 from FindPackage import *
 from PythonUtils import *
 from UseFlags import *
+import Alien
 
 import re
 
@@ -428,25 +429,28 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 		if hook:
 			hook("Checking dependencies", len(all_matches), len(all_matches)+1)
 		if ':' in rule['program']:
-			# It's an alien
-			alientype, alienpkg  = rule['program'].split(':', 1)
-			lowerbound = ''
-			upperbound = ''
-			for comp, val in rule['versions']:
-				if comp == '>=':
-					lowerbound = val
-				elif comp == '<':
-					upperbound = val
+			# It's an alien.
+			alientype, alienpkg = Alien.split(rule['program'])
+			if not Alien.havealienmanager(alientype):
+				# If the alien manager is not installed,
+				# add it to the list.
+				arule = Alien.getmanagerrule(alientype)
+				amatch = find_matching_package \
+				    (arule, acceptable_types, noWeb=noWeb,
+				     goboPrograms=goboPrograms,
+				     localdirs=localdirs,
+				     availables=availables)
+				ordered_matches.append(amatch)
+				ordered_rules.append(arule)    
 			# For aliens, we *only* care if the dependency is
 			# met, regardless of mode - the alien package manager
 			# deals with upgrades. If it is satisfied, do no more
 			# with this dependency.
-			if os.system('Alien-%s --met %s %s %s' % (
-					alientype, alienpkg,
-					lowerbound, upperbound)) == 0:
+			if Alien.dependencymet(rule):
 				continue
-			ver = bash('Alien-%s --getinstallversion %s' %(
-					alientype, alienpkg))
+			# Otherwise, it's unmet, so append a match tuple
+			# with the right version in it.
+			ver = Alien.getinstallversion(rule)
 			ordered_matches.append((rule['program'],
 						ver, None, 'recipe',
 						rule['program']))
