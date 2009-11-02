@@ -1,0 +1,62 @@
+#!/bin/sh
+# Shell script implementing the Aliens interface for luarocks.
+# Copyright 2009 Michael Homer. Released under the GNU GPL 2 or later.
+
+getversion() {
+   prog="$1"
+   luarocks list "$prog" | awk '
+      {
+         if (found) {
+            print $1
+            exit
+         }
+      }
+      /^'"$prog"'$/ { found=1 }'
+}
+
+getinstallversion() {
+   prog="$1"
+   luarocks search "$prog" | awk '
+      {
+         if (found) {
+            print $1
+            exit
+         }
+      }
+      /^'"$prog"'$/ { found=1 }'
+}
+
+command="$1"
+prog="$2"
+
+case "$command" in
+   --getversion)
+      echo $(getversion "$2")
+      ;;
+   --getinstallversion)
+      echo $(getinstallversion "$2")
+      ;;
+   --greater-than)
+      ver=$(getversion "$2")
+      latest=$(GuessLatest "$ver" "$3")
+      [ "$latest" = "$3" ] && exit 1 || exit 0
+      ;;
+   --met|--within-range|--interval)
+      prog="$2"
+      lower="$3"
+      upper="$4"
+      ver=$(getversion "$2")
+      [ "$ver" ] || exit 1
+      [ "$(GuessLatest "$ver" "$lower")" = "$lower" ] && exit 1
+      [ "$upper" ] || exit 0
+      [ "$(GuessLatest "$ver" "$upper")" = "$upper" ] || exit 1
+      [ "$ver" = "$upper" ] && exit 1
+      exit 0
+      ;;
+   --have-manager)
+      which luarocks >/dev/null 2>&1 || exit 1
+      ;;
+   --get-manager-rule)
+      echo "LuaRocks >= 1.0"
+      ;;
+esac # is ridiculous
