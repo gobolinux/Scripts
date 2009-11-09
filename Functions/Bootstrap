@@ -15,15 +15,20 @@ function Create_Filesystem_Tree() {
       true
    }
 
-   if [ "$usesystemindex" ]
+   function create_link() {
+      [ -e "$2" ] || ln -nfs "$1" "$2"
+      true
+   }
+
+if [ "$usesystemindex" ]
    then
       create_dir $root/System/Index/bin
-      create_dir $root/System/Index/sbin
+      create_link bin $root/System/Index/sbin
       create_dir $root/System/Index/lib
       create_dir $root/System/Index/include
       create_dir $root/System/Index/share
-      create_dir $root/System/Index/man/info
-      variabledir="System/Index/var"
+      variabledir="Data"
+      filesdir="Data"
    else
       create_dir $root/System/Links/Executables
       create_dir $root/System/Links/Libraries
@@ -31,6 +36,7 @@ function Create_Filesystem_Tree() {
       create_dir $root/System/Links/Shared
       create_dir $root/System/Links/Manuals/info
       variabledir="System/Variable"
+      filesdir="Files"
    fi
    create_dir $root/System/Links/Tasks
    create_dir $root/System/Links/Environment
@@ -42,6 +48,7 @@ function Create_Filesystem_Tree() {
    create_dir $root/$variabledir/run
    create_dir $root/$variabledir/lock
    create_dir $root/$variabledir/spool
+   create_dir $root/$variabledir/spool/cron
    create_dir $root/$variabledir/cache
    create_dir $root/$variabledir/empty 0 0755
    create_dir $root/$variabledir/lib
@@ -53,9 +60,9 @@ function Create_Filesystem_Tree() {
    create_dir $root/System/Kernel/Devices
    create_dir $root/System/Kernel/Status
    create_dir $root/Users/$superuser
-   create_dir $root/Files/Compile/Archives
-   create_dir $root/Files/Compile/Sources
-   create_dir $root/Files/Compile/Store
+   create_dir $root/${filesdir}/Compile/Archives
+   create_dir $root/${filesdir}/Compile/Sources
+   create_dir $root/${filesdir}/Compile/Store
    create_dir $root/Depot
    create_dir $root/Mount/.Pivot
    create_dir $root/Mount/CD-ROM
@@ -70,28 +77,22 @@ function Create_Filesystem_Tree() {
    #
    create_dir $root/usr
 
-   function create_link() {
-      [ -e "$2" ] || ln -nfs "$1" "$2"
-      true
-   }
-
    if [ "$usesystemindex" ]
    then
       create_link System/Index/lib            $root/lib
       create_link System/Index/bin            $root/bin
-      create_link System/Index/sbin           $root/sbin
+      create_link System/Index/bin            $root/sbin
       create_link ../System/Index/bin         $root/usr/bin
       create_link ../System/Index/include     $root/usr/include
       create_link ../System/Index/lib         $root/usr/lib
-      create_link ../System/Index/man         $root/usr/man
+      create_link ../System/Index/share/man   $root/usr/man
       create_link ../System/Index/sbin        $root/usr/sbin
       create_link ../System/Index/share       $root/usr/share
-      create_link ../../System/Index/man      $root/usr/share/man
       # compatibility links
       create_link ../../System/Index/bin      $root/System/Links/Executables
       create_link ../../System/Index/lib      $root/System/Links/Libraries
       create_link ../../System/Index/share    $root/System/Links/Shared
-      create_link ../System/Index/var         $root/System/Variable
+      create_link ../Data                     $root/System/Variable
    else
       create_link System/Links/Libraries      $root/lib
       create_link System/Links/Executables    $root/bin
@@ -113,7 +114,9 @@ function Create_Filesystem_Tree() {
    create_link System/Kernel/Boot          $root/boot
    create_link Mount                       $root/mnt
    create_link Mount/Media                 $root/media
-   create_link Files                       $root/srv
+   create_link Users                       $root/home
+   create_link Users/$superuser            $root/root
+   create_link Data                        $root/srv
    create_link /System/Kernel/Modules      $root/System/Links/Libraries/modules
    create_link .                           $root/usr/X11R6
    create_link .                           $root/usr/local
