@@ -491,24 +491,20 @@ function Pre_Installation_Preparation() {
    local linkedfiles=()
    if [ -e "${goboPrograms}/${appname}/${appver}" ]
    then
-      programfiles=$(ListProgramFiles "${goboPrograms}/${appname}/${appver}")
       Progress_Start "Making a safe copy of installed version"
+      programfiles=$(ListProgramFiles --no-resources "${goboPrograms}/${appname}/${appver}")
       $sudo_exec mkdir -p "${goboPrograms}/${appname}/${appver}-safelinking"
       $sudo_exec cp -a "${goboPrograms}/${appname}/${appver}"/* "${goboPrograms}/${appname}/${appver}-safelinking"
       for f in ${programfiles[@]}
       do
          f="${goboPrograms}/${appname}/${appver}/${f}"
          systempath="$(Programs_To_System_Path "${f}")"
+	 [ ! -L "${systempath}" ] && continue
          [ "$(dirname "$(readlink -f "${systempath}")")" != "$(dirname "${f}")" ] && continue
-         reallink="${systempath}"
-         while [ ! -L "${reallink}" -a -n "${reallink}" ]
-         do
-             reallink="${reallink%/*}"
-         done
          
-         [ -n "${reallink}" ] && {
+         [ -n "${systempath}" ] && {
             Progress_Move
-            $sudo_exec ln -sf "$(System_To_Programs_Path "${reallink}" "${goboPrograms}/${appname}/${appver}-safelinking")" "$(dirname ${reallink})"
+            $sudo_exec ln -sf "$(System_To_Programs_Path "${systempath}" "${goboPrograms}/${appname}/${appver}-safelinking")" "$(dirname ${systempath})"
          }
       done
       Progress_End
@@ -532,24 +528,20 @@ function Post_Installation_Clean_Up() {
       
       if [ -e "${goboPrograms}/${appname}/${appver}-safelinking" ]
       then
-         programfiles=$(ListProgramFiles "${goboPrograms}/${appname}/${appver}-safelinking")
          Progress_Start "Restoring safe copy"
+         programfiles=$(ListProgramFiles --no-resources "${goboPrograms}/${appname}/${appver}-safelinking")
          $sudo_exec mkdir -p "${goboPrograms}/${appname}/${appver}"
          $sudo_exec cp -a "${goboPrograms}/${appname}/${appver}-safelinking"/* "${goboPrograms}/${appname}/${appver}"
          for f in ${programfiles[@]}
          do
             f="${goboPrograms}/${appname}/${appver}/${f}"
             systempath="$(Programs_To_System_Path "${f}")"
+	    [ ! -L "${systempath}" ] && continue
             [ "$(dirname "$(readlink -f "${systempath}")")" != "$(dirname "${f}")" ] && continue
-            reallink="${systempath}"
-            while [ ! -L "${reallink}" -a -n "${reallink}" ]
-            do
-               reallink="${reallink%/*}"
-            done
    
-            [ -n "${reallink}" ] && {
+            [ -n "${systempath}" ] && {
                Progress_Move
-               $sudo_exec ln -sf "$(System_To_Programs_Path "${reallink}" "${goboPrograms}/${appname}/${appver}")" "$(dirname ${reallink})"
+               $sudo_exec ln -sf "$(System_To_Programs_Path "${systempath}" "${goboPrograms}/${appname}/${appver}")" "$(dirname ${systempath})"
             }
          done
          Progress_End
@@ -682,12 +674,6 @@ function Create_Program_Tree() {
    prefix="$1"
    [ -n "$2" ] && action="$2" || action="ask"
 
-   Is_Writable `Get_Dir runtime '' ''` || Verify_Superuser
-   Dir_Set Install && {
-      Is_Writable `Get_Dir install '' ''` || Verify_Superuser
-   }
-
-   
    ask=yes
    unset keepdir
    Boolean "remove" && unset ask
@@ -710,36 +696,32 @@ function Create_Program_Tree() {
    if [ "$action" != "keep" ]
    then
       if [ -e "$prefix" ]
-      then rm -rf -- "$prefix"
+      then $sudo_exec rm -rf -- "$prefix"
       fi
       if Dir_Set Install
       then
-         Make_Directory `Get_Dir install "$programname"`
-         ( cd "$baseprogramdir" ; ln -s "$installdir" "$versionnumber")
+         $sudo_exec Make_Directory `Get_Dir install "$programname"`
+         ( cd "$baseprogramdir" ; $sudo_exec ln -s "$installdir" "$versionnumber")
       fi
    fi
 
    if Dir_Set Shared && [ ! "$goboIndex" ]
    then
-      [ -L "$prefix/share" ]  && rm -- "$prefix/share"
-      [ -d "$prefix/Shared" ] && ln -nsf "$prefix/Shared" "$prefix/share"
+      [ -L "$prefix/share" ]  && $sudo_exec rm -- "$prefix/share"
+      [ -d "$prefix/Shared" ] && $sudo_exec ln -nsf "$prefix/Shared" "$prefix/share"
    fi
 
    if Dir_Set Manuals && [ ! "$goboIndex" ]
    then
-      [ -d "$prefix/man" ] && ln -nsf "$prefix/man" "$prefix/Shared/man"
+      [ -d "$prefix/man" ] && $sudo_exec ln -nsf "$prefix/man" "$prefix/Shared/man"
    fi
 
-   Traverse_Program_Tree "Make_Directory" "make_symlink" "$prefix"
+   Traverse_Program_Tree "$sudo_exec mkdir -p" "$sudo_exec ln -s" "$prefix"
 }
 
 function Clean_Program_Tree() {
    prefix=$1
-   Is_Writable `Get_Dir runtime '' ''` || Verify_Superuser
-   Dir_Set Install && {
-      Is_Writable `Get_Dir install '' ''` || Verify_Superuser
-   }
-   Traverse_Program_Tree "Quiet rmdir -p" "remove_symlink" "$prefix"
+   Traverse_Program_Tree "Quiet $sudo_exec rmdir -p" "$sudo_exec remove_symlink" "$prefix"
 }
 
 function Programs_To_System_Path() {
