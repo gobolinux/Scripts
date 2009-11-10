@@ -23,6 +23,7 @@ function Create_Filesystem_Tree() {
       create_dir $root/System/Index/lib
       create_dir $root/System/Index/include
       create_dir $root/System/Index/share/man
+      create_dir $root/System/Index/share/info
       variabledir="Data/Variable"
       filesdir="Data"
    else
@@ -80,10 +81,9 @@ function Create_Filesystem_Tree() {
       create_link ../System/Index/bin         $root/usr/bin
       create_link ../System/Index/include     $root/usr/include
       create_link ../System/Index/lib         $root/usr/lib
-      create_link ../System/Index/man         $root/usr/man
+      create_link ../System/Index/share/man   $root/usr/man
       create_link ../System/Index/sbin        $root/usr/sbin
       create_link ../System/Index/share       $root/usr/share
-      create_link ../../System/Index/man      $root/usr/share/man
       # compatibility links
       create_link ../../System/Index/bin      $root/System/Links/Executables
       create_link ../../System/Index/lib      $root/System/Links/Libraries
