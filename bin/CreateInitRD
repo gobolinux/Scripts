@@ -43,7 +43,7 @@ Assert_Dir "$initrd_path"
 
 module_dir=`Entry "module_dir"`
 initrd=`Entry "output"`
-eval `Array_To_Args extramodules`
+eval `Args_To_Array extramodules`
 mkinitrd.pl `Entry "rootdev"` "$initrd_path" "$module_dir" "${extramodules[@]}"
 
 Log_Normal "Creating $initrd from $module_dir"
