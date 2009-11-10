@@ -23,7 +23,6 @@ function Create_Filesystem_Tree() {
       create_dir $root/System/Index/lib
       create_dir $root/System/Index/include
       create_dir $root/System/Index/share/man
-      create_dir $root/System/Index/share/info
       variabledir="Data/Variable"
       filesdir="Data"
    else
@@ -31,16 +30,8 @@ function Create_Filesystem_Tree() {
       filesdir="Files"
    fi
 
-   # Create those regardless of $usesystemindex for compatibility purposes
-   create_dir $root/System/Links/Executables
-   create_dir $root/System/Links/Libraries
-   create_dir $root/System/Links/Headers
-   create_dir $root/System/Links/Shared
-   create_dir $root/System/Links/Manuals/info
-
    create_dir $root/System/Links/Tasks
    create_dir $root/System/Links/Environment
-   create_dir $root/System/Settings
    create_dir $root/$variabledir/log
    create_dir $root/$variabledir/tmp 0 a+wt
    create_dir $root/$variabledir/log
@@ -97,8 +88,16 @@ function Create_Filesystem_Tree() {
       create_link ../../System/Index/bin      $root/System/Links/Executables
       create_link ../../System/Index/lib      $root/System/Links/Libraries
       create_link ../../System/Index/share    $root/System/Links/Shared
+      create_link ../../System/Index/include  $root/System/Links/Headers
       create_link ../Data/Variable            $root/System/Variable
+      create_link ../System/Index/etc         $root/System/Settings
    else
+      create_dir $root/System/Links/Executables
+      create_dir $root/System/Links/Libraries
+      create_dir $root/System/Links/Headers
+      create_dir $root/System/Links/Shared
+      create_dir $root/System/Links/Manuals/info
+
       create_link System/Links/Libraries      $root/lib
       create_link System/Links/Executables    $root/bin
       create_link System/Links/Executables    $root/sbin
@@ -109,6 +108,7 @@ function Create_Filesystem_Tree() {
       create_link ../System/Links/Manuals     $root/usr/man
       create_link ../System/Links/Shared      $root/usr/share
       create_link ../Manuals                  $root/System/Links/Shared/man
+      create_dir $root/System/Settings
    fi
    create_link $variabledir                $root/var
    create_link $variabledir/tmp            $root/tmp
