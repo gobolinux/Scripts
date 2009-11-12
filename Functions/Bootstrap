@@ -23,7 +23,6 @@ function Create_Filesystem_Tree() {
       create_dir $root/System/Index/include
       create_dir $root/System/Index/share/man
       create_dir $root/System/Index/share/info
-      create_link bin $root/System/Index/sbin
       variabledir="Data/Variable"
       filesdir="Data"
    else
@@ -84,6 +83,7 @@ function Create_Filesystem_Tree() {
       create_link ../System/Index/share/man   $root/usr/man
       create_link ../System/Index/sbin        $root/usr/sbin
       create_link ../System/Index/share       $root/usr/share
+      create_link bin                         $root/System/Index/sbin
       # compatibility links
       create_link ../../System/Index/bin      $root/System/Links/Executables
       create_link ../../System/Index/lib      $root/System/Links/Libraries
@@ -133,6 +133,10 @@ function Create_Device_Nodes() {
 
    if ! [ -e $root/System/Kernel/Devices/log ]
    then mkfifo $root/System/Kernel/Devices/log
+   fi
+   
+   if ! [ -e $root/System/Kernel/Devices/initctl ]
+   then mkfifo -m 0600 $root/System/Kernel/Devices/initctl
    fi
 
    if ! [ -e $root/System/Kernel/Devices/fd ]
