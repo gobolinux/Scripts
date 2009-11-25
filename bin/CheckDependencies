@@ -684,6 +684,8 @@ if __name__ == '__main__':
 				global_dependencies_blacklist = []
 			elif o in ['--blacklist']:
 				global_dependencies_blacklist = a.split(',')
+				for i in range(len(global_dependencies_blacklist)):
+					global_dependencies_blacklist[i] = global_dependencies_blacklist[i].lower()
 			elif o in ['--no-compatlist', '-C']:
 				no_compatlist = True
 			elif o in ['--cross-compile']:
