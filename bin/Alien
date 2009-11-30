@@ -52,3 +52,13 @@ def getmanagerrule(alientype):
     rule = CheckDependencies.interpret_dependency_line(rulestr)
     return rule
 
+if __name__ == '__main__':
+    if len(sys.argv) < 3:
+        print "Usage: Alien --<mode> AlienType:alienpkg [...]"
+        exit(1)
+    mode = sys.argv[1]
+    prog = sys.argv[2]
+    alientype, alienpkg = split(prog)
+    args = ['Alien-' + alientype, mode, alienpkg] + sys.argv[3:]
+    exit(subprocess.call(args))
+    
