@@ -26,6 +26,11 @@ getinstallversion() {
       /^'"$prog"'$/ { found=1 }'
 }
 
+install() {
+   prog="$1"
+   luarocks install "$prog"
+}
+
 command="$1"
 prog="$2"
 
@@ -58,5 +63,8 @@ case "$command" in
       ;;
    --get-manager-rule)
       echo "LuaRocks >= 1.0"
+      ;;
+   --install)
+      install "$2"
       ;;
 esac # is ridiculous
