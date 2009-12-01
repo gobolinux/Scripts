@@ -1,0 +1,56 @@
+#!/bin/sh
+# Shell script implementing the Aliens interface for RubyGems.
+# Copyright 2009 Michael Homer. Released under the GNU GPL 2 or later.
+
+getversion() {
+   prog="$1"
+   gem list "$prog" | sed -n -e '/'"$prog"' / { s/.*(\([^),]\+\)[),].*/\1/ p ; q} '
+}
+
+getinstallversion() {
+   prog="$1"
+   gem list --remote "$prog" | sed -n -e '/'"$prog"' / { s/.*(\([^),]\+\)[,)].*/\1/ p ; q}'
+}
+
+install() {
+   prog="$1"
+   gem install "$prog"
+}
+
+command="$1"
+prog="$2"
+
+case "$command" in
+   --getversion)
+      echo $(getversion "$2")
+      ;;
+   --getinstallversion)
+      echo $(getinstallversion "$2")
+      ;;
+   --greater-than)
+      ver=$(getversion "$2")
+      latest=$(GuessLatest "$ver" "$3")
+      [ "$latest" = "$3" ] && exit 1 || exit 0
+      ;;
+   --met|--within-range|--interval)
+      prog="$2"
+      lower="$3"
+      upper="$4"
+      ver=$(getversion "$2")
+      [ "$ver" ] || exit 1
+      [ "$(GuessLatest "$ver" "$lower")" = "$lower" ] && exit 1
+      [ "$upper" ] || exit 0
+      [ "$(GuessLatest "$ver" "$upper")" = "$upper" ] || exit 1
+      [ "$ver" = "$upper" ] && exit 1
+      exit 0
+      ;;
+   --have-manager)
+      which gem >/dev/null 2>&1 || exit 1
+      ;;
+   --get-manager-rule)
+      echo "Ruby >= 1.9"
+      ;;
+   --install)
+      install "$2"
+      ;;
+esac # is ridiculous
