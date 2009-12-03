@@ -62,15 +62,6 @@ Boolean "no-sign-check" && nosigncheck="--no-sign-check"
 Is_Writable "${goboPrograms}" || Verify_Superuser
 Is_Writable "${goboInstall}"  || Verify_Superuser
 
-# If $1 has a colon in it, it's an Alien.
-# Pass it off to the Alien command and don't deal with it any further.
-if ! [ "${1#*:}" = "$1" ]
-then
-   Alien --install "$1"
-   exit $?
-fi
-
-
 # if $1 is an url: 
 #  1 - Download; 
 #  2 - Call InstallPackage on local file; 
@@ -104,6 +95,15 @@ then
    fi
    exit 0
 fi
+
+# If $1 has a colon in it, it's an Alien.
+# Pass it off to the Alien command and don't deal with it any further.
+if ! [ "${1#*:}" = "$1" ]
+then
+   Alien --install "$1"
+   exit $?
+fi
+
 
 # if $1 is not a existing file nor a existing directory: 
 #  1 - Try to find a package matching the exact version, or try to find any package for that program;
