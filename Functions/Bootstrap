@@ -26,6 +26,7 @@ function Create_Filesystem_Tree() {
       variabledir="Data/Variable"
       filesdir="Data"
    else
+      create_dir $root/Depot
       variabledir="System/Variable"
       filesdir="Files"
    fi
@@ -53,7 +54,6 @@ function Create_Filesystem_Tree() {
    create_dir $root/$filesdir/Compile/Archives 0.sys 2755
    create_dir $root/$filesdir/Compile/Sources 0.sys 2755
    create_dir $root/$filesdir/Compile/Store 0.sys 2755
-   create_dir $root/Depot
    create_dir $root/Mount/.Pivot
    create_dir $root/Mount/CD-ROM
    create_dir $root/Mount/GoboLinux
