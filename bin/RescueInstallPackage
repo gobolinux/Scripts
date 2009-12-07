@@ -19,7 +19,7 @@ then
 	echo "RescueInstallPackage"
 	echo "A minimal functionality InstallPackage that can be used when the original script is not working"
 	echo "Usage:   `basename $0` <package_file|package_dir|package_url> [goboPrograms] [goboLinks]" 2> /dev/stderr 
-	echo "Example: `basename $0` /Depot/Packages/Glibc--2.3.2--i686.tar.bz2 /Programs /System/Links" 2> /dev/stderr 
+	echo "Example: `basename $0` /Data/Packages/Glibc--2.3.2--i686.tar.bz2 /Programs /System/Links" 2> /dev/stderr 
 	exit 1
 fi
 
