@@ -75,6 +75,8 @@ def Corrections(word, dir=None, alternatives=None, threshold=0):
     word = word.lower()
     augmented = [(dameraulevenshtein(word, alt.lower()), alt)
                  for alt in alternatives]
+    if not len(augmented):
+        return []
     augmented.sort()
     best_score = augmented[0][0]
     cond = lambda score: score <= best_score + threshold
@@ -99,7 +101,7 @@ if __name__ == '__main__':
     corrections = Corrections(args[0], dir=options.dir,
                               alternatives=alternatives,
                               threshold=options.threshold)
-    if options.log_name:
+    if options.log_name and len(corrections):
         if len(corrections) == 1:
             Log_Normal("Did you mean this?", options.log_name)
         else:
