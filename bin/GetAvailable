@@ -438,7 +438,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 		if accessWeb:
 			i=0
 			for getRecipeStore in getRecipeStores:
-				availables['recipe']['programs'] = getVersionsFromPackagesList(cacheDir+'RecipeList'+str(i)+'.bz2', url, getRecipeStore, availables['recipe']['programs'])
+				availables['recipe']['programs'] = getVersionsFromPackagesList(cacheDir+'RecipeList'+str(i)+'.bz2', getRecipeStore, getRecipeStore, availables['recipe']['programs'])
 				i = i + 1
 
 	if hook:
