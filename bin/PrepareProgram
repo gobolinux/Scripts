@@ -260,9 +260,12 @@ then
       --sysconfdir="$configuresettings"
       --localstatedir="$configurevariable"
    )
-   if Dir_Set Manuals
-   then configure_options=("${configure_options[@]}" --mandir="$configureprefix/man")
-   else configure_options=("${configure_options[@]}" --mandir="$configureprefix/share/man")
+   if ! "$goboIndex"
+   then
+      if Dir_Set Manuals
+      then configure_options=("${configure_options[@]}" --mandir="$configureprefix/man")
+      else configure_options=("${configure_options[@]}" --mandir="$configureprefix/share/man")
+      fi
    fi
    if [ "$goboCrossCompiling" = "yes" ]
    then
