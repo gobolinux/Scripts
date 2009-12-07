@@ -272,12 +272,12 @@ def getPackedLocalPackages(directory, d = None, default_revision=''):
 			addToDict(d, p,v,r,directory+file)
 	return d
 
-def getVersionsFromList(file, d = None):
+def getVersionsFromList(file, url, d = None):
 	if not os.access(file, os.R_OK):
 		return d
 
 	if os.path.getsize(file) == 0:
-		Log_Terse("Removing empty %s..."%(file),"GetAvailable")
+		Log_Terse("Timed out downloading %s"%(url),"GetAvailable")
 		os.remove(file)
 		return d
 
@@ -307,12 +307,12 @@ def getVersionsFromList(file, d = None):
 			addToDict(d, l[0], l[1], '', str(l[0])+' '+str(l[1])+ ' ' + '<TRACKED>')
 	return d
 
-def getVersionsFromPackagesList(file, path_prefix = '', d = None):
+def getVersionsFromPackagesList(file, url, path_prefix = '', d = None):
 	if not os.access(file, os.R_OK):
 		return d
 
 	if os.path.getsize(file) == 0:
-		Log_Terse("Removing empty %s..."%(file),"GetAvailable")
+		Log_Terse("Timed out downloading %s"%(url),"GetAvailable")
 		os.remove(file)
 		return d
 
@@ -406,7 +406,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 			availables['official_package'] = {}
 		availables['official_package']['programs']= KeyInsensitiveDict()
 		for url, file in globalSettings['officialPackagesLists']:
-			availables['official_package']['programs'] = getVersionsFromPackagesList(cacheDir+file, string.join(url.split('/')[:-1], '/'), availables['official_package']['programs'])
+			availables['official_package']['programs'] = getVersionsFromPackagesList(cacheDir+file, url, string.join(url.split('/')[:-1], '/'), availables['official_package']['programs'])
 
 	if hook:
 		hook('Loading lists', 1, 4)
@@ -417,7 +417,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 
 		availables['contrib_package']['programs']= KeyInsensitiveDict()
 		for url, file in globalSettings['contribPackagesLists']:
-			availables['contrib_package']['programs'] = getVersionsFromPackagesList(cacheDir+file, string.join(url.split('/')[:-1], '/'), availables['contrib_package']['programs'])
+			availables['contrib_package']['programs'] = getVersionsFromPackagesList(cacheDir+file, url, string.join(url.split('/')[:-1], '/'), availables['contrib_package']['programs'])
 
 	if hook:
 		hook('Loading lists', 2, 4)
@@ -438,7 +438,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 		if accessWeb:
 			i=0
 			for getRecipeStore in getRecipeStores:
-				availables['recipe']['programs'] = getVersionsFromPackagesList(cacheDir+'RecipeList'+str(i)+'.bz2', getRecipeStore, availables['recipe']['programs'])
+				availables['recipe']['programs'] = getVersionsFromPackagesList(cacheDir+'RecipeList'+str(i)+'.bz2', getRecipeStore, getRecipeStore, availables['recipe']['programs'])
 				i = i + 1
 
 	if hook:
@@ -449,7 +449,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 			availables['tracked'] = {}
 		availables['tracked']['programs'] = KeyInsensitiveDict()
 		for url, file in globalSettings['trackedVersionsLists']:
-			availables['tracked']['programs'] = getVersionsFromList(cacheDir+file, availables['tracked']['programs'])
+			availables['tracked']['programs'] = getVersionsFromList(cacheDir+file, url, availables['tracked']['programs'])
 
 	if hook:
 		hook('Loading lists', 4, 4)
