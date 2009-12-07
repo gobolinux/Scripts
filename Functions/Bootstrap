@@ -50,6 +50,7 @@ function Create_Filesystem_Tree() {
    create_dir $root/System/Kernel/Modules
    create_dir $root/System/Kernel/Devices
    create_dir $root/System/Kernel/Status
+   create_dir $root/System/Kernel/Config
    create_dir $root/Users/$superuser
    create_dir $root/$filesdir/Compile/Archives 0.sys 2755
    create_dir $root/$filesdir/Compile/Sources 0.sys 2755
@@ -115,6 +116,7 @@ function Create_Filesystem_Tree() {
    create_link System/Kernel/Objects       $root/sys
    create_link System/Kernel/Devices       $root/dev
    create_link System/Kernel/Status        $root/proc
+   create_link System/Kernel/Config        $root/config
    create_link System/Settings             $root/etc
    create_link System/Kernel/Boot          $root/boot
    create_link Mount                       $root/mnt
