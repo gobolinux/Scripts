@@ -23,6 +23,7 @@ Add_Option_Entry "h" "headers" "Link headers into ${goboHeaders}." "yes" "yes no
 Add_Option_Entry "a" "shared" "Link shared files into ${goboShared}." "yes" "yes no safe"
 Add_Option_Entry "w" "wrappers" "Link wrappers into ${goboExecutables}." "yes" "yes no safe"
 Add_Option_Entry "t" "tasks" "Link tasks into ${goboExecutables}." "yes" "yes no safe"
+Add_Option_Entry "x" "libexec" "Link libexec into ${goboIndex}." "yes" "yes no safe"
 Add_Option_Entry "u" "unmanaged" "Defines what to do with unmanaged files in package." "ask" "ask install skip"
 Add_Option_Boolean "E" "no-environment" "Do not link entries from ${goboEnvironment}."
 Add_Option_Boolean "R" "no-requirements" "Do not process Resources/Requirements."
@@ -49,6 +50,7 @@ linktasks=`Entry "tasks"`
 linkheaders=`Entry "headers"`
 linkshared=`Entry "shared"`
 linkwrappers=`Entry "wrappers"`
+linklibexec=`Entry "libexec"`
 
 if Boolean "force" || Is_Entry "conflict" "overwrite"
 then
@@ -290,6 +292,15 @@ then
 fi
 
 ################################################################################
+
+if [ "$linklibexec" != "no" ]
+then
+   Log_Normal "Symlinking libexec.."
+   Link_Directory "$current/libexec" "$goboIndex/libexec" "${symlinkrelative}" "${symlinkoverwrite}"
+fi
+
+################################################################################
+
 
 if [ "$linkshared" != "no" ]
 then
