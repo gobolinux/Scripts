@@ -25,6 +25,7 @@ if [ "$usesystemindex" ]
       create_dir $root/System/Index/bin
       create_link bin $root/System/Index/sbin
       create_dir $root/System/Index/lib
+      create_dir $root/System/Index/libexec
       create_dir $root/System/Index/include
       create_dir $root/System/Index/share
       variabledir="Data"
