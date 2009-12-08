@@ -20,6 +20,7 @@ function Create_Filesystem_Tree() {
       create_dir $root/System/Index/etc
       create_dir $root/System/Index/bin
       create_dir $root/System/Index/lib
+      create_dir $root/System/Index/libexec
       create_dir $root/System/Index/include
       create_dir $root/System/Index/share/man
       create_dir $root/System/Index/share/info
