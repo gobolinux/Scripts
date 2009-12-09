@@ -111,7 +111,7 @@ Ask_Option() {
        fi
        if [ "$REPLY" != "" ] && [ -n "$lambda" ]
        then
-          if eval ${lambda}
+          if eval "${lambda}"
           then break
           fi
        elif [ -n "$REPLY" ]
