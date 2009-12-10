@@ -104,15 +104,16 @@ int damlev(char *word1, char *word2) {
 	// matrix around - call these thisrow, oneago, twoago, and
 	// initialise thisrow to 0 1 2 3 ....
 	int *oneago = NULL, *twoago = NULL;
-	int *thisrow = malloc(lw2 + 1);
+	int *thisrow = calloc(lw2 + 1, sizeof(int));
 	for (i = 0; i <= lw2; i++) {
 		thisrow[i] = i;
 	}
 	for (i = 0; i < lw1; i++) {
 		// Shift rows back and initialise thisrow for current location.
+		free(twoago);
 		twoago = oneago;
 		oneago = thisrow;
-		thisrow = calloc(lw2 + 1, sizeof(int));
+		thisrow = calloc(lw2 + 1, sizeof(i));
 		thisrow[0] = i + 1;
 		for (j = 0; j < lw2; j++) {
 			int delcost = oneago[j + 1] + 1;
@@ -129,7 +130,11 @@ int damlev(char *word1, char *word2) {
 			thisrow[j + 1] = cost;
 		}
 	}
-	return thisrow[lw2];
+	free(twoago);
+	free(oneago);
+	i = thisrow[lw2];
+	free(thisrow);
+	return i;
 }
 
 // True if word is in list - used to prevent duplicates below,
@@ -142,7 +147,69 @@ static inline int in_list(char list[16][32], char *word, int len) {
 	return 0;
 }
 
-void suggest_existing(char *target) {
+// Search CNF database for possible typo executables, and suggest their
+// programs as well.
+void suggest_similar_uninstalled(char *target, char already[16][32], FILE *fp,
+				 int threshold, int acount) {
+	char els[16][128];
+	char entry[BUFLEN];
+	char *executable;
+	char tmp[BUFLEN], firstprog[BUFLEN];
+	int d, i;
+	int eli = 0;
+	firstprog[0] = 0;
+	fseek(fp, 0, SEEK_SET);
+	//puts("a");
+	while (!feof(fp)) {
+		fgets(entry, BUFLEN, fp);
+		executable = strtok(entry, " ");
+		d = damlev(target, executable);
+		if (d <= threshold) {
+			if (!in_list(already, executable, acount)) {
+				strcpy(els[eli], executable);
+				strcat(els[eli], " is part of ");
+				executable = strtok(NULL, " ");
+				strcpy(tmp, executable);
+				while ((executable = strtok(NULL, " "))) {
+					strcat(els[eli], tmp);
+					strcat(els[eli], ", ");
+					strcpy(tmp, executable);
+				}
+				strcat(els[eli], tmp);
+				if (!firstprog[0])
+					strcpy(firstprog, tmp);
+				eli++;
+			}
+			if (eli == 15)
+				break;
+		}
+	}
+	if (eli > 0) {
+		if (acount == 0)
+			printf("\nD");
+		else
+			printf("\nOr d");
+		if (eli == 1)
+			printf("id you mean this uninstalld command?\n");
+		else
+			printf("id you mean one of these "
+			       "uninstalled commands?\n");
+		for (i = 0; i < eli; i++)
+			printf("  %s", els[i]);
+		if (firstprog[strlen(firstprog) - 1] == '\n')
+			firstprog[strlen(firstprog) - 1] = 0;
+		fprintf(OUTPUT, "You can install one of these by typing "
+			"(for example):\n"
+			" InstallPackage %s\nor\n Compile %s\n",
+			firstprog, firstprog);
+	}
+
+}
+
+// Look through PATH for executables that are close to our target,
+// and suggest typo corrections. After that look through the CNF
+// database again for similar names and suggest them too.
+void suggest_similar(char *target, FILE *fp) {
 	// Set a minimum closeness we'll care about. At least half
 	// the executable name must be the same to count.
 	int mindl = strlen(target) / 2;
@@ -170,7 +237,7 @@ void suggest_existing(char *target) {
 					mindl = d;
 					eli = 0;
 				}
-				if (d == mindl && eli < 16) {
+				if (d == mindl && eli < 15) {
 					if (!in_list(els, ep->d_name, eli)) {
 						strcpy(els[eli], ep->d_name);
 						eli++;
@@ -190,6 +257,7 @@ void suggest_existing(char *target) {
 			printf("%s%s", els[i], (i + 1 < eli ? ", " : ""));
 		puts("");
 	}
+	suggest_similar_uninstalled(target, els, fp, mindl, eli);
 }
 
 int main(int argc, char **argv) {
@@ -222,12 +290,18 @@ int main(int argc, char **argv) {
 				return 1;
 			}
 		} else {
-			// Not found, so see if there's a close existing command.
+			// Not found, so see if there's a close existing command
+			suggest_similar(argv[1], fp);
 			fclose(fp);
-			suggest_existing(argv[1]);
 			return 1;
 		}
 	}
 	fclose(fp);
 	return 0;
 }
+// Local variables:
+// mode: c
+// indent-tabs-mode: t
+// tab-width: 8
+// c-basic-offset: 8
+// End:
