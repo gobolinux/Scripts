@@ -1,0 +1,82 @@
+#!/bin/sh
+# Shell script implementing the Aliens interface for CPAN.
+# Copyright 2009 Hisham Muhammad based on RubyGems interface by Michael Homer. Released under the GNU GPL 2 or later.
+
+getversion() {
+   # Based on pmvers 1.10
+   # Released under the GNU GPL 2 or any later version.
+   # Copyright (C) 1999 Tom Christiansen.
+   # Copyright (C) 2006-2008 Mark Leighton Fisher.
+   perl -e '
+   BEGIN { $^W = 1 }
+   if (@ARGV < 1) { exit 1; }
+   my $module = $ARGV[0];
+   eval "local \$^W = 0; require $module";
+   if ($@) { exit 1; }
+   if (defined($version = $module->VERSION())) { 
+      print "$version\n";
+   } else { 
+      exit 1;
+   }
+   ' "$1"
+}
+
+getinstallversion() {
+   module="$1"
+   python -c '
+import urllib
+import xml.dom.minidom
+url = urllib.urlopen("http://search.cpan.org/search?mode=module&format=xml&query='$module'")
+dom = xml.dom.minidom.parseString(url.read())
+for mod in dom.getElementsByTagName("module"):
+   name = mod.getElementsByTagName("name")[0].childNodes[0].data
+   if name == "'$module'":
+      print mod.getElementsByTagName("version")[0].childNodes[0].data
+      break
+url.close()
+   '
+}
+
+install() {
+   module="$1"
+   echo "force install $1" | perl -MCPAN -e "shell"
+}
+
+command="$1"
+prog="$2"
+
+case "$command" in
+   --getversion)
+      echo $(getversion "$2")
+      ;;
+   --getinstallversion)
+      echo $(getinstallversion "$2")
+      ;;
+   --greater-than)
+      ver=$(getversion "$2")
+      latest=$(GuessLatest "$ver" "$3")
+      [ "$latest" = "$3" ] && exit 1 || exit 0
+      ;;
+   --met|--within-range|--interval)
+      prog="$2"
+      lower="$3"
+      upper="$4"
+      ver=$(getversion "$2")
+      [ "$ver" ] || exit 1
+      [ "$(GuessLatest "$ver" "$lower")" = "$lower" ] && exit 1
+      [ "$upper" ] || exit 0
+      [ "$(GuessLatest "$ver" "$upper")" = "$upper" ] || exit 1
+      [ "$ver" = "$upper" ] && exit 1
+      exit 0
+      ;;
+   --have-manager)
+      getversion CPANPLUS &> /dev/null || exit 1
+      ;;
+   --get-manager-rule)
+      echo "Perl >= 5.10.1"
+      ;;
+   --install)
+      install "$2"
+      ;;
+esac # is ridiculous
+
