@@ -30,7 +30,7 @@ url = urllib.urlopen("http://search.cpan.org/search?mode=module&format=xml&query
 dom = xml.dom.minidom.parseString(url.read())
 for mod in dom.getElementsByTagName("module"):
    name = mod.getElementsByTagName("name")[0].childNodes[0].data
-   if name == "'$module'":
+   if name.lower() == "'$module'".lower():
       print mod.getElementsByTagName("version")[0].childNodes[0].data
       break
 url.close()
