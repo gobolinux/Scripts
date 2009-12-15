@@ -36,6 +36,7 @@ then
    # still needed for Tasks and Environment
    export goboLinks="${goboSystem}/Links"
    export goboData="${goboPrefix}/Data"
+   export goboVariable="${goboData}/Variable"
 else
    export goboLinks="${goboSystem}/Links"
    export goboExecutables="${goboLinks}/Executables"
@@ -44,9 +45,9 @@ else
    export goboShared="${goboLinks}/Shared"
    export goboManuals="${goboLinks}/Manuals"
    export goboData="${goboPrefix}/Files"
+   export goboVariable="${goboSystem}/Variable"
 fi
 
-export goboVariable="${goboSystem}/Variable"
 export goboSettings="${goboSystem}/Settings"
 export goboKernel="${goboSystem}/Kernel"
 
