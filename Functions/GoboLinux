@@ -680,7 +680,7 @@ function Create_Program_Tree() {
    Boolean "keep" && { unset ask; keepdir=yes; }
    Boolean "batch" && unset ask
 
-   if [ "$action" = "ask" -a Is_Real_Nonempty_Directory "$prefix" ]
+   if [ "$action" = "ask" -a $(Is_Real_Nonempty_Directory "$prefix") ]
    then
       while true
       do
