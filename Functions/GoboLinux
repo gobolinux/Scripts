@@ -696,7 +696,9 @@ function Create_Program_Tree() {
    if [ "$action" != "keep" ]
    then
       if [ -e "$prefix" ]
-      then $sudo_exec rm -rf -- "$prefix"
+      then 
+         $sudo_exec rm -rf -- "$prefix"/*
+         $sudo_exec rmdir "$prefix" 2> /dev/null
       fi
       if Dir_Set Install
       then
