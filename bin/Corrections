@@ -107,4 +107,4 @@ if __name__ == '__main__':
         else:
             Log_Normal("Did you mean one of these?", options.log_name)
     for cor in corrections:
-        print " ", cor
+        print " " + cor
