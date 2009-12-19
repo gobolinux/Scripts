@@ -109,7 +109,7 @@ def downloadFiles(files, force=False, hook=None, message=''):
 			t = threading.Thread(target=doDownload, args=(url, cacheDir+filename, timeout))
 			t.setDaemon(True) # program exits on long timeout
 			threads.append(t)
- 		else:
+		else:
 			downloadedCount = downloadedCount + 1
 
 	if threads and hook:
