@@ -179,7 +179,7 @@ function list_diffs()
       #  1 new: $version/Resources/Defaults/Settings/<file>
       #  2 del: Settings/<file>
       #  3 mod: Settings/<file>
-      LANG=C LC_ALL=C diff -rq Settings $version/Resources/Defaults/Settings\
+      LANG=C LC_ALL=C diff -rq Settings $version/Resources/Defaults/Settings 2> /dev/null \
          | sed '
             s,Only in \('$version'[^:]*\): \(.*\),new: \1/\2,
             s,Only in \(Settings[^:]*\): \(.*\),del: \1/\2,
@@ -217,7 +217,7 @@ function merge_and_edit()
    local marker="____GOBO_diff_marker____"
    local dat="($(date +%Y-%m-%d))"
 
-   diff -D$marker $cur $default \
+   diff -D$marker $cur $default 2> /dev/null \
       | sed '
       s,#ifndef '$marker',#----- GOBO DIFF: current version '$dat' -----,
       s,#else /\* '$marker' \*/,#----- GOBO DIFF: new version '$dat' -----,

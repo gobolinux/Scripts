@@ -10,6 +10,7 @@ function Get_Archive_Format() {
    -e "s/.*\.(tar\.bz|tbz)$/tarbzip/" \
    -e "s/.*\.(tar\.bz2|tbz2)$/tarbzip2/" \
    -e "s/.*\.(tar\.(gz|Z)|tgz)$/targzip/" \
+   -e "s/.*\.(cpio\.(gz|Z)|tgz)$/cpiogzip/" \
    -e "s/.*\.tar\.(lzma|7z)$/tarlzma/" \
    -e "s/.*\.tar\.xz$/tarxz/" \
    -e "s/.*\.bz$/bzip/" \
@@ -69,6 +70,10 @@ function Unpack_Archive() {
       ( needs_archiver "tar+xz" xz && needs_archiver "tar+xz" tar ) || return 2
       xz --stdout --decompress --keep "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} --file=- ${files:+"${files[@]}"}
       ;;
+   cpiogzip)
+      ( needs_archiver "cpio+gzip" cpio && needs_archiver "cpio+gzip" gzip ) || return 2
+      gunzip --decompress --stdout "${path}/${archive}" | cpio --extract --make-directories ${force:+--unconditional} --preserve-modification-time ${files:+--pattern-file=<(echo "${files[@]}" | sed 's/\ /\n/g')}
+      ;;
    bzip)
       needs_archiver "bzip" bunzip || return 2
       bunzip --decompress --keep --stdout "${path}/${archive}" > "${targetdirectory}/${archive%%.bz}"
@@ -95,7 +100,7 @@ function Unpack_Archive() {
       ;;
    cpio)
       needs_archiver "cpio" cpio || return 2
-      cpio --extract --make-directories ${force:+--unconditional} -I "${path}/${archive}" ${files:+--pattern-file=<(echo "${files[@]}" | sed 's/\ /\n/g')}
+      cpio --extract --make-directories --preserve-modification-time ${force:+--unconditional} -I "${path}/${archive}" ${files:+--pattern-file=<(echo "${files[@]}" | sed 's/\ /\n/g')}
       ;;
    zip)
       needs_archiver "zip" unzip || return 2
