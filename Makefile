@@ -1,6 +1,6 @@
 
 PROGRAM=Scripts
-VERSION=svn-$(shell date +%Y%m%d)
+VERSION=2.10.0
 PACKAGE_DIR=$(HOME)
 PACKAGE_FILE=$(PACKAGE_DIR)/$(PROGRAM)--$(VERSION)--$(shell uname -m).tar.bz2
 TARBALL_BASE=$(PROGRAM)-$(VERSION)
