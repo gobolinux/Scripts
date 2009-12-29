@@ -190,7 +190,7 @@ void suggest_similar_uninstalled(char *target, char already[16][32], FILE *fp,
 		else
 			printf("\nOr d");
 		if (eli == 1)
-			printf("id you mean this uninstalld command?\n");
+			printf("id you mean this uninstalled command?\n");
 		else
 			printf("id you mean one of these "
 			       "uninstalled commands?\n");
