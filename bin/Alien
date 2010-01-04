@@ -10,8 +10,7 @@ from PythonUtils import *
 alien_manager_states = {}
 alien_package_states = {}
 
-
-def dependencymet(rule):
+def parse_rule(rule):
     alientype, alienpkg  = split(rule['program'])
     lowerbound = ''
     upperbound = ''
@@ -20,6 +19,18 @@ def dependencymet(rule):
             lowerbound = val
         elif comp == '<':
             upperbound = val
+        elif comp == '=' or comp == '==':
+            lowerbound = val
+            upperbound = val
+    return alientype, alienpkg, lowerbound, upperbound
+
+
+def dependencymet(rule):
+    """Return True if rule['program'] is installed and meets the
+       rule['versions'] requirements (if any).  The lowerbound is
+       inclusive and the upperbound is exclusive, except if lowerbound
+       and upperbound are equal then that indicates an exact match."""
+    alientype, alienpkg, lowerbound, upperbound = parse_rule(rule)
     if 0 == subprocess.call(['Alien-' + alientype, '--met', alienpkg,
                              lowerbound, upperbound]):
         return True
@@ -27,9 +38,12 @@ def dependencymet(rule):
 
     
 def getinstallversion(rule):
-    alientype, alienpkg = rule['program'].split(':', 1)
+    """Return version of rule['program'] to install.  If rule['versions']
+       is specified then returned version should meet those
+       requirements (as described by the dependencymet() function)."""
+    alientype, alienpkg, lowerbound, upperbound = parse_rule(rule)
     p = subprocess.Popen(['Alien-' + alientype, '--getinstallversion',
-                          alienpkg], stdout=subprocess.PIPE)
+                          alienpkg, lowerbound, upperbound], stdout=subprocess.PIPE)
     return p.stdout.read().strip()
 
 
