@@ -218,7 +218,7 @@ def interpret_dependency_line(whole_line, t=None, cross_compile=False, flags=Non
 				versions.append(('>=', list_version[0]))
 		elif len(list_version) == 2:
 			if not list_version[0] in ['>', '<', '<=', '>=', '=', '!=']:
-				raise ParseError("Unsuported operand '%s' at line '%s'"%(list_version[0], whole_line.strip()))
+				raise ParseError("Unsupported operand '%s' at line '%s'"%(list_version[0], whole_line.strip()))
 			versions.append((list_version[0], list_version[1]))
 		else:
 			raise ParseError("Error at line '%s'"%(whole_line.strip()))
@@ -451,9 +451,17 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 			# Otherwise, it's unmet, so append a match tuple
 			# with the right version in it.
 			ver = Alien.getinstallversion(rule)
-			ordered_matches.append((rule['program'],
-						ver, None, 'recipe',
-						rule['program']))
+
+			alienmatch = ((rule['program'],
+				       ver, None, 'recipe',
+				       rule['program']))
+
+			if mode != 'all':
+				# Asking here!
+				if install_optional == 'never' or (install_optional == 'ask' and ask_hook and not ask_hook(alienmatch, goboPrograms=goboPrograms)):
+					continue
+
+			ordered_matches.append(alienmatch)
 			ordered_rules.append(rule)
 			continue
 		if mode == 'missing' and find_matching_package(rule, ['installed'], noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs, availables=availables)[3]:
