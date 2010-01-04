@@ -14,21 +14,37 @@ getversion() {
       /^'"$prog"'$/ { found=1 }'
 }
 
+in_version_range() {
+   lower="$1"
+   ver="$2"
+   upper="$3"
+   [ "$ver" ] || return 1
+   [ "$ver" != "$lower" -a "$(GuessLatest "$ver" "$lower")" = "$lower" ] && return 1
+   [ "$upper" ] || return 0
+   [ "$(GuessLatest "$ver" "$upper")" = "$upper" ] || return 1
+   [ "$ver" = "$upper" -a "$ver" != "$lower" ] && return 1
+   return 0
+}
+
 getinstallversion() {
    prog="$1"
-   luarocks search "$prog" | awk '
-      {
-         if (found) {
-            print $1
-            exit
-         }
-      }
-      /^'"$prog"'$/ { found=1 }'
+   for V in $(luarocks search "$prog" | awk '
+      /^$/ && found { exit }
+      found { print $1 }
+      /^'"$prog"'$/ { found=1 }') 
+   do
+      if in_version_range "$2" "$V" "$3"
+      then
+         echo $V
+         return 0
+      fi
+   done
 }
 
 install() {
    prog="$1"
-   luarocks install "$prog"
+   ver="$2"
+   luarocks install "$prog" "$ver"
 }
 
 command="$1"
@@ -39,7 +55,7 @@ case "$command" in
       echo $(getversion "$2")
       ;;
    --getinstallversion)
-      echo $(getinstallversion "$2")
+      echo $(getinstallversion "$2" "$3" "$4")
       ;;
    --greater-than)
       ver=$(getversion "$2")
@@ -51,12 +67,7 @@ case "$command" in
       lower="$3"
       upper="$4"
       ver=$(getversion "$2")
-      [ "$ver" ] || exit 1
-      [ "$(GuessLatest "$ver" "$lower")" = "$lower" ] && exit 1
-      [ "$upper" ] || exit 0
-      [ "$(GuessLatest "$ver" "$upper")" = "$upper" ] || exit 1
-      [ "$ver" = "$upper" ] && exit 1
-      exit 0
+	  in_version_range "$lower" "$ver" "$upper"
       ;;
    --have-manager)
       which luarocks >/dev/null 2>&1 || exit 1
@@ -65,6 +76,6 @@ case "$command" in
       echo "LuaRocks >= 1.0"
       ;;
    --install)
-      install "$2"
+      install "$2" "$3"
       ;;
 esac # is ridiculous
