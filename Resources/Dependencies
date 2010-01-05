@@ -14,7 +14,7 @@ Mtail # ColorMake
 Patch # UpdateSettings
 Perl # mkinitrd.pl
 Procps # UnionSandbox (ps)
-Python >= 2.5
+#Python >= 2.5, < 3.0
 Sed
 Sudo
 Tar # Archive
