@@ -259,7 +259,7 @@ then
    echo "Pre-linking Scripts..."
    link_directory ../../Programs/Scripts/Settings       "${goboPrefix}/System/Settings"
    link_directory ../../../Programs/Scripts/Current/bin "${goboPrefix}/System/Links/Executables"
-   ln -s ../../Programs/Scripts/version/Resources/Environment "${goboPrefix}/System/Links/Environment/Scripts--${version}"
+   ln -s ../../Programs/Scripts/${version}/Resources/Environment "${goboPrefix}/System/Links/Environment/Scripts--${version}"
    echo "Populating Dependencies.blacklist..."
    echo -e "Glibc\nXorg" >> "${goboPrefix}/Programs/Scripts/Settings/Scripts/Dependencies.blacklist"
 fi
