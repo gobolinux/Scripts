@@ -22,12 +22,13 @@ function Get_Archive_Format() {
    -e "s/.*\.xz$/xz/" \
    -e "s/.*\.zip$/zip/" \
    -e "s/.*\.cpio$/cpio/")
-   if [ "${format}" == "${file}" ]
+   if [ "${format}" = "$(Downcase "${archive}")" ]
    then
       format=$(file --mime --uncompress --brief "${archive}" | sed -r \
          -e 's,.*application/x-([^ ;]*).*application/x-([^\) ;]*).*,\1\2,' \
          -e 's,.*application/x-([^ ;]*).*,\1,')
    fi
+   Log_Normal "$archive format $format ${file}"
    echo "${format}"
 }
 
@@ -43,13 +44,14 @@ function needs_archiver() {
 function Unpack_Archive() {
    # Unfortunatly Parameters can't assign the "tail"
    #Parameters "$@" archive targetdirectory force files
+   local fullpath="$1"
    local archive=${1##*/};
    local path=${1%/*}; shift;
    local targetdirectory=$1; shift;
    local force=$1; shift;
    local files="${@}"
    [ -n "${targetdirectory}" ] &&  mkdir -p "${targetdirectory}"
-   case `Get_Archive_Format "${archive}"` in
+   case `Get_Archive_Format "${fullpath}"` in
    tarbzip)
       ( needs_archiver "tar+bzip" bunzip && needs_archiver "tar+bzip" tar ) || return 2
       bunzip --keep --decompress --stdout "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C --file=- "${targetdirectory}"} ${force:+--overwrite} ${files:+"${files[@]}"}
