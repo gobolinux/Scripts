@@ -52,6 +52,10 @@ function config_accepts_sysconfdir() {
    grep -- "--sysconfdir" "$configureprogram" &> /dev/null
 }
 
+function config_accepts_mandir() {
+   grep -- "--mandir" "$configureprogram" &> /dev/null
+}
+
 function build_change() {
    echo "/-L/!s/"$1"/"$2"/g;"
 }
@@ -243,8 +247,12 @@ rm -f config.cache
 Exists "$configureprogram" || Die "configure script "`[ $configureprogram != "./configure" ] && echo " ($configureprogram) "`"not found."
    
 if [ "$goboIndex" ]
-then configureprefix="$goboIndex"
-else configureprefix="$programdir"
+then
+   configureprefix="$goboIndex"
+   configuremandir="${goboShared}/man"
+else
+   configureprefix="$programdir"
+   configuremandir="${target}/Shared/man"
 fi
 configurevariable="$goboVariable"
 configuresettings="$settingsdir"
@@ -259,6 +267,7 @@ then
       --prefix="$configureprefix"
       --sysconfdir="$configuresettings"
       --localstatedir="$configurevariable"
+      --mandir="${configuremandir}"
    )
    if ! [ "$goboIndex" ]
    then
@@ -292,13 +301,28 @@ then
          --sysconfdir="$configuresettings"
       )
    fi
+   if config_accepts_mandir
+   then
+      configure_options=(
+         "${configure_options[@]}"
+         --mandir="$configuremandir"
+      )
+   fi
 else
    configure_options=()
 fi
 
 eval `Args_To_Array args 3`
 if [ -n "$goboIndex" -a -n "$args" ]
-then args=(`echo ${args[@]} | sed "s,$programdir,$goboIndex,g"`)
+then
+   for a in "${args[@]}"
+   do
+      tmpargs=(
+         "${tmpargs[@]}"
+         "$(echo "${a}" | sed "s,$programdir,$goboIndex,g")"
+      )
+   done
+   args=("${tmpargs[@]}")
 fi
 
 "$configureprogram" ${configure_options:+"${configure_options[@]}"} ${args:+"${args[@]}"} 2>&1 | Color_Output configure >&$normalFD
