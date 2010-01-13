@@ -517,6 +517,10 @@ function Post_Installation_Clean_Up() {
    appname="$1"
    appver="$2"
    failedinstallation="$3"
+   if [ ! -n "$appname" -o ! -n "$appver" ]
+   then
+      return
+   fi
    if [ "${failedinstallation}" = "failed" ]
    then
       [ -d "${goboPrograms}/${appname}/${appver}-failed" ] && $sudo_exec rm -rf "${goboPrograms}/${appname}/${appver}-failed"
