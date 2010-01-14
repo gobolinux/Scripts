@@ -28,7 +28,6 @@ function Get_Archive_Format() {
          -e 's,.*application/x-([^ ;]*).*application/x-([^\) ;]*).*,\1\2,' \
          -e 's,.*application/x-([^ ;]*).*,\1,')
    fi
-   Log_Normal "$archive format $format ${file}"
    echo "${format}"
 }
 
