@@ -8,7 +8,6 @@ Fuse # UnionSandbox with FUSE
 Gawk
 Grep
 Gzip # Archive
-LZMA-Utils # Archive
 MkTemp
 Mtail # ColorMake
 Patch # UpdateSettings
@@ -22,3 +21,4 @@ Udev # UnionSandbox with FUSE
 UnionFS-Fuse # UnionSandbox with FUSE
 Unzip # Archive
 Util-Linux-NG # sandboxes (mount)
+XZ-Utils
