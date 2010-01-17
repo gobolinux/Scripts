@@ -1,6 +1,6 @@
 
 PROGRAM=BootScripts
-VERSION=svn-$(shell date +%Y%m%d)
+VERSION=2.1.6
 PACKAGE_DIR=$(HOME)
 PACKAGE_FILE=$(PACKAGE_DIR)/$(PROGRAM)--$(VERSION)--$(shell uname -m).tar.bz2
 goboPrograms ?= /Programs
