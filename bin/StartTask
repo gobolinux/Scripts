@@ -52,5 +52,7 @@ then
    else Log_Error "$taskname: Returned code $? => FAILED." 
    fi
 else
-   Die "$taskname is not a valid task."
+   Log_Error "$taskname is not a valid task"
+   Corrections --log-name "$scriptName" --dir "$goboTasks" "$taskname"
+   Die
 fi
