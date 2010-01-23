@@ -217,6 +217,7 @@ Xtest Xtest
 Xvesa Xorg-Server
 Xvfb Xorg Xorg-Server
 Xvia Xorg-Server
+Xvnc TightVNC
 YUV411toRGB Dirac
 YUV420toRGB Dirac
 YUV420toYUV422 Dirac
@@ -253,6 +254,7 @@ acyclic Graphviz
 adddebug KDE-SDK
 addftinfo Groff
 addgnupghome GnuPG
+addpart Util-Linux-NG
 addr2line BinUtils
 adie Fox
 adiff Atool
@@ -264,7 +266,7 @@ afterstep AfterStep
 afterstep-config AfterStep
 afterstepdoc AfterStep
 aget Aget
-agetty Util-Linux Util-Linux-NG
+agetty Util-Linux-NG
 airport OpenMotif
 akonadi_control Akonadi
 akonadi_distlist_resource KDE-PIM
@@ -346,7 +348,7 @@ apu-1-config APR-Util HTTPD
 apxs HTTPD
 aquamarine Aquamarine
 ar BinUtils
-arch Util-Linux
+arch Util-Linux-NG
 archivemount Archivemount
 ardour2 Ardour
 arecord ALSA-Utils
@@ -493,8 +495,8 @@ bitmap Xorg Xorg-App
 bjam Boost
 blinken KDE-Edu
 blitztest QImageBlitz
-blkid E2FSProgs
-blockdev Util-Linux Util-Linux-NG
+blkid Util-Linux-NG
+blockdev Util-Linux-NG
 bmp2tiff TIFF
 bmptopnm Netpbm
 bmptoppm Netpbm
@@ -545,7 +547,7 @@ c44 DjVuLibre
 c_rehash OpenSSL
 cabextract Cabextract
 caff Signing-Party
-cal Util-Linux Util-Linux-NG
+cal Util-Linux-NG
 calculator Fox
 calgebra KDE-Edu
 cameratopam Netpbm
@@ -565,6 +567,7 @@ cat CoreUtils
 catalogmanager KDE-SDK
 catchsegv Glibc
 cc GCC
+ccache CCache
 ccmake CMake
 ccmakedep Imake Xorg
 ccomps Graphviz
@@ -587,7 +590,7 @@ cert2spc Mono
 certmgr Mono
 certtool GnuTLS Gnutls
 cervisia KDE-SDK
-cfdisk Util-Linux Util-Linux-NG
+cfdisk Util-Linux-NG
 chacl ACL
 chage Shadow
 chat PPP
@@ -600,7 +603,7 @@ checkmail NAS
 chfn Shadow
 chgpasswd Shadow
 chgrp CoreUtils
-chkdupexe Util-Linux Util-Linux-NG
+chkdupexe Util-Linux-NG
 chktrust Mono
 chmod CoreUtils
 chown CoreUtils
@@ -624,14 +627,14 @@ cmp DiffUtils
 cmus Cmus
 cmus-remote Cmus
 cmuwmtopbm Netpbm
-col Util-Linux Util-Linux-NG
-colcrt Util-Linux Util-Linux-NG
+col Util-Linux-NG
+colcrt Util-Linux-NG
 colordemo OpenMotif
 colorsvn KDE-SDK
 colrbook Icon
-colrm Util-Linux Util-Linux-NG
+colrm Util-Linux-NG
 colrpick Icon
-column OpenMotif Util-Linux Util-Linux-NG
+column OpenMotif Util-Linux-NG
 comm CoreUtils
 comp_err MySQL
 compare ImageMagick
@@ -692,7 +695,7 @@ ctags Ctags Emacs
 ctangle TeTeX
 ctest CMake
 ctie TeTeX
-ctrlaltdel Util-Linux Util-Linux-NG
+ctrlaltdel Util-Linux-NG
 cue2toc CDRDAO
 cups-config CUPS
 cupsaddsmb CUPS
@@ -728,9 +731,12 @@ cvt Xorg Xorg-Server
 cweave TeTeX
 cxpm Xorg Xorg-Lib
 cxxmetric KDE-SDK
-cytune Util-Linux Util-Linux-NG
+cytune Util-Linux-NG
 dash Dash
 date CoreUtils
+db2x_manxml Docbook2X
+db2x_texixml Docbook2X
+db2x_xsltproc Docbook2X
 db_archive DB
 db_checkpoint DB
 db_codegen DB
@@ -766,7 +772,7 @@ dcopserver KDE-Libs
 dcopserver_shutdown KDE-Libs
 dcopstart KDE-Libs
 dd CoreUtils
-ddate Util-Linux Util-Linux-NG
+ddate Util-Linux-NG
 ddbugtopbm Netpbm
 ddd DDD
 ddjvu DjVuLibre
@@ -779,6 +785,7 @@ decibel_logger Decibel
 decryptdir Expect
 deepfind Strigi
 deepgrep Strigi
+delpart Util-Linux-NG
 demangle KDE-SDK
 demo GTKMM
 depmod Module-Init-Tools
@@ -848,7 +855,7 @@ djvutoxml DjVuLibre
 djvutxt DjVuLibre
 djvuxmlparser DjVuLibre
 dlist_test SysFSUtils
-dmesg Util-Linux Util-Linux-NG
+dmesg Util-Linux-NG
 dmidecode Dmidecode
 dmp TeTeX
 dmraid Dmraid
@@ -862,9 +869,13 @@ dmxrmscreen Xorg
 dmxtodmx Xorg
 dmxwininfo Xorg
 dnsdomainname Net-Tools
+dnssec-dsfromkey Bind
+dnssec-keyfromlabel Bind
 dnssec-keygen Bind
 dnssec-signzone Bind
 doc.url Netpbm
+docbook2man Docbook2X
+docbook2texi Docbook2X
 documentor Ecere
 dolphin KDE-Base
 domainname Net-Tools
@@ -1027,7 +1038,14 @@ faad FAAD2
 factor CoreUtils
 faillog Shadow
 fakechroot FakeChroot
+falcon Falcon
+falcon-conf Falcon
+falconeer.fal Falcon
+faldisass Falcon
+fallc.fal Falcon
+falrun Falcon
 false CoreUtils
+faltest Falcon
 famd FAM
 fancontrol LM-Sensors
 fax2ps TIFF
@@ -1040,8 +1058,8 @@ fc-list Fontconfig
 fc-match Fontconfig
 fdf2tan TeTeX
 fdf2tex TeTeX
-fdformat Util-Linux Util-Linux-NG
-fdisk Util-Linux Util-Linux-NG
+fdformat Util-Linux-NG
+fdisk Util-Linux-NG
 fdp Graphviz
 feedbrowser KDE-Network
 ffihugs Hugs
@@ -1066,7 +1084,7 @@ finch Pidgin
 find FindUtils
 find2perl Perl
 findaffix Ispell
-findfs E2FSProgs
+findfs Util-Linux-NG
 findmissingcrystal KDE-SDK
 findsmb Samba
 firefox Firefox
@@ -1090,7 +1108,7 @@ flex Flex
 flex++ Flex
 fliccd KDE-Edu
 fliwheel KDE-Edu
-flock Util-Linux Util-Linux-NG
+flock Util-Linux-NG
 floppyd MTools
 floppyd_installtest MTools
 fltk-config FLTK
@@ -1134,12 +1152,12 @@ freetype-config FreeType
 fribidi Fribidi
 fribidi-config Fribidi
 fsck E2FSProgs
-fsck.cramfs Util-Linux Util-Linux-NG
+fsck.cramfs Util-Linux-NG
 fsck.ext2 E2FSProgs
 fsck.ext3 E2FSProgs
 fsck.ext4 E2FSProgs
 fsck.ext4dev E2FSProgs
-fsck.minix Util-Linux Util-Linux-NG
+fsck.minix Util-Linux-NG
 fsck.msdos DosFSTools
 fsck.reiserfs ProgsReiserFS ReiserFSProgs
 fsck.vfat DosFSTools
@@ -1232,7 +1250,7 @@ getfacl ACL
 getfattr ATTR
 geticonset WindowMaker
 getkeycodes KBD
-getopt Util-Linux Util-Linux-NG
+getopt Util-Linux-NG
 getstyle WindowMaker
 getsubres OpenMotif
 gettext Gettext
@@ -1688,7 +1706,7 @@ helloint OpenMotif
 hellomotif OpenMotif
 help2man Help2Man
 help2txt GfxBoot
-hexdump Util-Linux Util-Linux-NG
+hexdump Util-Linux-NG
 hg Mercurial
 hg-relink Mercurial
 hgdiff Mercurial
@@ -1727,8 +1745,9 @@ httpcfg Mono
 httpd HTTPD
 httxt2dbm HTTPD
 hugs Hugs
+humfsify UML-Utilities
 hw-master QuakeForge
-hwclock Util-Linux Util-Linux-NG
+hwclock Util-Linux-NG
 i18ninput OpenMotif
 i386 Util-Linux-NG
 i686-pc-linux-gnu TeTeX
@@ -1760,6 +1779,7 @@ id3info ID3Lib
 id3tag ID3Lib
 ide Ecere
 ide_info Pcmcia-CS
+identd Linux-Identd
 identify ImageMagick
 idle Python
 idlj Sun-JDK
@@ -1795,6 +1815,7 @@ imlib2_view Imlib2
 imlib_config IMLib
 import ImageMagick
 importasmenu AfterStep
+in.identd Linux-Identd
 in.telnetd Netkit-Telnet
 in.tftpd TFTP-HPA
 inb Xorg Xorg-Server
@@ -1852,8 +1873,8 @@ ip6tables-multi Iptables
 ip6tables-restore Iptables
 ip6tables-save Iptables
 ipcmk Util-Linux-NG
-ipcrm Util-Linux Util-Linux-NG
-ipcs Util-Linux Util-Linux-NG
+ipcrm Util-Linux-NG
+ipcs Util-Linux-NG
 iperf IPERF
 ipg IPUtils
 ipsec Openswan
@@ -1874,7 +1895,7 @@ iso-read LibCdio
 isodebug CDRTools
 isodump CDRTools
 isoinfo CDRTools
-isosize Util-Linux Util-Linux-NG
+isosize Util-Linux-NG
 isovfy CDRTools
 ispell Ispell
 issndfile NAS
@@ -1904,6 +1925,8 @@ jack_transport JACK
 jack_unload JACK
 jackd JACK
 jackrec JACK
+jail_uml UML-Utilities
+jailtest UML-Utilities
 jam Jam
 jar Sun-JDK
 jarsigner Sun-JDK
@@ -2080,6 +2103,7 @@ kdmctl KDE-Base KDE-Base-Workspace
 kdontchangethehostname KDE-Libs
 kdostartupconfig KDE-Libs
 kdostartupconfig4 KDE-Base-Workspace
+kdump Kexec-Tools
 kdvi KDE-Graphics
 kedit KDE-Utils
 keditbookmarks KDE-Base
@@ -2088,6 +2112,7 @@ keduca KDE-Edu
 keducabuilder KDE-Edu
 kenolaba KDE-Games
 keuphoria.kss KDE-Artwork
+kexec Kexec-Tools
 kexi KOffice
 kexi_add_column KOffice
 kexi_add_column_gui KOffice
@@ -2100,6 +2125,7 @@ kfax KDE-Graphics
 kfaxview KDE-Graphics
 kfile KDE-Libs
 kfile4 KDE-Base-Runtime
+kfilereplace KDE-Webdev
 kfind KDE-Base
 kfiresaver.kss KDE-Artwork
 kfloppy KDE-Utils KDE-Webdev
@@ -2143,6 +2169,7 @@ kill CoreUtils Procps
 killall Psmisc
 killall5 Sysvinit
 killbots KDE-Games
+kimagemapeditor KDE-Webdev
 kinfocenter KDE-Base
 kinit Kerberos
 kinstalltheme KDE-Libs
@@ -2176,6 +2203,7 @@ klettres KDE-Edu
 klickety KDE-Games
 klines KDE-Games
 klines.kss KDE-Artwork
+klinkstatus KDE-Webdev
 klipper KDE-Base KDE-Base-Workspace
 klist Kerberos
 klocaldomainurifilterhelper KDE-Base
@@ -2218,6 +2246,7 @@ kolabwizard KDE-PIM
 kolf KDE-Games
 kollision KDE-Games
 kolourpaint KDE-Graphics
+kommander KDE-Webdev
 kompare KDE-SDK
 kompmgr KDE-Base
 konqueror KDE-Base
@@ -2292,6 +2321,7 @@ krootimage KDE-Base
 kross KDE-Libs
 krossrunner KOffice
 krotation.kss GLSavers-NR KDE-Artwork
+krubyapplication KDE-Bindings
 kruler KDE-Graphics
 krunner KDE-Base-Workspace
 ksame KDE-Games
@@ -2407,6 +2437,7 @@ kxforms KDE-PIM
 kxkb KDE-Base KDE-Base-Workspace
 kxml_compiler KDE-PIM
 kxsconfig KDE-Artwork
+kxsldbg KDE-Webdev
 kxsrun KDE-Artwork
 l2ping Bluez-Utils
 lambda TeTeX
@@ -2469,14 +2500,14 @@ libpng12-config LibPNG
 libtasn1-config LibTasn1
 libtool LibTool
 libtoolize LibTool
-libusb-config LibUSB
+libusb-config LibUSB-Compat
 libwmf-config LibWMF
 libwmf-fontmap LibWMF
 licensecheck KDE-SDK
 licq Licq
 lilo LILO
 linc-cleanup-sockets ORBit2
-line Util-Linux Util-Linux-NG
+line Util-Linux-NG
 linguist Qt
 link CoreUtils
 link-parser Link-Grammar
@@ -2500,7 +2531,7 @@ loadunimap KBD
 locale Glibc
 localedef Glibc
 locate FindUtils Rlocate Slocate
-logger Util-Linux Util-Linux-NG
+logger Util-Linux-NG
 login Shadow
 login.krb5 Kerberos
 logname CoreUtils
@@ -2508,9 +2539,9 @@ logoutd Shadow
 logresolve HTTPD
 logsave E2FSProgs
 lokalize KDE-SDK
-look Util-Linux Util-Linux-NG
+look Util-Linux-NG
 lookbib Groff
-losetup Util-Linux Util-Linux-NG
+losetup Util-Linux-NG
 lp CUPS
 lpadmin CUPS
 lpc CUPS
@@ -2634,7 +2665,7 @@ mclasserase MTools
 mcmfmt MC
 mcomp MTools
 mconfig Mono
-mcookie Util-Linux Util-Linux-NG
+mcookie Util-Linux-NG
 mcopidl KDE-Libs
 mcopy MTools
 mcs Mono
@@ -2704,14 +2735,14 @@ mke2fs E2FSProgs
 mkfifo CoreUtils
 mkfontdir Xorg Xorg-App
 mkfontscale Xorg Xorg-App
-mkfs Util-Linux Util-Linux-NG
-mkfs.bfs Util-Linux Util-Linux-NG
-mkfs.cramfs Util-Linux Util-Linux-NG
+mkfs Util-Linux-NG
+mkfs.bfs Util-Linux-NG
+mkfs.cramfs Util-Linux-NG
 mkfs.ext2 E2FSProgs
 mkfs.ext3 E2FSProgs
 mkfs.ext4 E2FSProgs
 mkfs.ext4dev E2FSProgs
-mkfs.minix Util-Linux Util-Linux-NG
+mkfs.minix Util-Linux-NG
 mkfs.msdos DosFSTools
 mkfs.reiserfs ProgsReiserFS ReiserFSProgs
 mkfs.vfat DosFSTools
@@ -2734,7 +2765,7 @@ mkpasswd Expect
 mkreiserfs ReiserFSProgs
 mkrescue LILO
 mksquashfs SquashFS-Tools
-mkswap Util-Linux Util-Linux-NG
+mkswap Util-Linux-NG
 mktemp CoreUtils MkTemp
 mktexfmt TeTeX
 mktexlsr TeTeX
@@ -2776,10 +2807,10 @@ monop Mono
 monop1 Mono
 monop2 Mono
 montage ImageMagick
-more Util-Linux Util-Linux-NG
+more Util-Linux-NG
 motif-config Lesstif
 motv Xawtv
-mount Util-Linux Util-Linux-NG
+mount Util-Linux-NG
 mount.cifs Samba
 mount.crypt PAM-Mount
 mount.encfs13 PAM-Mount
@@ -2905,7 +2936,7 @@ named Bind
 named-checkconf Bind
 named-checkzone Bind
 named-compilezone Bind
-namei Util-Linux Util-Linux-NG
+namei Util-Linux-NG
 nameif Net-Tools
 nano Nano
 nasd NAS
@@ -3184,6 +3215,7 @@ paperconfig LibPaper
 parley KDE-Edu
 parted Parted
 partprobe Parted
+partx Util-Linux-NG
 passmass Expect
 passwd Shadow
 paste CoreUtils
@@ -3278,11 +3310,13 @@ peekfd Psmisc
 periodic OpenMotif
 perl Perl
 perl5.10.0 Perl
+perl5.10.1 Perl
 perl5.8.8 Perl
 perlbug Perl
 perlcc Perl
 perldoc Perl
 perlivp Perl
+perlthanks Perl
 permview Mono
 perror MySQL
 petcat VICE
@@ -3291,7 +3325,7 @@ pfb2pfa TeTeX
 pfbtopfa ESP-Ghostscript GNU-Ghostscript Ghostscript
 pfbtops Groff
 pfmtopam Netpbm
-pg Util-Linux Util-Linux-NG
+pg Util-Linux-NG
 pgawk Gawk
 pgawk-3.1.4 Gawk
 pgawk-3.1.5 Gawk
@@ -3349,7 +3383,7 @@ pinfo Pinfo
 ping IPUtils InetUtils Netkit-Base
 ping6 IPUtils InetUtils
 pinky CoreUtils
-pivot_root Util-Linux Util-Linux-NG
+pivot_root Util-Linux-NG
 pixeltool Qt
 pjtoppm Netpbm
 pk2bm TeTeX
@@ -3657,6 +3691,40 @@ qdbus Qt
 qdbuscpp2xml Qt
 qdbusviewer Qt
 qdbusxml2cpp Qt
+qemu QEMU
+qemu-alpha QEMU
+qemu-arm QEMU
+qemu-armeb QEMU
+qemu-cris QEMU
+qemu-i386 QEMU
+qemu-img QEMU
+qemu-m68k QEMU
+qemu-mips QEMU
+qemu-mipsel QEMU
+qemu-nbd QEMU
+qemu-ppc QEMU
+qemu-ppc64 QEMU
+qemu-ppc64abi32 QEMU
+qemu-sh4 QEMU
+qemu-sh4eb QEMU
+qemu-sparc QEMU
+qemu-sparc32plus QEMU
+qemu-sparc64 QEMU
+qemu-system-arm QEMU
+qemu-system-cris QEMU
+qemu-system-m68k QEMU
+qemu-system-mips QEMU
+qemu-system-mips64 QEMU
+qemu-system-mips64el QEMU
+qemu-system-mipsel QEMU
+qemu-system-ppc QEMU
+qemu-system-ppc64 QEMU
+qemu-system-ppcemb QEMU
+qemu-system-sh4 QEMU
+qemu-system-sh4eb QEMU
+qemu-system-sparc QEMU
+qemu-system-x86_64 QEMU
+qemu-x86_64 QEMU
 qfbsp QuakeForge
 qfcc QuakeForge
 qflight QuakeForge
@@ -3706,10 +3774,11 @@ raw2tiff TIFF
 raw_mouseinfo ConfigTools
 rawtopgm Netpbm
 rawtoppm Netpbm
-rbqtapi Qt4-QtRuby
+rbkconfig_compiler4 KDE-Bindings
+rbqtapi KDE-Bindings Qt4-QtRuby
 rbqtsh Qt4-QtRuby
-rbrcc Qt4-QtRuby
-rbuic4 Qt4-QtRuby
+rbrcc KDE-Bindings Qt4-QtRuby
+rbuic4 KDE-Bindings Qt4-QtRuby
 rcc Qt
 rcp InetUtils Kerberos
 rcs-checkin Emacs
@@ -3731,7 +3800,7 @@ reLyX Lyx
 readcd CDRTools
 readelf BinUtils
 readlink CoreUtils
-readprofile Util-Linux Util-Linux-NG
+readprofile Util-Linux-NG
 real_install CoreUtils
 real_xmlcatalog LibXML2
 realplay RealPlayer
@@ -3751,9 +3820,9 @@ reiserfsck ReiserFSProgs
 reiserfstune ReiserFSProgs
 reject CUPS
 remsync SharUtils
-rename Util-Linux Util-Linux-NG
+rename Util-Linux-NG
 rendercheck Xorg Xorg-App
-renice Util-Linux Util-Linux-NG
+renice Util-Linux-NG
 replace MySQL
 reset Ncurses
 resgen Mono
@@ -3772,7 +3841,7 @@ restorefont SVGALib
 restorepalette SVGALib
 restoretextmode SVGALib
 reswrap Fox
-rev Util-Linux Util-Linux-NG
+rev Util-Linux-NG
 revpath Imake Xorg
 rfcomm Bluez-Utils
 rftp Expect
@@ -3788,6 +3857,7 @@ rlocate-checkpoint Rlocate
 rlogin InetUtils Kerberos
 rlogin-cwd Expect
 rm CoreUtils
+rman PolyglotMan
 rmdir CoreUtils
 rmic Sun-JDK
 rmid Sun-JDK Sun-JRE
@@ -3899,7 +3969,7 @@ scorched3dc Scorched3D
 scorched3ds Scorched3D
 scp OpenSSH
 screen Screen
-script Util-Linux Util-Linux-NG
+script Util-Linux-NG
 scriptreplay Util-Linux-NG
 scrollkeeper-config Scrollkeeper
 scrollkeeper-extract Scrollkeeper
@@ -3947,17 +4017,18 @@ setmetamode KBD
 setpci PCIUtils
 setreg Mono
 setscheduler KDE-Base-Workspace
-setsid Util-Linux Util-Linux-NG
+setsid Util-Linux-NG
 setstyle WindowMaker
-setterm Util-Linux Util-Linux-NG
+setterm Util-Linux-NG
 setxkbmap Xorg Xorg-App
 sfconvert Audiofile
-sfdisk Util-Linux Util-Linux-NG
+sfdisk Util-Linux-NG
 sfinfo Audiofile
 sftp OpenSSH
 sg Shadow
 sgen Mono
 sgitopnm Netpbm
+sgml2xml-isoent Docbook2X
 sgmlwhich SGML-Common
 sh Bash
 sha1sum CoreUtils
@@ -4139,8 +4210,8 @@ svnsync Subversion
 svnversion Subversion
 svnversions KDE-SDK
 swap-offset Uswsusp
-swapoff Util-Linux Util-Linux-NG
-swapon Util-Linux Util-Linux-NG
+swapoff Util-Linux-NG
+swapon Util-Linux-NG
 swappo KDE-SDK
 swat Samba
 sweeper KDE-Utils KDE-Webdev
@@ -4165,7 +4236,7 @@ tack Ncurses
 taglib-config TagLib
 tagtool AudioTagTool
 tail CoreUtils
-tailf Util-Linux Util-Linux-NG
+tailf Util-Linux-NG
 talk InetUtils
 tangle TeTeX
 tar Tar
@@ -4173,6 +4244,8 @@ taskcoach.py TaskCoach
 taskcoach.pyw TaskCoach
 taskset SchedUtils Util-Linux-NG
 tbl Groff
+tcb_convert TCB
+tcb_unconvert TCB
 tcc TCC
 tcdialog TeTeX
 tclsh Tcl
@@ -4309,9 +4382,10 @@ tsort CoreUtils
 ttf2afm TeTeX
 ttv Xawtv
 tty CoreUtils
+tunctl UML-Utilities
 tune2fs E2FSProgs
 tunefs.reiserfs ProgsReiserFS ReiserFSProgs
-tunelp Util-Linux Util-Linux-NG
+tunelp Util-Linux-NG
 tuxpuck TuxPuck
 tv_cat Perl-XMLTV
 tv_extractinfo_ar Perl-XMLTV
@@ -4346,12 +4420,20 @@ udevtest Udev
 udevtrigger Udev
 uic Qt
 uic3 Qt
+uics KDE-Bindings
 uil Lesstif OpenMotif
-ul Util-Linux Util-Linux-NG
+ul Util-Linux-NG
 ulockmgr_server Fuse
 umbodoc KDE-SDK
 umbrello KDE-SDK
-umount Util-Linux Util-Linux-NG
+uml_mconsole UML-Utilities
+uml_mkcow UML-Utilities
+uml_moo UML-Utilities
+uml_mount UML-Utilities
+uml_net UML-Utilities
+uml_switch UML-Utilities
+uml_watchdog UML-Utilities
+umount Util-Linux-NG
 umount.cifs Samba
 umount.crypt PAM-Mount
 uname CoreUtils
@@ -4406,6 +4488,7 @@ userdel Shadow
 usermod Shadow
 users CoreUtils
 usleep Scripts
+utf8trans Docbook2X
 utmpdump Sysvinit
 uuclient Kerberos
 uudecode SharUtils
@@ -4470,6 +4553,10 @@ visudo Sudo
 vlc VLC
 vlc-wrapper VLC
 vmstat Procps
+vncconnect TightVNC
+vncpasswd TightVNC
+vncserver TightVNC
+vncviewer TightVNC
 vol_id Udev
 volname Eject
 vorbiscomment Vorbis-Tools
@@ -4504,7 +4591,7 @@ wevents Icon
 wftopfa ESP-Ghostscript GNU-Ghostscript Ghostscript
 wget Wget
 whatis Man
-whereis Util-Linux Util-Linux-NG
+whereis Util-Linux-NG
 which Scripts
 who CoreUtils
 whoami CoreUtils
@@ -4575,7 +4662,7 @@ wps2html LibWPS
 wps2raw LibWPS
 wps2text LibWPS
 wrc Wine
-write Util-Linux
+write Util-Linux-NG
 write_attr SysFSUtils
 write_cd_rules Udev
 write_net_rules Udev
@@ -4827,6 +4914,7 @@ xsetmode Xorg Xorg-App
 xsetpointer Xorg Xorg-App
 xsetroot Xorg Xorg-App
 xsetwacom Linuxwacom
+xsldbg KDE-Webdev
 xslt-config LibXSLT
 xsltproc LibXSLT
 xsm Xorg Xorg-App
