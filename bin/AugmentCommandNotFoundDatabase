@@ -36,9 +36,8 @@ programs = os.listdir(goboPrograms)
 for prog in programs:
 	# Skip various problematic entries: local or non-installable
 	# program entries, renames and case changes
-	if ("LocalScripts" == prog or 'LiveCD' == prog or 'Installer' == prog or
-		'LibUngif' == prog or 'Koffice' == prog or 'ESP-GhostScript' == prog
-		or 'BusyBox' == prog):
+	if prog in ('LocalScripts', 'LiveCD', 'Installer', 'LibUngif', 'Koffice',
+				'ESP-GhostScript', 'Util-Linux', 'MonoDevelop', 'BusyBox'):
 		continue
 	# Cover both executable directories
 	for dtype in ('bin', 'sbin'):
