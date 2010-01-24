@@ -93,7 +93,7 @@ if [ "$usesystemindex" ]
       create_link ../../System/Index/bin      $root/System/Links/Executables
       create_link ../../System/Index/lib      $root/System/Links/Libraries
       create_link ../../System/Index/share    $root/System/Links/Shared
-      create_link ../Data                     $root/System/Variable
+      create_link ../Data/Variable            $root/System/Variable
    else
       create_link System/Links/Libraries      $root/lib
       create_link System/Links/Executables    $root/bin
