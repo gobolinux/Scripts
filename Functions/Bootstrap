@@ -153,14 +153,10 @@ function Create_Device_Nodes() {
    create_node hdb     b 3 64
    create_node hdc     b 22 0
    create_node hdd     b 22 64
-   create_node loop0   b 7 0
-   create_node loop1   b 7 1
-   create_node loop2   b 7 2
-   create_node loop3   b 7 3
-   create_node loop4   b 7 4
-   create_node loop5   b 7 5
-   create_node loop6   b 7 6
-   create_node loop7   b 7 7
+   for i in $(seq 0 15)
+   do
+      create_node loop${i} b 7 ${i}
+   done
    create_node null    c 1 3 0666
    create_node ram0    b 1 0
    create_node random  c 1 8
