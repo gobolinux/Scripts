@@ -38,6 +38,7 @@ if [ "$usesystemindex" ]
       create_dir $root/System/Links/Manuals/info
       variabledir="System/Variable"
       filesdir="Files"
+      create_dir $root/Depot
    fi
    create_dir $root/System/Links/Tasks
    create_dir $root/System/Links/Environment
@@ -64,7 +65,6 @@ if [ "$usesystemindex" ]
    create_dir $root/${filesdir}/Compile/Archives
    create_dir $root/${filesdir}/Compile/Sources
    create_dir $root/${filesdir}/Compile/Store
-   create_dir $root/Depot
    create_dir $root/Mount/.Pivot
    create_dir $root/Mount/CD-ROM
    create_dir $root/Mount/GoboLinux
