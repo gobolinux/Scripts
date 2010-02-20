@@ -326,7 +326,12 @@ class UseFlagEngine(object):
 		)
 		for path, name in files:
 			if 'systemflags' == name:
-				self.add_installed_programs()
+				if ('USE' not in os.environ or '-INSTALLED' not in
+				    os.environ['USE'].split()):
+					self.add_installed_programs()
+				else:
+					self._begin_changeset('installed')
+					self._end_changeset('installed')
 			if os.path.exists(path):
 				self.execute_file(path, name=name)
 		if 'USE' in os.environ:
