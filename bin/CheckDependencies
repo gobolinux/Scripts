@@ -529,11 +529,12 @@ source ScriptFunctions
 Import GoboLinux
 Get_Version %s Current"""%rule['program']
 		installed_version = bash(cmd)
-		ret += rule['program'] + ' >= ' + installed_version
-		for op, ver in rule['versions']:
-			if '<' in op or '!=' == op:
-				ret += ', ' + op + ' ' + ver
-		ret += '\n'
+		if installed_version:
+			ret += rule['program'] + ' >= ' + installed_version
+			for op, ver in rule['versions']:
+				if '<' in op or '!=' == op:
+					ret += ', ' + op + ' ' + ver
+			ret += '\n'
 	return ret
 
 #
