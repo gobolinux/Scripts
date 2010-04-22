@@ -252,7 +252,7 @@ then
    configuremandir="${goboShared}/man"
 else
    configureprefix="$programdir"
-   configuremandir="${target}/Shared/man"
+   configuremandir="${programdir}/Shared/man"
 fi
 configurevariable="$goboVariable"
 configuresettings="$settingsdir"
