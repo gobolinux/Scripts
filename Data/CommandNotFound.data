@@ -1012,6 +1012,7 @@ escputil Gimp-Print
 esd Esound
 esd-config Esound
 esdcat Esound
+esdcompat PulseAudio
 esdctl Esound
 esddsp Esound
 esdfilt Esound
@@ -1026,7 +1027,9 @@ ethtool Ethtool
 etracer ExtremeTuxRacer
 event_rpcgen.py LibEvent
 eventlogadm Samba
+eview Vim
 evilwm EvilWM
+evim Vim
 evince Evince
 evince-thumbnailer Evince
 ex Vim
@@ -1708,6 +1711,10 @@ gunzip Gzip
 gv GV
 gvbam VBAM
 gvcolor Graphviz
+gview Vim
+gvim Vim
+gvimdiff Vim
+gvimtutor Vim
 gvpack Graphviz
 gvpr Graphviz
 gwenview GWenview KDE-Graphics
@@ -2880,6 +2887,7 @@ mountpoint Sysvinit
 mouse-test GPM
 mousepad Mousepad
 mozroots Mono
+mp3gain MP3Gain
 mpartition MTools
 mpd MPD
 mpdscribble MPDScribble
@@ -3217,9 +3225,13 @@ ovf2ovp TeTeX
 ovp2ovf TeTeX
 ownership Dmidecode
 oxdvi TeTeX
+pabrowse PulseAudio
+pacat PulseAudio
 pack200 Sun-JDK Sun-JRE
 pack_cis Pcmcia-CS
 package_crystalsvg KDE-SDK
+pacmd PulseAudio
+pactl PulseAudio
 pagein OpenOffice
 pak QuakeForge
 pal2rgb TIFF
@@ -3283,6 +3295,8 @@ pango-view Pango
 panner OpenMotif
 paperconf LibPaper
 paperconfig LibPaper
+paplay PulseAudio
+parec PulseAudio
 parley KDE-Edu
 parted Parted
 partprobe Parted
@@ -3290,10 +3304,12 @@ partx Util-Linux-NG
 passmass Expect
 passwd Shadow
 paste CoreUtils
+pasuspender PulseAudio
 patch Patch
 patgen TeTeX
 path_id Udev
 pathchk CoreUtils
+pax11publish PulseAudio
 pbmclean Netpbm
 pbmlife Netpbm
 pbmmake Netpbm
@@ -3727,6 +3743,7 @@ ptardiff Perl Perl-Archive-Tar
 pth-config PTH
 ptx CoreUtils
 puid LibTunepimp
+pulseaudio PulseAudio
 pumount Pmount
 purple-client-example Pidgin
 purple-remote Pidgin
@@ -3952,6 +3969,8 @@ rgb2gif Giflib
 rgb2ycbcr TIFF
 rgb3toppm Netpbm
 rgrep Jed
+rgview Vim
+rgvim Vim
 ri Ruby
 rlatopam Netpbm
 rletopnm Netpbm
@@ -4270,6 +4289,7 @@ ssh-keyscan OpenSSH
 sshd OpenSSH
 sshfs SSHFS
 ssmtp SSMTP
+start-pulseaudio-x11 PulseAudio
 startGroovy Groovy
 startGroovy.bat Groovy
 start_kdeinit KDE-Libs
