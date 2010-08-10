@@ -83,6 +83,11 @@ if [[ -e ${goboPrefix}/System/Links/Shared/zsh/zkbd-$TERM-$VENDOR-$OSTYPE ]]
 then
    . ${goboPrefix}/System/Links/Shared/zsh/zkbd-$TERM-$VENDOR-$OSTYPE
 
+   bindkey "${key[CtrlUp]}" up-history
+   bindkey "${key[CtrlDown]}" down-history
+   bindkey "${key[CtrlLeft]}" backward-word
+   bindkey "${key[CtrlRight]}" forward-word
+
    bindkey "${key[Home]}" beginning-of-line
    bindkey "${key[End]}" end-of-line
    bindkey "${key[Delete]}" delete-char-or-list
