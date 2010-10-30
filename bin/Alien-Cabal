@@ -59,9 +59,9 @@ alien_cabal--getinstallversion() {
 alien_cabal--install() {
     if [ -z "$2" ]
     then
-        cabal install --global "$1"
+        cabal install --global "$1" >>/Users/kquick/cabal.log
     else
-        cabal install --global "$1-$2"
+        cabal install --global "$1-$2" >>/Users/kquick/cabal.log
     fi
 }
 
