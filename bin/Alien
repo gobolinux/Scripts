@@ -78,7 +78,6 @@ if __name__ == '__main__':
         print "    --get-manager-rule"
         print "    --install\n"
         print "Valid options for AlienType are:"
-        print "    Cabal"
         print "    CPAN"
         print "    LuaRocks"
         print "    RubyGems\n"
