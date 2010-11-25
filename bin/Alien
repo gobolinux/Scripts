@@ -68,7 +68,22 @@ def getmanagerrule(alientype):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print "Usage: Alien --<mode> AlienType:alienpkg [...]"
+        print "Usage: Alien --<mode> AlienType:alienpkg [...]\n"
+        print "Valid options for <mode> are:"
+        print "    --get-version"
+        print "    --getinstallversion"
+        print "    --greater-than"
+        print "    --met|--within-range|--interval"
+        print "    --have-manager"
+        print "    --get-manager-rule"
+        print "    --install\n"
+        print "Valid options for AlienType are:"
+        print "    Cabal"
+        print "    CPAN"
+        print "    LuaRocks"
+        print "    RubyGems\n"
+        print "Example:"
+        print "    Alien --install CPAN:XML::Parser"
         exit(1)
     mode = sys.argv[1]
     prog = sys.argv[2]
