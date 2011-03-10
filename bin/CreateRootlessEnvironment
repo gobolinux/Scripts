@@ -237,7 +237,7 @@ then
    else
       version="${CURRENT_SCRIPTS_VERSION:-2.8.3}"
       scripts=Scripts--${version}--i686.tar.bz2
-      wget http://kundor.org/gobo/packages/official/${scripts} -O /tmp/${scripts}
+      wget http://gobolinux.org/packages/official/${scripts} -O /tmp/${scripts}
       cd "${goboPrefix}/Programs/"
       tar xvfj /tmp/${scripts} && rm -f /tmp/${scripts}
       cd Scripts
