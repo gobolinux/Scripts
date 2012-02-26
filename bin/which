@@ -22,6 +22,12 @@ export PATH="$savepath"
 fakepath=`type -p "$(Arg 1)"`
 if [ ! "$fakepath" ]
 then
+    if [ -x "/bin/$(Arg 1)" ]
+    then
+        fakepath="/bin/$(Arg 1)"
+    fi
+elif [ ! "$fakepath" ]
+then
    echo "$(Arg 1) not found, or it's not a program." >&2
    exit 1
 fi
