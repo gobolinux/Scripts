@@ -25,6 +25,9 @@ then
     if [ -x "/bin/$(Arg 1)" ]
     then
         fakepath="/bin/$(Arg 1)"
+    else
+        echo "$(Arg 1) not found, or it's not a program." >&2
+        exit 1
     fi
 elif [ ! "$fakepath" ]
 then
