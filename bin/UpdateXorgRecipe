@@ -1,0 +1,247 @@
+#!/usr/bin/env python
+
+#
+# Generates new versions of the Xorg recipes
+# Copyright (C) 2012 Lucas C. Villa Real <lucasvr@gobolinux.org>
+# Released under the GNU GPL version 3
+# 
+
+import os
+import glob
+import urllib
+
+class XorgModule :
+	def __init__(self, module) :
+		self.baseuri = "http://xorg.freedesktop.org/archive/individual"
+		self.module = module
+		self.files = []
+		self.filteredFiles = {}
+
+	def _getTarball(self, filename) :
+		for extension in [ '.tar.bz2', '.tar.gz', '.tar.xz' ] :
+			if filename.find(extension) > 0 :
+				return filename
+		return None
+
+	def _getName(self, filename) :
+		for extension in [ '.tar.bz2', '.tar.gz', '.tar.xz' ] :
+			n = filename.find(extension)
+			if n > 0 :
+				return filename[0:filename[:n].rfind('-')]
+		return None
+
+	def _getNameAndVersion(self, filename) :
+		for extension in [ '.tar.bz2', '.tar.gz', '.tar.xz' ] :
+			n = filename.find(extension)
+			if n > 0 :
+				return filename[:n]
+		return None
+
+	def _getVersion(self, filename) :
+		for extension in [ '.tar.bz2', '.tar.gz', '.tar.xz' ] :
+			end = filename.find(extension)
+			if end > 0 :
+				return filename[filename.rfind('-')+1:end]
+		return None
+
+	def _filterByVersion(self) :
+		for url in self.files :
+			thisName = self._getName(url)
+			thisVersion = self._getVersion(url)
+			if not thisName in self.filteredFiles :
+				self.filteredFiles[thisName] = [ thisVersion, url ]
+			else :
+				version = self.filteredFiles[thisName][0]
+				if thisVersion > version :
+					thisUrl = self.baseuri + '/' + self.module + '/' + url
+					self.filteredFiles[thisName] = [ thisVersion, thisUrl ]
+
+	def _pickBestCompressions(self) :
+		for entry in self.filteredFiles :
+			url = self.filteredFiles[entry][1]
+			nv = self._getNameAndVersion(url)
+			for compression in [ '.tar.xz', '.tar.bz2', '.tar.gz' ] :
+				if nv + compression in self.files :
+					thisUrl = self.baseuri + '/' + self.module + '/' + nv + compression
+					self.filteredFiles[entry] = [ self.filteredFiles[entry][0], thisUrl ]
+					break
+
+	def _filterFiles(self) :
+		self._filterByVersion()
+		self._pickBestCompressions()
+		return self.filteredFiles
+
+	def parse(self) :
+		print "Parsing the URL for Xorg module %s" %self.module
+		result = urllib.urlopen(self.baseuri + '/' + self.module)
+		for line in result.readlines() :
+			data = line.split("href=")
+			if not data or len(data) < 2 :
+				continue
+			href = data[1].split('"')
+			if len(href) < 2 :
+				continue
+			tarball = self._getTarball(href[1])
+			if not tarball :
+				continue
+			self.files.append(tarball)
+		return self._filterFiles()
+
+	def dump(self) :
+		print "-- %s dump --" %self.module
+		for entry in self.filteredFiles :
+			print self.filteredFiles[entry][1]
+		print ""
+
+
+class XorgRepository :
+	def __init__(self) :
+		self.dirs = { 
+			"proto" : {}, 
+			"lib" : {}, 
+			"xcb" : {}, 
+			"xserver" : {}, 
+			"driver" : {}, 
+			"app" : {}, 
+			"data" : {}, 
+			"doc" : {}, 
+			"font" : {}, 
+			"util" : {} 
+		}
+	
+	def parse(self) :
+		for dir in self.dirs :
+			m = XorgModule(dir)
+			self.dirs[dir] = m.parse()
+
+	def update(self) :
+		for dir in self.dirs :
+			recipelist = self.dirs[dir]
+			for name in recipelist :
+				if name == 'scripts' :
+					# XXX Name clash from Xorg-App. Ignore this one.
+					continue
+				recipe = Recipe(name, recipelist[name][0], recipelist[name][1])
+				if recipe.exists() :
+					# NewVersion already invoked for this package + version
+					continue
+				error = recipe.checkout()
+				if error :
+					# There isn't any recipe for this package
+					recipe.create()
+				else :
+					# There is at least one recipe for this package
+					recipe.update()
+
+	def getRecipeList(self) :
+		return self.dirs
+
+
+class Recipe :
+	def __init__(self, name, version, url) :
+		self.name = name
+		self.version = version
+		self.url = url
+
+	def exists(self) :
+		localrecipes = "/Files/Compile/LocalRecipes"
+		recipes = glob.glob(localrecipes + "/*")
+		for r in recipes :
+			rname = r[len(localrecipes)+1:]
+			if rname.lower() == self.name.lower() :
+				recipedir = r + "/" + self.version
+				if os.path.exists(recipedir) :
+					print "There's already a recipe for %s at %s" %(rname, recipedir)
+					return True
+				return False
+		return False
+
+	def update(self) :
+		cmd = "NewVersion %s %s %s" %(self.name, self.version, self.url)
+		return os.system(cmd)
+
+	def create(self) :
+		# Let Compile deduce the package name
+		cmd = "MakeRecipe --batch %s" %self.url
+		return os.system(cmd)
+
+	def checkout(self) :
+		cmd = "EditRecipe --no-edit %s" %self.name
+		return os.system(cmd)
+
+
+class MetaRecipe :
+	def __init__(self, name, version) :
+		self.name = name
+		self.version = version
+		self.latestTarballs = None
+
+	def checkout(self) :
+		cmd = "EditRecipe -E %s %s" %(self.name, self.version)
+		return os.system(cmd)
+
+	def update(self, latestTarballs) :
+		self.latestTarballs = latestTarballs
+		for arch in [ "arm", "cell", "i686", "x86_64", "ppc", "sh4" ] :
+			recipe = "/Files/Compile/LocalRecipes/%s/%s/%s/Recipe" %(self.name, self.version, arch)
+			if os.path.exists(recipe) :
+				self._updateRecipe(recipe)
+
+	def _updateRecipe(self, recipe) :
+		print "Updating %s" %recipe
+		f = open(recipe, "r")
+		newf = open(recipe + ".new", "w")
+		for line in f.readlines() :
+			if line.find("--") > 0 :
+				pkgName = line.strip().split("--")[0]
+				pkgVersion = line.strip().split("--")[1]
+				padding = line[0:line.find(pkgName)]
+				if self.latestTarballs.has_key(pkgName) :
+					newVersion = self.latestTarballs[pkgName][0]
+					newf.write("%s%s--%s\n" %(padding, pkgName, newVersion))
+				else :
+					newf.write(line)
+			else :
+				newf.write(line)
+		newf.close()
+		f.close()
+		os.rename(recipe + ".new", recipe)
+
+
+if __name__ == '__main__' :
+	if len(os.sys.argv) != 2 :
+		print "Syntax:  %s <XorgVersion>" %os.sys.argv[0]
+		print ""
+		print "Example: %s 7.6" %os.sys.argv[0]
+		os.sys.exit(1)
+
+	xorgVersion = os.sys.argv[1]
+
+	# Download the most recent version of all the existing packages
+	xorg = XorgRepository()
+	xorg.parse()
+	xorg.update()
+	recipeList = xorg.getRecipeList()
+
+	# The Xorg-Proto meta-recipe is comprised of "proto" + "xcb".
+	xorgProtoList = recipeList["proto"].copy()
+	for i in recipeList["xcb"].iterkeys() :
+		xorgProtoList[i] = recipeList["xcb"][i]
+
+	# Update the Xorg-Meta recipes.
+	# It's worth noting that the "data", "doc" and "util" archives are not 
+	# being processed at this point. "Xorg-Server" is a package per se and
+	# not a Meta Recipe, so it's not processed below either.
+	metaList = [ 
+		[ "Xorg-Proto",  xorgProtoList ],
+		[ "Xorg-Lib",    recipeList["lib"] ],
+		[ "Xorg-Driver", recipeList["driver"] ],
+		[ "Xorg-App",    recipeList["app"] ],
+		[ "Xorg-Font",   recipeList["font"] ]
+	]
+	for entry in metaList :
+		meta = entry[0]
+		recipeList = entry[1]
+		m = MetaRecipe(meta, xorgVersion)
+		m.checkout()
+		m.update(recipeList)
