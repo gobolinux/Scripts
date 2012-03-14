@@ -44,6 +44,18 @@ class XorgModule :
 				return filename[filename.rfind('-')+1:end]
 		return None
 
+	def _newerThanReference(self, newVersion, referenceVersion) :
+		rv = referenceVersion.split(".")
+		nv = newVersion.split(".")
+		if len(rv) < len(nv) :
+			end = len(rv)
+		else :
+			end = len(nv)
+		for i in range(0, end) :
+			if int(nv[i]) > int(rv[i]) :
+				return True
+		return False
+
 	def _filterByVersion(self) :
 		for url in self.files :
 			thisName = self._getName(url)
@@ -52,7 +64,7 @@ class XorgModule :
 				self.filteredFiles[thisName] = [ thisVersion, url ]
 			else :
 				version = self.filteredFiles[thisName][0]
-				if thisVersion > version :
+				if self._newerThanReference(thisVersion, version) :
 					thisUrl = self.baseuri + '/' + self.module + '/' + url
 					self.filteredFiles[thisName] = [ thisVersion, thisUrl ]
 
