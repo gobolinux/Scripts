@@ -25,7 +25,9 @@ function Union_Mount() {
    case "$union" in
       "funionfs") $sudo_exec funionfs -o dirs="$2" -o nonempty none "$3" ;;
       "unionfs")  $sudo_exec mount -t unionfs -o dirs="$2" none "$3" ;;
-      "unionfs-fuse") $sudo_exec unionfs -o cow -o nonempty "$2" "$3";;
+      "unionfs-fuse")
+         dirs=`echo "$2" | sed 's/=[^:]*//g'`
+         $sudo_exec unionfs -o cow -o nonempty "$dirs" "$3";;
    esac
 }
 
