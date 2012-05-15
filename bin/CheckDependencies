@@ -200,7 +200,7 @@ def interpret_dependency_line(whole_line, t=None, flags=None):
 		rest = l[0]
 		useflags = l[1][:-1]
 		useflagssplit = useflags.split(',')
-		if ('cross' in useflagssplit)
+		if ('cross' in useflagssplit) :
 			return
 		# If none of the listed flags are enabled, skip this dependency
 		activeflags = frozenset(useflagssplit).intersection(flags)
