@@ -23,12 +23,6 @@ function search_packages() {
 
 file="`Find_Conf CompatibilityList`"
 
-if [ "$cross_prefix_dir" != "" ]
-then
-   # Use CompatibilityList from the host machine
-   file=${file/$cross_prefix_dir/}
-fi
-
 if [ -r "$file" ]
 then cat "$file" | while read line
    do

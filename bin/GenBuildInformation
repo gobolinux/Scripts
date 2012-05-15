@@ -23,22 +23,22 @@ Parse_Options "$@"
 ### Utility functions #################################################################
 
 function extract_dependencies_from_file() {
-objectsneeded=$(${cross_compiler}objdump -p "$1" 2> /dev/null | grep "NEEDED" | awk '{ print $2 }')
+objectsneeded=$(objdump -p "$1" 2> /dev/null | grep "NEEDED" | awk '{ print $2 }')
 for obj in ${objectsneeded}
 do
    if realfile=$(readlink -f ${goboLibraries}/${obj}) && [ -f "${realfile}" ]
    then
-      echo ${realfile} | sed "s%$cross_prefix_dir\(.*\)%\1%g"
+      echo ${realfile}
    elif [ -n "$LD_LIBRARY_PATH" ] && realfile=$(readlink -f ${LD_LIBRARY_PATH}/${obj}) && [ -f "${realfile}" ]
    then
-      echo ${realfile} | sed "s%$cross_prefix_dir\(.*\)%\1%g"
-   elif [ -z "${cross_compiler}" ] && realfile=$(ldd "$1" | grep "${obj}" | awk '{ print $3 }') && [ -f "${realfile}" ]
+      echo ${realfile}
+   elif realfile=$(ldd "$1" | grep "${obj}" | awk '{ print $3 }') && [ -f "${realfile}" ]
    then
       echo ${realfile}
    elif realfile=($(find "${prefix}" -name "${obj}" | xargs -i readlink -f {} )) && [ -f "${realfile}" ]
    then
       continue
-   elif [ -z "${cross_compiler}" ] && realfile=($(find ${goboLibraries} -name "${obj}" | xargs -i readlink -f {} )) && [ -f "${realfile}" ]
+   elif realfile=($(find ${goboLibraries} -name "${obj}" | xargs -i readlink -f {} )) && [ -f "${realfile}" ]
    then
       echo ${realfile}
    else

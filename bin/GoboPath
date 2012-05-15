@@ -4,13 +4,6 @@
 
 #export goboPrefix=
 
-if [ ! "$ROOTLESS_GOBOLINUX" ]
-then
-   if [ "$goboCrossCompiling" = "yes" ]
-   then export goboPrefix="$cross_prefix_dir"
-   fi
-fi
-
 if [ -e "$HOME/.Settings" ]
 then
    export goboUserSettings="$HOME/.Settings"
@@ -69,9 +62,3 @@ then
    export goboTemp=/tmp
    export goboStatus=/proc
 fi
-
-if [ "$goboCrossCompiling" = "yes" ]
-then
-   export goboInstall="$goboPrograms"
-fi
-
