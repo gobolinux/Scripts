@@ -36,7 +36,14 @@ fi
 
 if ! [ "${appver}" ]
 then
-   Die "Argument missing: specify the program version.\nAvailable versions are:\n$(All_Versions "$appname")"
+   appvers=$(All_Versions "$appname")
+   numapps=$(echo "$appvers" | wc -l)
+   if [ $numapps = 1 ]
+   then
+      appver="$appvers"
+   else
+      Die "Argument missing: specify the program version.\nAvailable versions are:\n$(All_Versions "$appname")"
+   fi
 fi
 
 version=${appver}
