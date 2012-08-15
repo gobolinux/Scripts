@@ -55,7 +55,7 @@
 
 #define RUN_OPEN_HOOK(fn,arg1,arg2,arg3) do { \
 	int ret = fn(arg1, arg2, arg3); \
-	if (ret != 0) { \
+	if (ret < 0) { \
 		char *sys_path = _getSystemPath(path); \
 		if (sys_path) { \
 			ret = fn(sys_path, arg2, arg3); \
