@@ -68,9 +68,16 @@
 
 static char *_getSystemPath(const char *path)
 {
+	static int (*realstat)(const char *, struct stat *) = NULL;
 	char *program, *version, *subdir, *rest;
 	char *sys_path = NULL;
 	int ret;
+	
+	if (! realstat) {
+		realstat = dlsym(RTLD_NEXT, "stat");
+		if (! realstat)
+			return NULL;
+	}
 
 	if (strncmp(path, GOBO_PROGRAMS, GOBO_PROGRAMS_LEN) || path[0] != '/')
 		return NULL;
@@ -86,7 +93,17 @@ static char *_getSystemPath(const char *path)
 	subdir = strstr(version+1, "/");
 	if (! subdir)
 		return NULL;
-
+	
+	ret = asprintf(&sys_path, "%.*s", subdir-path, path);
+	if (ret > 0) {
+		struct stat statbuf;
+		ret = (*realstat)(sys_path, &statbuf);
+		free(sys_path);
+		sys_path = NULL;
+		if (ret < 0)
+			return NULL;
+	}
+	
 	rest = strstr(subdir+1, "/");
 	if (! rest)
 		return NULL;
