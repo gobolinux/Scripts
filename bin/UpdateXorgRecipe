@@ -2,13 +2,16 @@
 
 #
 # Generates new versions of the Xorg recipes
-# Copyright (C) 2012 Lucas C. Villa Real <lucasvr@gobolinux.org>
+# Copyright (C) 2012,2013 Lucas C. Villa Real <lucasvr@gobolinux.org>
 # Released under the GNU GPL version 3
 # 
 
 import os
 import glob
 import urllib
+
+# Global settings
+g_IncludeReleaseCandidates = False
 
 class XorgModule :
 	def __init__(self, module) :
@@ -41,7 +44,14 @@ class XorgModule :
 		for extension in [ '.tar.bz2', '.tar.gz', '.tar.xz' ] :
 			end = filename.find(extension)
 			if end > 0 :
-				return filename[filename.rfind('-')+1:end]
+				version = filename[filename.rfind('-')+1:end]
+				if version.find("rc") == 0 :
+					if g_IncludeReleaseCandidates == True :
+						rcOffset = filename.rfind('-')
+						version = filename[filename.rfind('-', 0, rcOffset)+1:end].replace("-rc", ".")
+					else :
+						version = None
+				return version
 		return None
 
 	def _newerThanReference(self, newVersion, referenceVersion) :
@@ -60,6 +70,11 @@ class XorgModule :
 		for url in self.files :
 			thisName = self._getName(url)
 			thisVersion = self._getVersion(url)
+			# Specific workaround for a bogus xorg-server version
+			if thisName == 'xorg-server' and thisVersion == '1.14.99.1' :
+				continue
+			if not thisVersion :
+				continue
 			if not thisName in self.filteredFiles :
 				self.filteredFiles[thisName] = [ thisVersion, url ]
 			else :
@@ -187,10 +202,17 @@ class MetaRecipe :
 		self.name = name
 		self.version = version
 		self.latestTarballs = None
+		
+	def create(self) :
+		ret = self._checkout()
+		if ret != 0 :
+			cmd = "NewVersion %s %s" %(self.name, self.version)
+			return os.system(cmd)
 
-	def checkout(self) :
+	def _checkout(self) :
 		cmd = "EditRecipe -E %s %s" %(self.name, self.version)
 		return os.system(cmd)
+
 
 	def update(self, latestTarballs) :
 		self.latestTarballs = latestTarballs
@@ -255,5 +277,5 @@ if __name__ == '__main__' :
 		meta = entry[0]
 		recipeList = entry[1]
 		m = MetaRecipe(meta, xorgVersion)
-		m.checkout()
+		m.create()
 		m.update(recipeList)
