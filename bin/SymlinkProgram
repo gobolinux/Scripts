@@ -55,7 +55,7 @@ then
    conflict="overwrite"
 fi
 Boolean "relative" && symlinkrelative="--relative" || symlinkrelative=""
-[ "${conflict}" == "overwrite" ] && symlinkoverwrite="--overwrite" || symlinkverwrite=""
+[ "${conflict}" == "overwrite" ] && symlinkoverwrite="--overwrite" || symlinkoverwrite=""
 
 ################################################################################
 
