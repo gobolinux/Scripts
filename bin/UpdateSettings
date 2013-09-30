@@ -356,7 +356,7 @@ function update_one_file() {
    
       attempt_action "$num" "$difftype" "$cur" "$default" "${ACTION}"
       local result="$?"
-      [ "$repeatQuestion" == yes ] && repeatQuestion=no && update_one_file $@
+      [ "$repeatQuestion" == yes ] && repeatQuestion=no && update_one_file "$@"
       [ "$result" == "$SKIP_ALL_MAGIC_NUMBER" ] && return "$SKIP_ALL_MAGIC_NUMBER"
       [ "$result" == "0" ] && return 0
    done
