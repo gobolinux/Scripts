@@ -11,7 +11,7 @@ PREFIX=
 DESTDIR=$(goboPrograms)/$(PROGRAM)/$(VERSION)
 SVNTAG:=$(shell echo $(PROGRAM)_$(VERSION) | tr "[:lower:]" "[:upper:]" | sed  's,\.,_,g')
 
-PYTHON_VERSION=2.3
+PYTHON_VERSION=2.7
 PYTHON_LIBS=FindPackage GetAvailable GuessLatest CheckDependencies DescribeProgram UseFlags Corrections
 PYTHON_SITE=lib/python$(PYTHON_VERSION)/site-packages
 
