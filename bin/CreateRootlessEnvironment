@@ -19,7 +19,7 @@ function our_which() {
    return 1
 }
 
-CURRENT_SCRIPTS_VERSION=2.9.10 # This variable is automatically set by Make
+CURRENT_SCRIPTS_VERSION=2.10.2 # This variable is automatically set by Make
 hostSystemDependencies=(
    sh
    sed
@@ -171,15 +171,17 @@ export LD_LIBRARY_PATH="${goboPrefix}/System/Links/Libraries${LD_LIBRARY_PATH:+:
 if [ "`uname -s`" = "Darwin" ]
 then
    export DYLD_FALLBACK_LIBRARY_PATH="${goboPrefix}/System/Links/Libraries${DYLD_FALLBACK_LIBRARY_PATH:+:$DYLD_FALLBACK_LIBRARY_PATH}"
-   export CFLAGS="-I${goboPrefix}/System/Links/Headers${CFLAGS:+ $CFLAGS}"
-   export CPPFLAGS="-I${goboPrefix}/System/Links/Headers${CPPFLAGS:+$CPPFLAGS}"
-   export LDFLAGS="-L${goboPrefix}/System/Links/Libraries${LDFLAGS:+$LDFLAGS}"
 fi
 
 if [ -n "$(uname -s | grep -i cygwin)" ]
 then
    export CFLAGS="-I${goboPrefix}/System/Links/Headers${CFLAGS:+ $CFLAGS}"
+   export CPPFLAGS="-I${goboPrefix}/System/Links/Headers${CPPFLAGS:+ $CPPFLAGS}"
    export LDFLAGS="-L${goboPrefix}/System/Links/Libraries -Wl,-u,_WinMain@16 ${LDFLAGS:+$LDFLAGS}"
+else
+   export CFLAGS="-I${goboPrefix}/System/Links/Headers${CFLAGS:+ $CFLAGS}"
+   export CPPFLAGS="-I${goboPrefix}/System/Links/Headers${CPPFLAGS:+$CPPFLAGS}"
+   export LDFLAGS="-L${goboPrefix}/System/Links/Libraries${LDFLAGS:+$LDFLAGS}"
 fi
 
 # Without calling cd, prompt does not display ~, but ${HOME}
@@ -227,7 +229,7 @@ then
       if [ "$REPLY" = "y" ]
       then
          scripts=`readlink -f /Programs/Scripts/Current`
-	 version=`basename "${scripts}"`
+         version=`basename "${scripts}"`
          mkdir "${goboPrefix}/Programs/Scripts"
          cp -r $scripts "${goboPrefix}/Programs/Scripts"
          cd "${goboPrefix}/Programs/Scripts"
@@ -237,7 +239,7 @@ then
    else
       version="${CURRENT_SCRIPTS_VERSION:-2.8.3}"
       scripts=Scripts--${version}--i686.tar.bz2
-      wget http://kundor.org/gobo/packages/official/${scripts} -O /tmp/${scripts}
+      wget http://gobolinux.org/packages/official/${scripts} -O /tmp/${scripts}
       cd "${goboPrefix}/Programs/"
       tar xvfj /tmp/${scripts} && rm -f /tmp/${scripts}
       cd Scripts

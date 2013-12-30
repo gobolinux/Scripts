@@ -9,6 +9,7 @@ from GuessLatest import *
 from FindPackage import *
 from PythonUtils import *
 from UseFlags import *
+import Alien
 
 import re
 
@@ -49,7 +50,7 @@ def add_compatible_dependencies(rule):
 			rule['option'] = compatible_rule
 			rule = compatible_rule # linked list of compatible_rules
 
-def get_rules_of_files(depfiles, t=None, no_compatlist=False, cross_compile=False):
+def get_rules_of_files(depfiles, t=None, no_compatlist=False):
 	toReturn = []
 	if depfiles and 'Recipes' in depfiles[0]:
 		index = depfiles[0].rfind('/Resources/')
@@ -66,9 +67,9 @@ def get_rules_of_files(depfiles, t=None, no_compatlist=False, cross_compile=Fals
 				first_rule = None
 				for o in options:
 					try:
-						rule = interpret_dependency_line(o,t, cross_compile=cross_compile, flags=flags)
+						rule = interpret_dependency_line(o,t, flags=flags)
 					except ParseError, e:
-						Log_Terse("At file '%s': "%depfile + e.message, 'CheckDependencies')
+						Log_Terse("At file '%s': "%depfile + e.args[0], 'CheckDependencies')
 					if rule:
 						# Precedence is left-right. Save this to return later.
 						if not first_rule:
@@ -86,11 +87,11 @@ def get_rules_of_files(depfiles, t=None, no_compatlist=False, cross_compile=Fals
 	return toReturn
 
 # Notice that type may be required since dependencies(recipe(p)) != dependencies(package(p))
-def get_rules_for(p, v, r, t, u, noWeb=False, no_compatlist=False, no_builddeps=False, cross_compile=False, availables=None):
+def get_rules_for(p, v, r, t, u, noWeb=False, no_compatlist=False, no_builddeps=False, availables=None):
 	if availables is None:
 		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb)
 	depfiles = find_dependencies_files(p, v, r, t, u, noWeb=False, no_builddeps=no_builddeps, availables=availables)
-	toReturn = get_rules_of_files(depfiles, t=t, no_compatlist=no_compatlist, cross_compile=cross_compile)
+	toReturn = get_rules_of_files(depfiles, t=t, no_compatlist=no_compatlist)
 	return toReturn
 
 global_not_found_cache=[]
@@ -179,7 +180,7 @@ def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False,
 	#sys.stderr.write('Dependencies for %s %s %s %s %s not found\n'%(p,v,r,t,u))
 	return []
 
-def interpret_dependency_line(whole_line, t=None, cross_compile=False, flags=None):
+def interpret_dependency_line(whole_line, t=None, flags=None):
 
 	line = whole_line.split('#')[0].strip()
 	if not line:
@@ -199,7 +200,7 @@ def interpret_dependency_line(whole_line, t=None, cross_compile=False, flags=Non
 		rest = l[0]
 		useflags = l[1][:-1]
 		useflagssplit = useflags.split(',')
-		if (('cross' in useflagssplit and not cross_compile) or ('!cross' in useflagssplit and cross_compile)):
+		if ('cross' in useflagssplit) :
 			return
 		# If none of the listed flags are enabled, skip this dependency
 		activeflags = frozenset(useflagssplit).intersection(flags)
@@ -217,7 +218,7 @@ def interpret_dependency_line(whole_line, t=None, cross_compile=False, flags=Non
 				versions.append(('>=', list_version[0]))
 		elif len(list_version) == 2:
 			if not list_version[0] in ['>', '<', '<=', '>=', '=', '!=']:
-				raise ParseError("Unsuported operand '%s' at line '%s'"%(list_version[0], whole_line.strip()))
+				raise ParseError("Unsupported operand '%s' at line '%s'"%(list_version[0], whole_line.strip()))
 			versions.append((list_version[0], list_version[1]))
 		else:
 			raise ParseError("Error at line '%s'"%(whole_line.strip()))
@@ -366,7 +367,7 @@ def ask_if_install(match, goboPrograms=None):
 def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	                                    acceptable_types=None, mode='missing', recursive=True, hook=None,
 	                                    noWeb=False, add_self='if_required', install_optional='ask', ask_hook=None,
-	                                    all_matches = None, no_compatlist=False, cross_compile=False, depfile=None,
+	                                    all_matches = None, no_compatlist=False, depfile=None,
 	                                    goboPrograms=None, localdirs=None,
 	                                    availables=None):
 	global global_dependencies_blacklist
@@ -416,18 +417,53 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	if depfile:
 		all_rules = get_rules_of_files([depfile])
 	else:
-		all_rules = get_rules_for(p, v, r, t, u, noWeb=noWeb, no_compatlist=no_compatlist, cross_compile=cross_compile, availables=availables)
+		all_rules = get_rules_for(p, v, r, t, u, noWeb=noWeb, no_compatlist=no_compatlist, availables=availables)
 
 	# optimization only:
 	#all_rules  = [ rule for rule in all_rules if not any(pp == rule['program'] for pp,vv,tt,uu in all_matches) ]
 	missing_dependencies = [ rule for rule in all_rules if not find_matching_package(rule, ['installed'], noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs, availables=availables) ]
 	for rule in all_rules:
-		if rule['program'] in global_dependencies_blacklist:
+		if rule['program'].lower() in global_dependencies_blacklist:
 			continue
 		
 		if hook:
 			hook("Checking dependencies", len(all_matches), len(all_matches)+1)
+		if ':' in rule['program']:
+			# It's an alien.
+			alientype, alienpkg = Alien.split(rule['program'])
+			if not Alien.havealienmanager(alientype):
+				# If the alien manager is not installed,
+				# add it to the list.
+				arule = Alien.getmanagerrule(alientype)
+				amatch = find_matching_package \
+				    (arule, acceptable_types, noWeb=noWeb,
+				     goboPrograms=goboPrograms,
+				     localdirs=localdirs,
+				     availables=availables)
+				ordered_matches.append(amatch)
+				ordered_rules.append(arule)    
+			# For aliens, we *only* care if the dependency is
+			# met, regardless of mode - the alien package manager
+			# deals with upgrades. If it is satisfied, do no more
+			# with this dependency.
+			if Alien.dependencymet(rule):
+				continue
+			# Otherwise, it's unmet, so append a match tuple
+			# with the right version in it.
+			ver = Alien.getinstallversion(rule)
 
+			alienmatch = ((rule['program'],
+				       ver, None, 'recipe',
+				       rule['program']))
+
+			if mode != 'all':
+				# Asking here!
+				if install_optional == 'never' or (install_optional == 'ask' and ask_hook and not ask_hook(alienmatch, goboPrograms=goboPrograms)):
+					continue
+
+			ordered_matches.append(alienmatch)
+			ordered_rules.append(rule)
+			continue
 		if mode == 'missing' and find_matching_package(rule, ['installed'], noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs, availables=availables)[3]:
 			continue
 
@@ -493,21 +529,22 @@ source ScriptFunctions
 Import GoboLinux
 Get_Version %s Current"""%rule['program']
 		installed_version = bash(cmd)
-		ret += rule['program'] + ' >= ' + installed_version
-		for op, ver in rule['versions']:
-			if '<' in op or '!=' == op:
-				ret += ', ' + op + ' ' + ver
-		ret += '\n'
+		if installed_version:
+			ret += rule['program'] + ' >= ' + installed_version
+			for op, ver in rule['versions']:
+				if '<' in op or '!=' == op:
+					ret += ', ' + op + ' ' + ver
+			ret += '\n'
 	return ret
 
 #
 # This function is used when mode == 'list'
 #
-def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missing=False, report_updating=False, recursive=True, hook=None, noWeb=False, cross_compile=False, depfile=None, goboPrograms=None, localdirs=None):
+def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missing=False, report_updating=False, recursive=True, hook=None, noWeb=False, depfile=None, goboPrograms=None, localdirs=None):
 	if not types:
 		types = getGoboVariable('defaultRepositories', 'Scripts/FindPackage.conf', True)
 
-	all_rules, all_matches = get_all_dependencies_and_matches_for(p,v,r,t,u, types, recursive=recursive, hook=hook, mode='all', noWeb=noWeb, cross_compile=cross_compile, depfile=depfile, goboPrograms=goboPrograms, localdirs=localdirs)
+	all_rules, all_matches = get_all_dependencies_and_matches_for(p,v,r,t,u, types, recursive=recursive, hook=hook, mode='all', noWeb=noWeb, depfile=depfile, goboPrograms=goboPrograms, localdirs=localdirs)
 
 	if report_missing:
 		missing_dependencies      = [ rule for rule in all_rules if not find_matching_package(rule, ['installed'], noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs)[3] ]
@@ -606,7 +643,7 @@ if __name__ == '__main__':
 		try:
 			if not sys.argv[1:]:
 				sys.argv[1:] = [ '--help' ]
-			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:l:p:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'blacklist=', 'quiet-progress', 'no-compatlist', 'cross-compile', 'file=', 'help', 'local-dirs=', 'gobo-programs=', 'no-prompt'])
+			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:l:p:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'blacklist=', 'quiet-progress', 'no-compatlist', 'file=', 'help', 'local-dirs=', 'gobo-programs=', 'no-prompt'])
 		except getopt.GetoptError, detail:
 			print sys.argv[0].split('/')[-1]+': '+str(detail)
 			sys.exit(1)
@@ -620,7 +657,6 @@ if __name__ == '__main__':
 		progress_hook=consoleProgressHook
 		install_optional = 'ask'
 		no_compatlist = False
-		cross_compile = False
 		depfile = None
 		localdirs = None
 		goboPrograms = None
@@ -656,10 +692,10 @@ if __name__ == '__main__':
 				global_dependencies_blacklist = []
 			elif o in ['--blacklist']:
 				global_dependencies_blacklist = a.split(',')
+				for i in range(len(global_dependencies_blacklist)):
+					global_dependencies_blacklist[i] = global_dependencies_blacklist[i].lower()
 			elif o in ['--no-compatlist', '-C']:
 				no_compatlist = True
-			elif o in ['--cross-compile']:
-				cross_compile = True
 			elif o in ['--file', '-f']:
 				depfile = a
 			elif o == '--local-dirs' :
@@ -722,8 +758,6 @@ Options:
 
  --quiet-progress     Do not show progress indicator
 
- --cross-compile      Check dependencies for cross compilation
-
  -f
  --file               Check for the dependencies listed in the given file.
 
@@ -759,13 +793,13 @@ Examples of usage:
 		else:
 			v,r = '',''
 		if mode == 'list':
-			print ListDependencies(p,v,r,t,u,types=types,recursive=recursive,hook=progress_hook,noWeb=noWeb,cross_compile=cross_compile, depfile=depfile, goboPrograms=goboPrograms, localdirs=localdirs)
+			print ListDependencies(p,v,r,t,u,types=types,recursive=recursive,hook=progress_hook,noWeb=noWeb,depfile=depfile, goboPrograms=goboPrograms, localdirs=localdirs)
 		elif mode == 'convert':
 			print ConvertRecipeToBinary(p, v, r, t, u, depfile=depfile),
 		else:
 			rules, matches = get_all_dependencies_and_matches_for(p, v, r, t, u, types, mode=mode, recursive=recursive,
 			                     noWeb=noWeb, hook=progress_hook, add_self=add_self, ask_hook=ask_if_install,
-			                     no_compatlist=no_compatlist, cross_compile=cross_compile, depfile=depfile, goboPrograms=goboPrograms,
+			                     no_compatlist=no_compatlist, depfile=depfile, goboPrograms=goboPrograms,
 			                     localdirs=localdirs)
 			if rules:
 				for rule,match in zip(rules,matches):

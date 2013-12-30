@@ -57,7 +57,7 @@ then
    conflict="overwrite"
 fi
 Boolean "relative" && symlinkrelative="--relative" || symlinkrelative=""
-[ "${conflict}" == "overwrite" ] && symlinkoverwrite="--overwrite" || symlinkverwrite=""
+[ "${conflict}" == "overwrite" ] && symlinkoverwrite="--overwrite" || symlinkoverwrite=""
 
 ################################################################################
 
@@ -151,7 +151,7 @@ then
    Log_Normal "$package must be in RootFS"
 fi
 
-#Below Is_Link should really be Is_RootFS but Is_RootFS doesn´t exist
+#Below Is_Link should really be Is_RootFS but Is_RootFS doesn?t exist
 #and really testing use of goboInstall.  Also, my goboInstall points to
 #dir on root. - Carlo Calica
 if [ "$rootfs" = "yes" ] && Is_Link "$goboPrograms/$package/$version" 

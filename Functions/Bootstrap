@@ -22,11 +22,14 @@ function Create_Filesystem_Tree() {
 
 if [ "$usesystemindex" ]
    then
+      create_dir $root/System/Index/etc
       create_dir $root/System/Index/bin
       create_link bin $root/System/Index/sbin
+      create_link bin $root/System/Index/libexec
       create_dir $root/System/Index/lib
       create_dir $root/System/Index/include
-      create_dir $root/System/Index/share
+      create_dir $root/System/Index/share/man
+      create_dir $root/System/Index/share/info
       variabledir="Data/Variable"
       filesdir="Data"
    else
@@ -41,7 +44,6 @@ if [ "$usesystemindex" ]
    fi
    create_dir $root/System/Links/Tasks
    create_dir $root/System/Links/Environment
-   create_dir $root/System/Settings
    create_dir $root/$variabledir/log
    create_dir $root/$variabledir/tmp 0 a+wt
    create_dir $root/$variabledir/log
@@ -60,14 +62,14 @@ if [ "$usesystemindex" ]
    create_dir $root/System/Kernel/Modules
    create_dir $root/System/Kernel/Devices
    create_dir $root/System/Kernel/Status
+   create_dir $root/System/Kernel/Config
    create_dir $root/Users/$superuser
-   create_dir $root/${filesdir}/Compile/Archives
-   create_dir $root/${filesdir}/Compile/Sources
-   create_dir $root/${filesdir}/Compile/Store
+   create_dir $root/${filesdir}/Compile/Archives 0.sys 2755
+   create_dir $root/${filesdir}/Compile/Sources 0.sys 2755
+   create_dir $root/${filesdir}/Compile/Store 0.sys 2755
    create_dir $root/Mount/.Pivot
    create_dir $root/Mount/CD-ROM
    create_dir $root/Mount/GoboLinux
-   create_dir $root/Mount/Floppy
    create_dir $root/Mount/TmpFS
    create_dir $root/Mount/Media
    create_dir $root/Programs
@@ -93,6 +95,7 @@ if [ "$usesystemindex" ]
       create_link ../../System/Index/lib      $root/System/Links/Libraries
       create_link ../../System/Index/share    $root/System/Links/Shared
       create_link ../Data/Variable            $root/System/Variable
+      create_link ../System/Index/etc         $root/System/Settings
    else
       create_link System/Links/Libraries      $root/lib
       create_link System/Links/Executables    $root/bin
@@ -104,19 +107,22 @@ if [ "$usesystemindex" ]
       create_link ../System/Links/Manuals     $root/usr/man
       create_link ../System/Links/Shared      $root/usr/share
       create_link ../Manuals                  $root/System/Links/Shared/man
+      create_link ../Manuals                  $root/System/Links/Shared/man
+      create_dir                              $root/System/Settings
    fi
    create_link $variabledir                $root/var
    create_link $variabledir/tmp            $root/tmp
    create_link System/Kernel/Objects       $root/sys
    create_link System/Kernel/Devices       $root/dev
    create_link System/Kernel/Status        $root/proc
+   create_link System/Kernel/Config        $root/config
    create_link System/Settings             $root/etc
    create_link System/Kernel/Boot          $root/boot
    create_link Mount                       $root/mnt
    create_link Mount/Media                 $root/media
    create_link Users                       $root/home
    create_link Users/$superuser            $root/root
-   create_link Data                        $root/srv
+   create_link $filesdir                   $root/srv
    create_link /System/Kernel/Modules      $root/System/Links/Libraries/modules
    create_link .                           $root/usr/X11R6
    create_link .                           $root/usr/local
@@ -130,6 +136,10 @@ function Create_Device_Nodes() {
 
    if ! [ -e $root/System/Kernel/Devices/log ]
    then mkfifo $root/System/Kernel/Devices/log
+   fi
+
+   if ! [ -e $root/System/Kernel/Devices/initctl ]
+   then mkfifo -m 0600 $root/System/Kernel/Devices/initctl
    fi
 
    if ! [ -e $root/System/Kernel/Devices/fd ]
@@ -152,7 +162,7 @@ function Create_Device_Nodes() {
    create_node hdb     b 3 64
    create_node hdc     b 22 0
    create_node hdd     b 22 64
-   for i in $(seq 0 15)
+   for i in $(seq 0 31)
    do
       create_node loop${i} b 7 ${i}
    done
