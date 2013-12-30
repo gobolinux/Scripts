@@ -281,11 +281,85 @@ bool RuleBestThanLatest(char *candidate, char *latest)
 	return strcmp(candidate, latest) >= 0 ? true : false;
 }
 
+char **GetVersionsFromAlien(struct parse_data *data)
+{
+  char *sp, **versions;
+  char alien[LINE_MAX];
+  char aliencmd[LINE_MAX];
+  FILE *fp;
+  size_t num_vers, cur_vers;
+
+  sp = strchr(data->depname, ':');
+  if (!sp) {
+    fprintf(stderr, "WARNING: %s is not an Alien dependency, ignoring dependency.\n", data->depname);
+    return NULL;
+  }
+  strncpy(alien, data->depname, sp-data->depname);
+  alien[sp - data->depname] = 0;
+
+  snprintf(aliencmd, sizeof(aliencmd)-1, "Alien-%s --getversion %s", alien, sp+1);
+  fp = popen(aliencmd, "r");
+  if (!fp) {
+    fprintf(stderr, "WARNING: %s: %s\n", aliencmd, strerror(errno));
+    return NULL;
+  }
+
+  num_vers = 3;
+  versions = (char **) calloc(num_vers+1, sizeof(char*));
+  if (! versions) {
+    perror("malloc");
+    pclose(fp);
+    return NULL;
+  }
+  cur_vers = -1;
+
+  while (!feof(fp)) {
+    char buf[LINE_MAX];
+
+    if (!fgets(buf, sizeof(buf), fp))
+      break;
+    
+    if (++cur_vers == num_vers)
+    {
+      char **newvers;
+      newvers = (char**) realloc(versions, (num_vers*2 + 1) * sizeof(char*));
+      if (! newvers) {
+        perror("realloc");
+        while (cur_vers--) free(versions[cur_vers]);
+        free(versions);
+        pclose(fp);
+        return NULL;
+      }
+    }
+    versions[cur_vers] = strdup(buf);
+    if ('\n' == versions[cur_vers][strlen(versions[cur_vers]) - 1])
+      versions[cur_vers][strlen(versions[cur_vers])-1] = 0;
+  }
+  pclose(fp);
+  return versions;
+}
+
 bool GetCurrentVersion(struct parse_data *data)
 {
 	ssize_t ret;
 	char buf[PATH_MAX], path[PATH_MAX];
 
+    if (strchr(data->depname, ':'))
+    {
+      char **vers = GetVersionsFromAlien(data);
+      if (!vers || !vers[0]) {
+        fprintf(stderr, "WARNING: %s is uninstalled Alien\n", data->depname);
+        return false;
+      }
+      strncpy(data->fversion, vers[0], sizeof(data->fversion)-1);
+      data->fversion[sizeof(data->fversion)-1] = 0;
+      {
+        int ii;
+        for (ii = 0; vers[ii]; ++ii) free(vers[ii]);
+        free(vers);
+      }
+      return true;
+    }
 	snprintf(path, sizeof(path)-1, "%s/%s/Current", goboPrograms, data->depname);
 	ret = readlink(path, buf, sizeof(buf));
 	if (ret < 0) {
@@ -305,6 +379,9 @@ char **GetVersionsFromReadDir(struct parse_data *data)
 	struct dirent *entry;
 	char path[PATH_MAX];
 	char **versions;
+
+    if (strchr(data->depname, ':'))
+      return GetVersionsFromAlien(data);
 
 	snprintf(path, sizeof(path)-1, "%s/%s", goboPrograms, data->depname);
 	dp = opendir(path);
@@ -454,7 +531,10 @@ void ListAppend(struct list_head *head, struct parse_data *data, struct search_o
 		// available version as result.
 		if (!data->fversion || !strlen(data->fversion))
 			GetCurrentVersion(data);
-		snprintf(ldata->path, sizeof(ldata->path), "%s/%s/%s", goboPrograms, data->depname, data->fversion);
+        if (strchr(data->depname, ':'))
+          snprintf(ldata->path, sizeof(ldata->path), "#%s=%s", data->depname, data->fversion);
+        else
+          snprintf(ldata->path, sizeof(ldata->path), "%s/%s/%s", goboPrograms, data->depname, data->fversion);
 	} else {
 		snprintf(ldata->path, sizeof(ldata->path), "%s", data->url);
 	}

@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <dirent.h>
+#include <stdlib.h>
 
 #define BUFLEN 512
 // For possible Rootless support, or hardwiring each CNF to its own version's
@@ -60,7 +62,7 @@ int binsearch(FILE * fp, char * target, int lo, int hi) {
 	char entry [BUFLEN];
 	char * executable;
 	// Definitely not going to find anything, so quit here.
-	if ((lo == mid && (lo != 0 || hi == 0)) || (lo == 0 && hi == 1))
+        if ((lo == mid && (lo != 0 || hi == 0)) || (lo == 0 && hi == 1))
 		return 1;
 	// Jump to our current midpoint
 	fseek(fp, mid, SEEK_SET);
@@ -76,6 +78,186 @@ int binsearch(FILE * fp, char * target, int lo, int hi) {
 	else if (0 < cmpval)
 		return binsearch(fp, target, lo, mid);
 	return foundexecutable(executable, target);
+}
+
+// Calculate the Damerau-Levenshtein distance between two strings.
+// This is the number of additions, deletions, substitutions, and
+// transpositions needed to transform one into the other.
+// This algorithm is O(m) in space complexity and O(n*m) in time.
+int damlev(char *word1, char *word2) {
+	int i, j;
+	// Cache the lengths.
+	int lw1 = strlen(word1);
+	int lw2 = strlen(word2);
+	// Swap the words so word2 is always shortest - better space
+	// complexity, and time complexity is the same.
+	if (lw2 > lw1) {
+		char *tmp = word1;
+		word1 = word2;
+		word2 = tmp;
+		int ltmp;
+		ltmp = lw1;
+		lw1 = lw2;
+		lw2 = ltmp;
+	}
+	// We only need to keep the current and two previous rows of the
+	// matrix around - call these thisrow, oneago, twoago, and
+	// initialise thisrow to 0 1 2 3 ....
+	int *oneago = NULL, *twoago = NULL;
+	int *thisrow = calloc(lw2 + 1, sizeof(int));
+	for (i = 0; i <= lw2; i++) {
+		thisrow[i] = i;
+	}
+	for (i = 0; i < lw1; i++) {
+		// Shift rows back and initialise thisrow for current location.
+		free(twoago);
+		twoago = oneago;
+		oneago = thisrow;
+		thisrow = calloc(lw2 + 1, sizeof(i));
+		thisrow[0] = i + 1;
+		for (j = 0; j < lw2; j++) {
+			int delcost = oneago[j + 1] + 1;
+			int addcost = thisrow[j] + 1;
+			int subcost = oneago[j] + (word1[i] != word2[j]);
+			// Cost is here the minimum of the above three.
+			int cost = delcost < addcost ? delcost : addcost;
+			cost = cost < subcost ? cost : subcost;
+			// Now check for a transposition - if that gives better
+			// cost, use it instead.
+			if (i > 0 && j > 0 && word1[i] == word2[i-1] &&
+				word1[i-1] == word2[i] && word1[i] != word2[i])
+				cost = cost < twoago[j - 1] + 1 ? cost : twoago[j - 1] + 1;
+			thisrow[j + 1] = cost;
+		}
+	}
+	free(twoago);
+	free(oneago);
+	i = thisrow[lw2];
+	free(thisrow);
+	return i;
+}
+
+// True if word is in list - used to prevent duplicates below,
+// inline function for clarity's sake.
+static inline int in_list(char list[16][32], char *word, int len) {
+	int i;
+	for (i=0; i<len; i++)
+		if (strcmp(list[i], word) == 0)
+			return 1;
+	return 0;
+}
+
+// Search CNF database for possible typo executables, and suggest their
+// programs as well.
+void suggest_similar_uninstalled(char *target, char already[16][32], FILE *fp,
+				 int threshold, int acount) {
+	char els[16][128];
+	char entry[BUFLEN];
+	char *executable;
+	char tmp[BUFLEN], firstprog[BUFLEN];
+	int d, i;
+	int eli = 0;
+	firstprog[0] = 0;
+	fseek(fp, 0, SEEK_SET);
+	//puts("a");
+	while (!feof(fp)) {
+		fgets(entry, BUFLEN, fp);
+		executable = strtok(entry, " ");
+		d = damlev(target, executable);
+		if (d <= threshold) {
+			if (!in_list(already, executable, acount)) {
+				strcpy(els[eli], executable);
+				strcat(els[eli], " is part of ");
+				executable = strtok(NULL, " ");
+				strcpy(tmp, executable);
+				while ((executable = strtok(NULL, " "))) {
+					strcat(els[eli], tmp);
+					strcat(els[eli], ", ");
+					strcpy(tmp, executable);
+				}
+				strcat(els[eli], tmp);
+				if (!firstprog[0])
+					strcpy(firstprog, tmp);
+				eli++;
+			}
+			if (eli == 15)
+				break;
+		}
+	}
+	if (eli > 0) {
+		if (acount == 0)
+			printf("\nD");
+		else
+			printf("\nOr d");
+		if (eli == 1)
+			printf("id you mean this uninstalled command?\n");
+		else
+			printf("id you mean one of these "
+			       "uninstalled commands?\n");
+		for (i = 0; i < eli; i++)
+			printf("  %s", els[i]);
+		if (firstprog[strlen(firstprog) - 1] == '\n')
+			firstprog[strlen(firstprog) - 1] = 0;
+		fprintf(OUTPUT, "You can install one of these by typing "
+			"(for example):\n"
+			" InstallPackage %s\nor\n Compile %s\n",
+			firstprog, firstprog);
+	}
+
+}
+
+// Look through PATH for executables that are close to our target,
+// and suggest typo corrections. After that look through the CNF
+// database again for similar names and suggest them too.
+void suggest_similar(char *target, FILE *fp) {
+	// Set a minimum closeness we'll care about. At least half
+	// the executable name must be the same to count.
+	int mindl = strlen(target) / 2;
+	DIR *dp;
+	struct dirent *ep;
+	// Fixed size for ease later. We never want to have that many entries
+	// anyway, it becomes unwieldy.
+	char els[16][32];
+	// For non-Gobo systems, we'll need to iterate through all the
+	// PATH elements. It may be desirable even here for user-added
+	// paths (perhaps ~/bin).
+	char *pathvar = getenv("PATH");
+	char *pathel;
+	int eli = 0;
+	int i;
+	pathel = strtok(pathvar, ":");
+	while (pathel != NULL) {
+		dp = opendir(pathel);
+		if (dp != NULL) {
+			while ((ep = readdir(dp))) {
+				if (strlen(ep->d_name) > 31)
+					continue;
+				int d = damlev(target, ep->d_name);
+				if (d < mindl) {
+					mindl = d;
+					eli = 0;
+				}
+				if (d == mindl && eli < 15) {
+					if (!in_list(els, ep->d_name, eli)) {
+						strcpy(els[eli], ep->d_name);
+						eli++;
+					}
+				}
+			}
+			closedir(dp);
+		}
+		pathel = strtok(NULL, ":");
+	}
+	if (eli > 0) {
+		if (eli == 1)
+			printf("Did you mean this?\n  ");
+		else
+			printf("Did you mean one of these?\n  ");
+		for (i = 0; i < eli; i++)
+			printf("%s%s", els[i], (i + 1 < eli ? ", " : ""));
+		puts("");
+	}
+	suggest_similar_uninstalled(target, els, fp, mindl, eli);
 }
 
 int main(int argc, char **argv) {
@@ -108,7 +290,8 @@ int main(int argc, char **argv) {
 				return 1;
 			}
 		} else {
-			// Not found, so stay silent to let the shell handle the error.
+			// Not found, so see if there's a close existing command
+			suggest_similar(argv[1], fp);
 			fclose(fp);
 			return 1;
 		}
@@ -116,3 +299,9 @@ int main(int argc, char **argv) {
 	fclose(fp);
 	return 0;
 }
+// Local variables:
+// mode: c
+// indent-tabs-mode: t
+// tab-width: 8
+// c-basic-offset: 8
+// End:

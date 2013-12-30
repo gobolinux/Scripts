@@ -536,7 +536,7 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
          }
 
          if (S_ISCHR(status.st_mode) || S_ISBLK(status.st_mode)) {
-            fprintf(stdout, "%s%02d/%02d %02d:%02d %s%s %4lld:%3lld \033[%sm%s%s\n",
+            fprintf(stdout, "%s%02d/%02d %02d:%02d %s%s %4lld:%3lld \033[%sm%s\n",
                COLOR_WHITE_CODE,
                time_info->tm_mday,
                time_info->tm_mon + 1,
@@ -547,12 +547,11 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
                MAJOR(status.st_rdev),
                MINOR(status.st_rdev),
                color_code,
-               namelist[i]->d_name,
-               COLOR_WHITE_CODE);
+               namelist[i]->d_name);
          } else {
-            char *size_str = colorize_bytes(status.st_size, SCHEME_FILES, 9);
+                char *size_str = colorize_bytes(status.st_size, SCHEME_FILES, 9);
                 
-            fprintf(stdout, "%s%02d/%02d %02d:%02d %s%s%s \033[%sm%s%s%s\n",
+            fprintf(stdout, "%s%02d/%02d %02d:%02d %s%s%s \033[%sm%s%s\n",
                COLOR_WHITE_CODE,
                time_info->tm_mday,
                time_info->tm_mon + 1,
@@ -560,11 +559,10 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
                time_info->tm_min,
                final_mask,
                COLOR_WHITE_CODE,
-               size_str,
+                    size_str,
                color_code,
                namelist[i]->d_name,
-               link_entry,
-               COLOR_WHITE_CODE);
+               link_entry);
          }
       
          *counter += 1;
