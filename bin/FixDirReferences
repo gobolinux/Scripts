@@ -43,8 +43,8 @@ s%$goboPrograms/[^ /]*/*[^ /]*/+share(/?)/*%$goboShared\1%g;
 s%$goboPrograms/[^ /]*/*[^ /]*/+share([ '\''])%$goboShared/\1%g;
 s%$goboPrograms/[^ /]*/*[^ /]*/+etc(/?)/*%$goboSettings\1%g;
 s%$goboPrograms/[^ /]*/+Settings/(.*)%$goboSettings/\1%g;
-s%$goboPrograms/*[^ /]*/*[^ /\"]*/*([^ /\"]*)%/usr/\1%g;
-s%$goboPrograms/*[^ /]*/*[^ /]*/*([^ /\"]*)%/usr%g;
+s%$goboPrograms/[^ /]*/*[^ /]*/[^ /\"]*/([^ /\"]*)%/usr/\1%g;
+s%$goboPrograms/[^ /]*/*[^ /]*/([^ /\"]*)%/usr%g;
 s%(-L|-I|-R)*$compileDir/[^('| )]*%%g;
 " > "${current}"
    Boolean "backup" || rm -- "$old"
