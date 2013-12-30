@@ -75,16 +75,27 @@ autoload -U compinit
 compinit -i
 # End of lines added by compinstall
 
-
 # This must be done before loading a zkbd
 zmodload zsh/complist &> /dev/null
+
+if [ "$KONSOLE_DCOP" ]
+then export TERM='konsole'
+elif [ "$DISPLAY" ]
+then export TERM='xterm-color'
+fi
 
 if [[ -e ${goboPrefix}/System/Links/Shared/zsh/zkbd-$TERM-$VENDOR-$OSTYPE ]]
 then
    . ${goboPrefix}/System/Links/Shared/zsh/zkbd-$TERM-$VENDOR-$OSTYPE
 
+   bindkey "${key[CtrlUp]}" up-history
+   bindkey "${key[CtrlDown]}" down-history
+   bindkey "${key[CtrlLeft]}" backward-word
+   bindkey "${key[CtrlRight]}" forward-word
+
    bindkey "${key[Home]}" beginning-of-line
    bindkey "${key[End]}" end-of-line
+   bindkey "${key[Insert]}" redisplay
    bindkey "${key[Delete]}" delete-char-or-list
    bindkey -M menuselect "${key[Delete]}" undo
 
@@ -112,8 +123,6 @@ zle -N kill-word bash-kill-word
 
 # Zsh is nice and provides a "which", but "no, thanks, we have our own".
 disable which
-
-[ "$DISPLAY" != "" ] && export TERM='xterm-color'
 
 # Source application environment settings.
 local envcachefile="${goboPrefix}/System/Links/Environment/Cache"

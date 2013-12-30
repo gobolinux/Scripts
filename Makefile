@@ -12,7 +12,7 @@ DESTDIR=$(goboPrograms)/$(PROGRAM)/$(VERSION)
 SVNTAG:=$(shell echo $(PROGRAM)_$(VERSION) | tr "[:lower:]" "[:upper:]" | sed  's,\.,_,g')
 
 PYTHON_VERSION=2.7
-PYTHON_LIBS=FindPackage GetAvailable GuessLatest CheckDependencies DescribeProgram UseFlags Corrections
+PYTHON_LIBS=FindPackage GetAvailable GuessLatest CheckDependencies DescribeProgram UseFlags Corrections Alien
 PYTHON_SITE=lib/python$(PYTHON_VERSION)/site-packages
 
 ifeq (,$(findstring svn,$(VERSION)))
@@ -70,7 +70,7 @@ update_version: version_check verify
 
 dist: update_version
 	@echo; echo "Press enter to create a subversion tag and tarball for version $(VERSION) or ctrl-c to abort."
-	@read
+	@read _
 	@$(MAKE) tag
 
 tag: version_check verify
