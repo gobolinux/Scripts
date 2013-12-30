@@ -1,0 +1,70 @@
+#!/bin/bash
+# Implementation of the Aliens interface for Haskell Cabal packages.
+# Requires installation of Cabal-Install package
+
+# $2 is name of package
+
+alien_cabal--have-manager() {
+    which cabal >/dev/null 2>&1 || exit 1
+}
+
+alien_cabal--get-manager-rule() {
+    echo "Cabal-Install"
+}
+
+alien_cabal__in_version_range() {
+   # $1=inclusive lower ver, $2=ver to check, $3=exclusive upper ver ($2==$3 iff $1==$3)
+   [ "$2" ] || return 1
+   [ "$2" != "$1" -a "$(GuessLatest "$2" "$1")" = "$1" ] && return 1
+   [ "$3" ] || return 0
+   [ "$(GuessLatest "$2" "$3")" = "$3" ] || return 1
+   [ "$2" = "$3" -a "$2" != "$1" ] && return 1
+   return 0
+}
+
+alien_cabal--met() {
+    # $1=package, $2=lower version inclusive, [$3=upper version exclusive]
+    ver=$(alien_cabal--getversion $1)
+    alien_cabal__in_version_range "$2" "$ver" "$3"
+}
+alien_cabal--greater-than() { alien_cabal--met "$@"; }
+alien_cabal--within-range() { alien_cabal--met "$@"; }
+alien_cabal--interval()     { alien_cabal--met "$@"; }
+
+alien_cabal__getvers()
+{
+    # $1="installed" or "available", $2=package, [$3=min ver incl. [$4=max ver excl.]]
+    set -e
+    cabal info $2 | awk "
+        /Latest version $1: \[ Not installed \]/ { exit 1 }
+        /Latest version $1: / { print \$4; exit 0; }"
+}
+
+alien_cabal--getversion()        { alien_cabal__getvers installed "$@"; }
+alien_cabal--getinstallversion() {
+    if [ -z "$2" -a -z "$3" ]
+    then
+        alien_cabal__getvers available "$@";
+        return $?;
+    fi
+    pred=$( if   [ -z "$3" ]      ; then echo ">= $2"
+            elif [ "$2" == "$3" ] ; then echo "== $2"
+            elif [ -z "$2" ]      ; then echo  "< $3"
+            else                         echo  ">= $2 && < $3"
+            fi
+          )
+    cabal install --dry-run "$1 $pred" | sed -n -e "/^${1}-/s/^${1}-//p"
+}
+
+alien_cabal--install() {
+    if [ -z "$2" ]
+    then
+        cabal install --global "$1" >>/Users/kquick/cabal.log
+    else
+        cabal install --global "$1-$2" >>/Users/kquick/cabal.log
+    fi
+}
+
+func="${1:---have-manager}"
+shift 1
+alien_cabal$func "$@"
