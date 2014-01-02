@@ -184,7 +184,7 @@ class Recipe :
 		return False
 
 	def update(self) :
-		cmd = "NewVersion %s %s %s" %(self.name, self.version, self.url)
+		cmd = "NewVersion --keep-existing %s %s %s" %(self.name, self.version, self.url)
 		return os.system(cmd)
 
 	def create(self) :
