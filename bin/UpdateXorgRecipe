@@ -137,13 +137,13 @@ class XorgRepository :
 		}
 	
 	def parse(self) :
-		for dir in self.dirs :
-			m = XorgModule(dir)
-			self.dirs[dir] = m.parse()
+		for dirName in self.dirs :
+			m = XorgModule(dirName)
+			self.dirs[dirName] = m.parse()
 
 	def update(self) :
-		for dir in self.dirs :
-			recipelist = self.dirs[dir]
+		for dirName in self.dirs :
+			recipelist = self.dirs[dirName]
 			for name in recipelist :
 				if name == 'scripts' :
 					# XXX Name clash from Xorg-App. Ignore this one.
@@ -155,7 +155,7 @@ class XorgRepository :
 				error = recipe.checkout()
 				if error :
 					# There isn't any recipe for this package
-					recipe.create()
+					recipe.create(dirName)
 				else :
 					# There is at least one recipe for this package
 					recipe.update()
@@ -184,11 +184,12 @@ class Recipe :
 		return False
 
 	def update(self) :
-		cmd = "NewVersion --keep-existing %s %s %s" %(self.name, self.version, self.url)
+		cmd = "NewVersion %s %s %s" %(self.name, self.version, self.url)
 		return os.system(cmd)
 
-	def create(self) :
+	def create(self, metarecipeName) :
 		# Let Compile deduce the package name
+		print "TODO: automatically include part_of=%s in the generated recipe" %metarecipeName
 		cmd = "MakeRecipe --batch %s" %self.url
 		return os.system(cmd)
 
