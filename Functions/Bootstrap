@@ -20,28 +20,20 @@ function Create_Filesystem_Tree() {
       true
    }
 
-if [ "$usesystemindex" ]
+   if [ "$usesystemindex" ]
    then
-      create_dir $root/System/Index/etc
-      create_dir $root/System/Index/bin
-      create_link bin $root/System/Index/sbin
-      create_link bin $root/System/Index/libexec
-      create_dir $root/System/Index/lib
-      create_dir $root/System/Index/include
-      create_dir $root/System/Index/share/man
-      create_dir $root/System/Index/share/info
-      variabledir="Data/Variable"
       filesdir="Data"
    else
-      create_dir $root/System/Links/Executables
-      create_dir $root/System/Links/Libraries
-      create_dir $root/System/Links/Headers
-      create_dir $root/System/Links/Shared
-      create_dir $root/System/Links/Manuals/info
-      variabledir="System/Variable"
       filesdir="Files"
       create_dir $root/Depot
    fi
+   variabledir="$filesdir/Variable"
+   create_dir $root/System/Links/Executables
+   create_dir $root/System/Links/Libraries
+   create_dir $root/System/Links/Libraries64
+   create_dir $root/System/Links/Headers
+   create_dir $root/System/Links/Shared
+   create_dir $root/System/Links/Manuals/info
    create_dir $root/System/Links/Tasks
    create_dir $root/System/Links/Environment
    create_dir $root/$variabledir/log
@@ -78,38 +70,20 @@ if [ "$usesystemindex" ]
    # Legacy Links
    #
    create_dir $root/usr
-
-   if [ "$usesystemindex" ]
-   then
-      create_link System/Index/lib            $root/lib
-      create_link System/Index/bin            $root/bin
-      create_link System/Index/bin            $root/sbin
-      create_link ../System/Index/bin         $root/usr/bin
-      create_link ../System/Index/include     $root/usr/include
-      create_link ../System/Index/lib         $root/usr/lib
-      create_link ../System/Index/share/man   $root/usr/man
-      create_link ../System/Index/sbin        $root/usr/sbin
-      create_link ../System/Index/share       $root/usr/share
-      # compatibility links
-      create_link ../../System/Index/bin      $root/System/Links/Executables
-      create_link ../../System/Index/lib      $root/System/Links/Libraries
-      create_link ../../System/Index/share    $root/System/Links/Shared
-      create_link ../Data/Variable            $root/System/Variable
-      create_link ../System/Index/etc         $root/System/Settings
-   else
-      create_link System/Links/Libraries      $root/lib
-      create_link System/Links/Executables    $root/bin
-      create_link System/Links/Executables    $root/sbin
-      create_link ../System/Links/Executables $root/usr/bin
-      create_link ../System/Links/Executables $root/usr/sbin
-      create_link ../System/Links/Headers     $root/usr/include
-      create_link ../System/Links/Libraries   $root/usr/lib
-      create_link ../System/Links/Manuals     $root/usr/man
-      create_link ../System/Links/Shared      $root/usr/share
-      create_link ../Manuals                  $root/System/Links/Shared/man
-      create_link ../Manuals                  $root/System/Links/Shared/man
-      create_dir                              $root/System/Settings
-   fi
+   create_link System/Links/Libraries      $root/lib
+   create_link System/Links/Libraries64    $root/lib64
+   create_link System/Links/Executables    $root/bin
+   create_link System/Links/Executables    $root/sbin
+   create_link ../System/Links/Executables $root/usr/bin
+   create_link ../System/Links/Executables $root/usr/sbin
+   create_link ../System/Links/Executables $root/usr/libexec
+   create_link ../System/Links/Headers     $root/usr/include
+   create_link ../System/Links/Libraries   $root/usr/lib
+   create_link ../System/Links/Libraries64 $root/usr/lib64
+   create_link ../System/Links/Manuals     $root/usr/man
+   create_link ../System/Links/Shared      $root/usr/share
+   create_link ../Manuals                  $root/System/Links/Shared/man
+   create_dir                              $root/System/Settings
    create_link $variabledir                $root/var
    create_link $variabledir/tmp            $root/tmp
    create_link System/Kernel/Objects       $root/sys
