@@ -12,6 +12,7 @@ import urllib
 
 # Global settings
 g_IncludeReleaseCandidates = False
+g_goboFiles = "/Files" if os.path.exists("/Files") else "/Data"
 
 class XorgModule :
 	def __init__(self, module) :
@@ -121,20 +122,32 @@ class XorgModule :
 		print ""
 
 
+class TranslationTable :
+	def __init__(self) :
+		# Meta-recipes associated to directories in the freedesktop.org server
+		self.table = { 
+			"proto":   "Xorg-Proto", 
+			"lib":     "Xorg-Lib", 
+			"xcb":     "Xorg-Proto", # Same as proto
+			"xserver":  None, 
+			"driver":  "Xorg-Driver", 
+			"app":     "Xorg-App", 
+			"data":     None, 
+			"doc":      None, 
+			"font":    "Xorg-Font", 
+			"util":     None
+		}
+
+	def lookup(self, name) :
+		if self.table.has_key(name) :
+			return self.table[name]
+		return None
+
 class XorgRepository :
 	def __init__(self) :
-		self.dirs = { 
-			"proto" : {}, 
-			"lib" : {}, 
-			"xcb" : {}, 
-			"xserver" : {}, 
-			"driver" : {}, 
-			"app" : {}, 
-			"data" : {}, 
-			"doc" : {}, 
-			"font" : {}, 
-			"util" : {} 
-		}
+		self.dirs = {}
+		for key in TranslationTable().table :
+			self.dirs[key] = {}
 	
 	def parse(self) :
 		for dirName in self.dirs :
@@ -155,7 +168,8 @@ class XorgRepository :
 				error = recipe.checkout()
 				if error :
 					# There isn't any recipe for this package
-					recipe.create(dirName)
+					metarecipeName = TranslationTable().lookup(dirName)
+					recipe.create(metarecipeName)
 				else :
 					# There is at least one recipe for this package
 					recipe.update()
@@ -169,12 +183,12 @@ class Recipe :
 		self.name = name
 		self.version = version
 		self.url = url
+		self.localrecipes = g_goboFiles + "/Compile/LocalRecipes"
 
 	def exists(self) :
-		localrecipes = "/Files/Compile/LocalRecipes"
-		recipes = glob.glob(localrecipes + "/*")
+		recipes = glob.glob(self.localrecipes + "/*")
 		for r in recipes :
-			rname = r[len(localrecipes)+1:]
+			rname = r[len(self.localrecipes)+1:]
 			if rname.lower() == self.name.lower() :
 				recipedir = r + "/" + self.version
 				if os.path.exists(recipedir) :
@@ -187,11 +201,39 @@ class Recipe :
 		cmd = "NewVersion %s %s %s" %(self.name, self.version, self.url)
 		return os.system(cmd)
 
+	def needsPartOf(self, recipe) :
+		baseuri = XorgModule("foo").baseuri
+		has_baseuri, has_partof = False, False
+		f = open(recipe)
+		for line in f.readlines() :
+			if line.find(self.baseuri) >= 0 :
+				has_baseuri = True
+			if line.find("part_of=") >= 0 :
+				has_partof = True
+				break
+		f.close()
+		return has_partof == False and has_baseuri == True
+
+	def appendPartOf(self, recipe, metarecipeName) :
+		written = False
+		f = open(recipe, "r")
+		newf = open(recipe + ".new", "w")
+		for line in f.readlines() :
+			newf.write(line)
+			if line.find("recipe_type=") > 0 and written == False :
+				newf.write("part_of=%s\n" %metarecipeName)
+				written = True
+		newf.close()
+		f.close()
+		os.rename(recipe + ".new", recipe)
+
 	def create(self, metarecipeName) :
 		# Let Compile deduce the package name
-		print "TODO: automatically include part_of=%s in the generated recipe" %metarecipeName
 		cmd = "MakeRecipe --batch %s" %self.url
-		return os.system(cmd)
+		os.system(cmd)
+		thisRecipe = "%s/%s/%s/Recipe" %(self.localrecipes, self.name, self.version)
+		if os.path.exists(thisRecipe) and metarecipeName != None and self.needsPartOf(thisRecipe) :
+			self.appendPartOf(thisRecipe, metarecipeName)
 
 	def checkout(self) :
 		cmd = "EditRecipe --no-edit %s" %self.name
@@ -218,7 +260,7 @@ class MetaRecipe :
 	def update(self, latestTarballs) :
 		self.latestTarballs = latestTarballs
 		for arch in [ "arm", "cell", "i686", "x86_64", "ppc", "sh4" ] :
-			recipe = "/Files/Compile/LocalRecipes/%s/%s/%s/Recipe" %(self.name, self.version, arch)
+			recipe = g_goboFiles + "/Compile/LocalRecipes/%s/%s/%s/Recipe" %(self.name, self.version, arch)
 			if os.path.exists(recipe) :
 				self._updateRecipe(recipe)
 
