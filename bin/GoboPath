@@ -18,9 +18,9 @@ export goboSystem="${goboPrefix}/System"
 
 export goboScripts="${goboPrograms}/Scripts/Current/bin"
 
-if [ -d "${goboSystem}/Index" ]
+if [ -d "${goboPrefix}/Data/Variable" ]
 then
-   export goboIndex="${goboSystem}/Index"
+   export goboIndex="${goboPrefix}/usr"
    export goboExecutables="${goboIndex}/bin"
    export goboLibraries="${goboIndex}/lib"
    export goboHeaders="${goboIndex}/include"
