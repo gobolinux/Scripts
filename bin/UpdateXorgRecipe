@@ -126,16 +126,16 @@ class TranslationTable :
 	def __init__(self) :
 		# Meta-recipes associated to directories in the freedesktop.org server
 		self.table = { 
-			"proto":   "Xorg-Proto", 
-			"lib":     "Xorg-Lib", 
-			"xcb":     "Xorg-Proto", # Same as proto
-			"xserver":  None, 
-			"driver":  "Xorg-Driver", 
-			"app":     "Xorg-App", 
-			"data":     None, 
-			"doc":      None, 
-			"font":    "Xorg-Font", 
-			"util":     None
+			"proto":   [ "Xorg-Proto" ], 
+			"lib":     [ "Xorg-Lib" ], 
+			"xcb":     [ "Xorg-Proto", "Xorg-Lib" ],
+			"xserver": [ ],
+			"driver":  [ "Xorg-Driver" ], 
+			"app":     [ "Xorg-App" ], 
+			"data":    [ ],
+			"doc":     [ ], 
+			"font":    [ "Xorg-Font" ], 
+			"util":    [ ]
 		}
 
 	def lookup(self, name) :
@@ -168,8 +168,8 @@ class XorgRepository :
 				error = recipe.checkout()
 				if error :
 					# There isn't any recipe for this package
-					metarecipeName = TranslationTable().lookup(dirName)
-					recipe.create(metarecipeName)
+					metarecipeNames = TranslationTable().lookup(dirName)
+					recipe.create(metarecipeNames)
 				else :
 					# There is at least one recipe for this package
 					recipe.update()
@@ -214,7 +214,7 @@ class Recipe :
 		f.close()
 		return has_partof == False and has_baseuri == True
 
-	def appendPartOf(self, recipe, metarecipeName) :
+	def appendPartOf(self, recipe, metarecipeNames) :
 		written = False
 		f = open(recipe, "r")
 		newf = open(recipe + ".new", "w")
@@ -227,13 +227,13 @@ class Recipe :
 		f.close()
 		os.rename(recipe + ".new", recipe)
 
-	def create(self, metarecipeName) :
+	def create(self, metarecipeNames) :
 		# Let Compile deduce the package name
 		cmd = "MakeRecipe --batch %s" %self.url
 		os.system(cmd)
 		thisRecipe = "%s/%s/%s/Recipe" %(self.localrecipes, self.name, self.version)
-		if os.path.exists(thisRecipe) and metarecipeName != None and self.needsPartOf(thisRecipe) :
-			self.appendPartOf(thisRecipe, metarecipeName)
+		if os.path.exists(thisRecipe) and len(metarecipeNames) > 0 and self.needsPartOf(thisRecipe) :
+			self.appendPartOf(thisRecipe, metarecipeNames[0])
 
 	def checkout(self) :
 		cmd = "EditRecipe --no-edit %s" %self.name
@@ -301,9 +301,12 @@ if __name__ == '__main__' :
 	recipeList = xorg.getRecipeList()
 
 	# The Xorg-Proto meta-recipe is comprised of "proto" + "xcb".
+	# The Xorg-Lib meta-recipe is comprised of "lib" + "xcb", too.
 	xorgProtoList = recipeList["proto"].copy()
+	xorgLibList = recipeList["lib"].copy()
 	for i in recipeList["xcb"].iterkeys() :
 		xorgProtoList[i] = recipeList["xcb"][i]
+		xorgLibList[i] = recipeList["xcb"][i]
 
 	# Update the Xorg-Meta recipes.
 	# It's worth noting that the "data", "doc" and "util" archives are not 
@@ -311,7 +314,7 @@ if __name__ == '__main__' :
 	# not a Meta Recipe, so it's not processed below either.
 	metaList = [ 
 		[ "Xorg-Proto",  xorgProtoList ],
-		[ "Xorg-Lib",    recipeList["lib"] ],
+		[ "Xorg-Lib",    xorgLibList ],
 		[ "Xorg-Driver", recipeList["driver"] ],
 		[ "Xorg-App",    recipeList["app"] ],
 		[ "Xorg-Font",   recipeList["font"] ]
