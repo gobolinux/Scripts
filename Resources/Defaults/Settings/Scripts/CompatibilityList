@@ -12,6 +12,7 @@ GHC: GHC-Bin
 GHC-Bin: GHC
 JRE: JDK Sun-JDK IBM-JDK Sun-JRE IBM-JRE
 JDK: Sun-JDK IBM-JDK
+Module-Init-Tools: Kmod
 Giflib: LibUngif
 LibUngif: Giflib
 Xorg: Xorg-Lib
