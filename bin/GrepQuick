@@ -57,10 +57,10 @@ Has_Uppercase "$pattern" || insensitive=-i
 if [ `Number_Of_Arguments` -gt 1 ]
 then
    eval `Args_To_Array files 2`
-   hits=`grep $insensitive $whole $recursive $color $nobins -snH --mmap -- "$pattern" "${files[@]}"`
+   hits=`grep $insensitive $whole $recursive $color $nobins -snH -- "$pattern" "${files[@]}"`
    result=$?
 else
-   cmd='grep $insensitive $whole $recursive $color $nobins -snH --mmap -- "$pattern" '`all`
+   cmd='grep $insensitive $whole $recursive $color $nobins -snH -- "$pattern" '`all`
    hits=$(eval $cmd)
    result=$?
    hits=`echo "$hits" | grep -v ".svn/"`
