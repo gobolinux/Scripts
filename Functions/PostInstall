@@ -24,6 +24,12 @@ function Run_PostInstall() {
       return 0
    fi
 
+   if [ ! -z "$NO_UNIONFS" ]
+   then
+      Log_Normal "NO_UNIONFS is set, skipping execution of PostInstall script for $app_name"
+      return 0
+   fi
+
    local sandbox_options="--sandbox $program_dir"
    Is_Directory "$program_set" && sandbox_options="${sandbox_options}:${program_set}"
    [ "$sandbox_list" != "" ] && sandbox_options="${sandbox_options}:${sandbox_list}"
@@ -46,7 +52,4 @@ function Run_PostInstall() {
       target="$program_dir" settings_target="$program_set" \
          ${chroot_cmd} ${program_dir}/Resources/PostInstall
    fi
-
 }
-
-
