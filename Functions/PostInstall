@@ -26,7 +26,7 @@ function Run_PostInstall() {
 
    if [ ! -z "$NO_UNIONFS" ]
    then
-      Log_Normal "NO_UNIONFS is set, skipping execution of PostInstall script for $app_name"
+      Log_Error "NO_UNIONFS is set, skipping execution of PostInstall script for $app_name"
       return 0
    fi
 
