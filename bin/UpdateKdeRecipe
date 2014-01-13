@@ -291,7 +291,8 @@ class MetaRecipe :
 
 	def update(self, latestTarballs) :
 		self.latestTarballs = latestTarballs
-		recipe = "/Files/Compile/LocalRecipes/%s/%s/Resources/Dependencies" %(self.name, self.version)
+		compileDir = "/Files/Compile" if os.path.exists("/Files/Compile") else "/Data/Compile"
+		recipe = compileDir + "/LocalRecipes/%s/%s/Resources/Dependencies" %(self.name, self.version)
 		if os.path.exists(recipe) :
 			self._updateRecipe(recipe)
 
