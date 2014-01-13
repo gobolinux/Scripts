@@ -19,3 +19,4 @@ Xorg: Xorg-Lib
 XFree86: Xorg
 Util-Linux: Util-Linux-NG
 LZMA-Utils: XZ-Utils
+Procps: Procps-NG
