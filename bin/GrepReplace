@@ -30,5 +30,5 @@ fi
 } | cut -f 1 -d: | sort | uniq | grep -v ".svn/" | grep -v "CVS/" | while read file
 do
    Log_Verbose "$file"
-   sed -i$suffix "s/$two/$three/g" "$file"
+   sed --follow-symlinks -i$suffix "s/$two/$three/g" "$file"
 done
