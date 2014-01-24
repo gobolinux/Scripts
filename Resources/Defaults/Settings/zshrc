@@ -16,7 +16,7 @@ alias ls='ls --color=tty'
 alias lsd='find -type d -maxdepth 1'
 alias lsh='ls -A .* -d'
 alias mkdir='mkdir -p'
-alias off='sudo -u "#0" ${goboPrefix}/System/Links/Executables/shutdown -h -t 0 now "GoboLinux is powering off now."'
+alias off='sudo -u "#0" ${goboExecutables}/shutdown -h -t 0 now "GoboLinux is powering off now."'
 alias halt='off'
 alias poweroff='off'
 alias pd='pushd'
@@ -37,13 +37,13 @@ export HISTSIZE=100
 export SAVEHIST=200
 export COLUMNS
 
-export MANPATH="${goboPrefix}/System/Links/Manuals:${goboPrefix}/System/Links/Shared/man${MANPATH:+:$MANPATH}:$(manpath 2> /dev/null)"
+export MANPATH="${goboManuals}:${goboShared}/man${MANPATH:+:$MANPATH}:$(manpath 2> /dev/null)"
 export MANPATH="${MANPATH%:}"
-export INFOPATH="${goboPrefix}/System/Links/Manuals/info${INFOPATH:+:$INFOPATH}"
-export TMPDIR="${goboPrefix}/System/Variable/tmp"
+export INFOPATH="${goboManuals}/info${INFOPATH:+:$INFOPATH}"
+export TMPDIR="${goboTemp}"
 
-path=("${goboPrefix}/System/Links/Executables" $path)
-fpath=("${goboPrefix}/System/Links/Shared/zsh/functions" "${XDG_DATA_HOME:-"${goboUserPrefix}/.local/share"}/zsh/functions" "${XDG_CONFIG_HOME:-"${goboUserPrefix}/.config"}/zsh/functions" "${goboUserPrefix}/.Settings/zsh/functions" $fpath)
+path=("${goboExecutables}" $path)
+fpath=("${goboShared}/zsh/functions" "${XDG_DATA_HOME:-"${goboUserPrefix}/.local/share"}/zsh/functions" "${XDG_CONFIG_HOME:-"${goboUserPrefix}/.config"}/zsh/functions" "${goboUserPrefix}/.Settings/zsh/functions" $fpath)
 
 unset goboUserPrefix
 
@@ -54,7 +54,7 @@ colors
 
 # This line has to come first for dircolors.
 export SHELL=`which zsh`
-eval `dircolors ${goboPrefix}/System/Settings/dircolors.conf 2> /dev/null`
+eval `dircolors ${goboSettings}/dircolors.conf 2> /dev/null`
 
 # The following lines were added by compinstall
 
@@ -84,9 +84,9 @@ elif [ "$DISPLAY" ]
 then export TERM='xterm-color'
 fi
 
-if [[ -e ${goboPrefix}/System/Links/Shared/zsh/zkbd-$TERM-$VENDOR-$OSTYPE ]]
+if [[ -e ${goboShared}/zsh/zkbd-$TERM-$VENDOR-$OSTYPE ]]
 then
-   . ${goboPrefix}/System/Links/Shared/zsh/zkbd-$TERM-$VENDOR-$OSTYPE
+   . ${goboShared}/zsh/zkbd-$TERM-$VENDOR-$OSTYPE
 
    #bindkey "${key[CtrlUp]}" up-history
    #bindkey "${key[CtrlDown]}" down-history
@@ -125,16 +125,16 @@ zle -N kill-word bash-kill-word
 disable which
 
 # Source application environment settings.
-local envcachefile="${goboPrefix}/System/Links/Environment/Cache"
+local envcachefile="${goboEnvironment}/Cache"
 [[ -e "$envcachefile" ]] || { 
 echo -e "unset unsetvars\n[ ! \"\$goboSettings\" ] && unsetvars=true\n" > "$envcachefile"
 echo -e "source GoboPath\n" >> "$envcachefile"
-for linkedfile in "${goboPrefix}/System/Links/Environment"/*--*
+for linkedfile in "${goboEnvironment}"/*--*
 do 
    [ -f "$linkedfile" ] && cat "$linkedfile" >> "$envcachefile"
    echo >> "$envcachefile"
 done
-unsetvars=`grep export $goboPrefix/System/Links/Executables/GoboPath | awk {'print $1 " " $2'} | grep "^export" | sed -e 's,=.*,,g' -e 's,export,unset,g'`
+unsetvars=`grep export ${goboExecutables}/GoboPath | awk {'print $1 " " $2'} | grep "^export" | sed -e 's,=.*,,g' -e 's,export,unset,g'`
 echo -e "if [ \"\$unsetvars\" ]\nthen\n$unsetvars\nfi\n" >> "$envcachefile" } 2> /dev/null
 { source "$envcachefile" } 2> /dev/null
 unset envcachefile
