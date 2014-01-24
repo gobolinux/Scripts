@@ -6,6 +6,7 @@
 # This line has to come first
 export SHELL=/bin/bash
 
+source GoboPath
 
 shopt -s cdable_vars cdspell checkhash checkwinsize histappend histreedit histverify 
 
