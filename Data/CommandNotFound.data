@@ -88,7 +88,6 @@ Freshen Freshen
 GWCommand AfterStep
 GenBuildInformation Scripts
 GenFstab ConfigTools
-GenGrubMenu ConfigTools
 GenLiloConf ConfigTools
 GenXorgConf ConfigTools
 GetAvailable Scripts
@@ -123,7 +122,6 @@ Magick++-config ImageMagick
 Magick-config ImageMagick
 MagickCore-config ImageMagick
 MagickWand-config ImageMagick
-MakeGrubKeymap ConfigTools
 MakeInitRDTree BuildLiveCD
 MakeRecipe Compile
 MakeSystemSettings BuildLiveCD
@@ -834,7 +832,6 @@ derb LibICU4C
 designer Qt
 desktop-file-install Desktop-File-Utils
 desktop-file-validate Desktop-File-Utils
-dev2grub.sh ConfigTools
 devdump CDRTools
 devmap_name Multipath-Tools
 df CoreUtils
