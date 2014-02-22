@@ -30,7 +30,6 @@ function Create_Filesystem_Tree() {
    variabledir="$filesdir/Variable"
    create_dir $root/System/Links/Executables
    create_dir $root/System/Links/Libraries
-   create_dir $root/System/Links/Libraries64
    create_dir $root/System/Links/Headers
    create_dir $root/System/Links/Shared
    create_dir $root/System/Links/Manuals/info
@@ -71,7 +70,6 @@ function Create_Filesystem_Tree() {
    #
    create_dir $root/usr
    create_link System/Links/Libraries      $root/lib
-   create_link System/Links/Libraries64    $root/lib64
    create_link System/Links/Executables    $root/bin
    create_link System/Links/Executables    $root/sbin
    create_link ../System/Links/Executables $root/usr/bin
@@ -79,7 +77,6 @@ function Create_Filesystem_Tree() {
    create_link ../System/Links/Executables $root/usr/libexec
    create_link ../System/Links/Headers     $root/usr/include
    create_link ../System/Links/Libraries   $root/usr/lib
-   create_link ../System/Links/Libraries64 $root/usr/lib64
    create_link ../System/Links/Manuals     $root/usr/man
    create_link ../System/Links/Shared      $root/usr/share
    create_link ../Manuals                  $root/System/Links/Shared/man
