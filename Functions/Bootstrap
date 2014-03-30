@@ -66,6 +66,13 @@ function Create_Filesystem_Tree() {
    create_dir $root/Programs
 
    #
+   # Bind-mounts
+   #
+   create_dir $root/sys
+   create_dir $root/dev
+   create_dir $root/proc
+
+   #
    # Legacy Links
    #
    create_dir $root/usr
@@ -84,10 +91,6 @@ function Create_Filesystem_Tree() {
    create_link $variabledir                $root/var
    create_link $variabledir/tmp            $root/tmp
    create_link $variabledir/run            $root/run
-   create_link System/Kernel/Objects       $root/sys
-   create_link System/Kernel/Devices       $root/dev
-   create_link System/Kernel/Status        $root/proc
-   create_link System/Kernel/Config        $root/config
    create_link System/Settings             $root/etc
    create_link System/Kernel/Boot          $root/boot
    create_link Mount                       $root/mnt
@@ -106,16 +109,16 @@ function Create_Device_Nodes() {
    #
    root="$1"
 
-   if ! [ -e $root/System/Kernel/Devices/log ]
-   then mkfifo $root/System/Kernel/Devices/log
+   if ! [ -e $root/dev/log ]
+   then mkfifo $root/dev/log
    fi
 
-   if ! [ -e $root/System/Kernel/Devices/initctl ]
-   then mkfifo -m 0600 $root/System/Kernel/Devices/initctl
+   if ! [ -e $root/dev/initctl ]
+   then mkfifo -m 0600 $root/dev/initctl
    fi
 
-   if ! [ -e $root/System/Kernel/Devices/fd ]
-   then ln -sf /System/Kernel/Status/self/fd $root/System/Kernel/Devices/
+   if ! [ -e $root/dev/fd ]
+   then ln -sf /proc/self/fd $root/dev/
    fi
 
    function create_node() {
@@ -123,8 +126,8 @@ function Create_Device_Nodes() {
       if [ "$5" ]
       then mode="-m$5"
       fi
-      if ! [ -e "$root/System/Kernel/Devices/$1" ]
-      then $sudo_exec mknod $root/System/Kernel/Devices/$1 $2 $3 $4 $mode
+      if ! [ -e "$root/dev/$1" ]
+      then $sudo_exec mknod $root/dev/$1 $2 $3 $4 $mode
       fi
       true
    }
