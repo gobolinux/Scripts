@@ -56,7 +56,6 @@ ContributeRecipe Compile
 ControlPanel Sun-JDK Sun-JRE
 Corrections Scripts
 CreatePackage Scripts
-CreateRootlessEnvironment Scripts
 DNDDemo OpenMotif
 DeduceName Scripts
 Dependencies Scripts
