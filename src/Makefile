@@ -14,14 +14,13 @@ endif
 
 dynamic_exec = SuperUserName IsExecutable usleep LinkOrExpandAll List CommandNotFound FindDependencies GetSupportedFilesystems
 static_exec = RescueSymlinkProgram
-dynamic_lib = libDynamicLoaderRedirect.so
 
 # first rule
 default: all
 
 .PHONY: all defult
 
-all: $(dynamic_exec) $(static_exec) $(dynamic_lib)
+all: $(dynamic_exec) $(static_exec)
 
 $(dynamic_exec): %: %.c
 	$(CC) $(MYCFLAGS) $< -o $@
@@ -34,9 +33,6 @@ $(static_exec): %: %.c
 	@if [ -e "$@.exe" ]; then \
 		mv $@.exe $@; \
 	fi
-
-$(dynamic_lib): %: DynamicLoaderRedirect.c
-	$(CC) $(MYCFLAGS) -shared -fPIC -ldl $< -o $@
 
 debug: MYCFLAGS = -g -DDEBUG -Wall
 debug: all
