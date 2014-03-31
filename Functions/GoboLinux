@@ -594,7 +594,6 @@ function Traverse_Program_Tree() {
    $dirop "${prefix}/../Settings"
    $dirop "$prefix/Resources"
    $dirop "$prefix/Resources/Defaults/Settings"
-   $dirop "$prefix/Resources/Daemons"
    $dirop "$prefix/Resources/Tasks"
    if Dir_Set Manuals && [ ! "$goboIndex" ]
    then
