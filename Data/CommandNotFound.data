@@ -128,7 +128,6 @@ ManagerRunner Manager
 MergeTree Scripts
 MiniInstallPackage ChrootCompile
 MiniSymlinkProgram ChrootCompile
-ModifyXorgConf ConfigTools
 MonitorWharf AfterStep
 MouseInfo ConfigTools
 MultiGrep Scripts
