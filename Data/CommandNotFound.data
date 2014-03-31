@@ -51,7 +51,6 @@ CleanModules Scripts
 ColorMake Scripts
 CommandNotFound Scripts
 Compile Compile
-CompileProgram Scripts
 CompressAndBuildISO BuildLiveCD
 ContributeRecipe Compile
 ControlPanel Sun-JDK Sun-JRE
