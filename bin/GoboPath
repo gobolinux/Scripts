@@ -34,7 +34,6 @@ export goboBoot="${goboKernel}/Boot"
 
 # goboLinks is still needed for Tasks and Environment
 export goboLinks="${goboSystem}/Links"
-export goboDaemons="${goboLinks}/Daemons"
 export goboTasks="${goboLinks}/Tasks"
 export goboEnvironment="${goboLinks}/Environment"
 
