@@ -25,9 +25,9 @@
 
 # Alter the following to reflect the location of this file
 #
-[ -z "$BASH_COMPLETION" ] && declare -r BASH_COMPLETION="${goboPrefix}/System/Settings/completion.bash"
+[ -z "$BASH_COMPLETION" ] && declare -r BASH_COMPLETION="${goboSettings}/completion.bash"
 [ -z "$BASH_COMPLETION_DIR" ] && \
-	declare -r BASH_COMPLETION_DIR="${goboPrefix}/System/Settings/completion"
+	declare -r BASH_COMPLETION_DIR="${goboSettings}/completion"
 
 # Set a couple of useful vars
 #

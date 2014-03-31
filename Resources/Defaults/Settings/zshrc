@@ -70,7 +70,7 @@ zstyle ':completion:*' menu select=1
 zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
 zstyle ':completion:*' use-compctl false
 zstyle ':completion:*' verbose true
-#zstyle :compinstall filename '/System/Settings/zshrc'
+#zstyle :compinstall filename '${goboSettings}/zshrc'
 
 autoload -U compinit
 compinit -i
