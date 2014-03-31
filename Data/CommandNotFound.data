@@ -130,7 +130,6 @@ MiniInstallPackage ChrootCompile
 MiniSymlinkProgram ChrootCompile
 MonitorWharf AfterStep
 MouseInfo ConfigTools
-MultiGrep Scripts
 NamingConventions Scripts
 NetInterfaces ConfigTools
 NewVersion Compile
