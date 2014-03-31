@@ -80,8 +80,8 @@ then
    else
       p_path="$goboPrograms/`basename "$(Arg 1)"`/Current"
    fi
-   Ask_Continue "About to call 'RescueSymlinkProgram ${p_path} ${goboLinks}'"
-   RescueSymlinkProgram "${p_path}" "${goboLinks}"
+   Ask_Continue "About to call 'RescueSymlinkProgram ${p_path} ${goboIndex}'"
+   RescueSymlinkProgram "${p_path}" "${goboIndex}"
    Log_Normal "Done"
    exit 0
 fi
@@ -408,7 +408,7 @@ PrepareProgram --tree-cleanup "$package" "$version"
 if Boolean "cleanup"
 then
    Log_Normal "Removing any broken links..."
-   find "${goboLinks}" | RemoveBroken
+   find "${goboIndex}" | RemoveBroken
 fi
 
 ################################################################################

@@ -18,8 +18,8 @@ if [ ! "$1" -o "$1" = "--help" ]
 then
 	echo "RescueInstallPackage"
 	echo "A minimal functionality InstallPackage that can be used when the original script is not working"
-	echo "Usage:   `basename $0` <package_file|package_dir|package_url> [goboPrograms] [goboLinks]" 2> /dev/stderr 
-	echo "Example: `basename $0` /Data/Packages/Glibc--2.3.2--i686.tar.bz2 /Programs /System/Links" 2> /dev/stderr 
+	echo "Usage:   `basename $0` <package_file|package_dir|package_url> [goboPrograms] [goboIndex]" 2> /dev/stderr 
+	echo "Example: `basename $0` /Data/Packages/Glibc--2.3.2--i686.tar.bz2 /Programs /System/Index" 2> /dev/stderr 
 	exit 1
 fi
 
@@ -42,7 +42,7 @@ then
 	goboprograms="$2"
 	if [ "$3" ]
 	then
-		gobolinks="$3"
+		goboindex="$3"
 	fi
 fi 
   
@@ -58,15 +58,15 @@ then
    fi
 fi
  
-if [ ! "$gobolinks" ]
+if [ ! "$goboindex" ]
 then
    if [ "${goboPrograms}" ]
    then
-      echo "RescueInstallPackage: Assuming ${goboLinks} as goboLinks directory." 2> /dev/stderr
-      gobolinks=${goboLinks}
+      echo "RescueInstallPackage: Assuming ${goboIndex} as goboIndex directory." 2> /dev/stderr
+      goboindex=${goboIndex}
    else
-      echo "RescueInstallPackage: Assuming /System/Links as goboLinks directory." 2> /dev/stderr
-      gobolinks=/System/Links
+      echo "RescueInstallPackage: Assuming /System/Index as goboIndex directory." 2> /dev/stderr
+      goboindex=/System/Index
    fi
 fi
 
@@ -76,9 +76,9 @@ then
 	exit 1
 fi
 
-if [ ! -d "$gobolinks" ] 
+if [ ! -d "$goboindex" ] 
 then
-	echo "RescueInstallPackage: ${gobolinks} is not an existing directory." 2> /dev/stderr
+	echo "RescueInstallPackage: ${goboindex} is not an existing directory." 2> /dev/stderr
 	exit 1
 fi
 
@@ -102,8 +102,8 @@ else
 	tar xjvf  "$filename" -C "$goboprograms"
 fi
 
-echo "RescueInstallPackage: Calling RescueSymlinkProgram $goboprograms/$packagename/$packageversion $gobolinks" 2> /dev/stderr
-RescueSymlinkProgram $goboprograms/$packagename/$packageversion $gobolinks
+echo "RescueInstallPackage: Calling RescueSymlinkProgram $goboprograms/$packagename/$packageversion $goboindex" 2> /dev/stderr
+RescueSymlinkProgram $goboprograms/$packagename/$packageversion $goboindex
 
 echo "RescueInstallPackage: Done" 2> /dev/stderr
 

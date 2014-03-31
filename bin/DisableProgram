@@ -10,7 +10,7 @@ Import MetadataInstallation
 
 ### Options ###################################################################
 
-scriptDescription="Unlink a program from the ${goboLinks} hierarchy."
+scriptDescription="Unlink a program from the ${goboIndex} hierarchy."
 scriptCredits="Copyright (C) 2003 Hisham Muhammad. Released under the GNU GPL."
 helpOnNoArguments=yes
 scriptUsage="<program> [<version>]"

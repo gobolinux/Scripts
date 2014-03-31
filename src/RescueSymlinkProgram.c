@@ -35,7 +35,7 @@ char* BaseName(char* path) {
 }
 
 char* full_path = NULL;
-char* gobolinks = NULL;
+char* goboindex = NULL;
 
 void LinkIfExists(char* dir) {
    char* path = StrCat(full_path, dir);
@@ -67,8 +67,8 @@ int main(int argc, char** argv) {
    if (argc == 1 || StrEq(argv[1], "--help")) {
       fprintf(stderr, "RescueSymlinkProgram\n");
       fprintf(stderr, "A minimal functionality SymlinkProgram that can be used when the original script is not working.\n");
-      fprintf(stderr, "Usage:   %s <program_path> [goboLinks]\n", argv[0]);
-      fprintf(stderr, "Example: %s /Programs/Glibc/Current /System/Links\n", argv[0]);
+      fprintf(stderr, "Usage:   %s <program_path> [goboIndex]\n", argv[0]);
+      fprintf(stderr, "Example: %s /Programs/Glibc/Current /System/Index\n", argv[0]);
       exit(1);
    }
    
@@ -77,24 +77,24 @@ int main(int argc, char** argv) {
    if (IsDir(argv[1])) {
       full_path=argv[1];
       if (argc > 2 && IsDir(argv[2])) {
-         gobolinks=argv[2];
+         goboindex=argv[2];
       } else {
-         fprintf(stderr, "RescueSymlinkProgram: Assuming /System/Links as goboLinks directory.\n");
-         gobolinks="/System/Links";
+         fprintf(stderr, "RescueSymlinkProgram: Assuming /System/Index as goboIndex directory.\n");
+         goboindex="/System/Index";
       }
    } else {
       fprintf(stderr, "RescueSymlinkProgram: %s is not an existing directory.\n", argv[1]);
       exit(1);
    }
    
-   if (!IsDir(gobolinks)) {
-      fprintf(stderr, "RescueSymlinkProgram: %s is not an existing directory.\n", gobolinks);
+   if (!IsDir(goboindex)) {
+      fprintf(stderr, "RescueSymlinkProgram: %s is not an existing directory.\n", goboindex);
       exit(1);
    }
 
-   fprintf(stderr, "RescueSymlinkProgram: Linking %s inside %s\n", full_path, gobolinks);
+   fprintf(stderr, "RescueSymlinkProgram: Linking %s inside %s\n", full_path, goboindex);
 
-   path = StrCat(gobolinks, "/Executables");
+   path = StrCat(goboindex, "/bin");
    if (IsDir(path)) {
       chdir(path);
       fprintf(stderr, "RescueSymlinkProgram: %s\n", path);
@@ -104,15 +104,23 @@ int main(int argc, char** argv) {
    }
    free(path);
 
-   path = StrCat(gobolinks, "/Libraries");
+   path = StrCat(goboindex, "/lib");
    if (IsDir(path)) {
       chdir(path);
       fprintf(stderr, "RescueSymlinkProgram: %s\n", path);
       LinkIfExists("/lib");
    }
    free(path);
+   
+   path = StrCat(goboindex, "/libexec");
+   if (IsDir(path)) {
+      chdir(path);
+      fprintf(stderr, "RescueSymlinkProgram: %s\n", path);
+      LinkIfExists("/libexec");
+   }
+   free(path);
 
-   path = StrCat(gobolinks, "/Headers");
+   path = StrCat(goboindex, "/include");
    if (IsDir(path)) {
       chdir(path);
       fprintf(stderr, "RescueSymlinkProgram: %s\n", path);
