@@ -56,7 +56,6 @@ CompressAndBuildISO BuildLiveCD
 ContributeRecipe Compile
 ControlPanel Sun-JDK Sun-JRE
 Corrections Scripts
-CreateInitRD Scripts
 CreatePackage Scripts
 CreateRootlessEnvironment Scripts
 DNDDemo OpenMotif
@@ -2846,7 +2845,6 @@ mkhybrid CDRTools
 mkindex TeTeX
 mkinitramfs Initramfs-Tools
 mkinitramfs-kpkg Initramfs-Tools
-mkinitrd.pl Scripts
 mkisofs CDRTools
 mkjambase Jam
 mklost+found E2FSProgs
