@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
    }
    free(path);
 
-   path = StrCat(gobolinks, "/../Settings");
+   path = StrCat(goboindex, "/../Settings");
    if (IsDir(path)) {
       chdir(path);
       fprintf(stderr, "RescueSymlinkProgram: %s\n", path);
