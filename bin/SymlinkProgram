@@ -347,10 +347,16 @@ then
       fi
       Quiet cd -
    fi
-   Is_Real_Nonempty_Directory "${current}/Shared/mime/packages" && Rebuild_MIME_Database
-   Is_Real_Nonempty_Directory "${current}/Shared/applications" && Rebuild_Desktop_Database
-   Is_Real_Nonempty_Directory "${current}/Shared/fonts" && Rebuild_Font_Cache
-   Is_Real_Nonempty_Directory "${current}/Shared/omf" && Update_Scrollkeeper_Database
+   currentshare="${current}/Shared" 
+   if Is_Real_Directory "${current}/share" 
+   then
+      currentshare="${current}/share" 
+   fi
+     
+   Is_Real_Nonempty_Directory "${currentshare}/mime/packages" && Rebuild_MIME_Database
+   Is_Real_Nonempty_Directory "${currentshare}/applications" && Rebuild_Desktop_Database
+   Is_Real_Nonempty_Directory "${currentshare}/fonts" && Rebuild_Font_Cache
+   Is_Real_Nonempty_Directory "${currentshare}/omf" && Update_Scrollkeeper_Database
    Is_Real_Nonempty_Directory "${current}/lib/gtk-2.0" && Rebuild_GDK_Pixbuf_Loaders
    [ -f "${current}/Resources/XmlCatalogData" ] && Add_To_XML_Catalog "${packageDir}/${version}"
    # it's ok to install the GConf schemas even if they are already installed
