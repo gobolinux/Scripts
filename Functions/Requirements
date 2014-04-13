@@ -110,7 +110,7 @@ function Process_Requirements_File() {
             uid="`get_next_system_id $goboSettings/passwd`"
             [ ! "$uid" ] && { Log_Error "Could not add user $user: no free slots"; continue; }
          fi
-         grep -q "$user" "${goboSettings}/group" && maingroup="${user}"
+         grep -q "^$user$" "${goboSettings}/group" && maingroup="${user}"
          Log_Normal "Adding user $user..."
          [ -d "$homedir" ] && createhomedir= || createhomedir="-m"
          useraddmsg=$($sudo_exec useradd --uid $uid -c "Added by $package $version" $createhomedir -d "$homedir" -s "$goboExecutables/nologin" ${maingroup:+-g "${maingroup}"} $user 2>&1)
