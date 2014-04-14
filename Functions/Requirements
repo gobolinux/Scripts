@@ -18,6 +18,38 @@
 # When supplied, <num> must be in the range 1..99
 #
 
+function Run_Requirements_Wrapper() {
+   local app_ver="$1"
+   local chroot_dir="$2"
+   local requirements_wrapper="${goboTemp}/Run_Requirements"
+
+   cat << EOF > "${chroot_dir}/${requirements_wrapper}"
+#!/bin/bash
+source GoboPath
+source ScriptFunctions
+Import GoboLinux
+Import Log
+Import Requirements
+Process_Requirements_File "${app_ver}"
+EOF
+
+   if [ ! -z "${chroot_dir}" ]
+   then
+      mount -o bind "${goboDevices}" "${chroot_dir}/${goboDevices}"
+      mount -o bind "${goboStatus}" "${chroot_dir}/${goboStatus}"
+   fi
+
+   chmod +x "${chroot_dir}/${requirements_wrapper}"
+   chroot "${chroot_dir:-/}" "${requirements_wrapper}"
+   rm -f -- "${chroot_dir}/${requirements_wrapper}"
+
+   if [ ! -z "${chroot_dir}" ]
+   then
+      umount "${chroot_dir}/${goboStatus}"
+      umount "${chroot_dir}/${goboDevices}"
+   fi
+}
+
 function Process_Requirements_File() {
    local reqfile="$1/Resources/Requirements"
    local nover="${1%/*}"
@@ -110,7 +142,7 @@ function Process_Requirements_File() {
             uid="`get_next_system_id $goboSettings/passwd`"
             [ ! "$uid" ] && { Log_Error "Could not add user $user: no free slots"; continue; }
          fi
-         grep -q "^$user$" "${goboSettings}/group" && maingroup="${user}"
+         grep -q "^$user:" "${goboSettings}/group" && maingroup="${user}"
          Log_Normal "Adding user $user..."
          [ -d "$homedir" ] && createhomedir= || createhomedir="-m"
          useraddmsg=$($sudo_exec useradd --uid $uid -c "Added by $package $version" $createhomedir -d "$homedir" -s "$goboExecutables/nologin" ${maingroup:+-g "${maingroup}"} $user 2>&1)
