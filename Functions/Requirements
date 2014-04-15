@@ -149,7 +149,7 @@ function Process_Requirements_File() {
          [ "$groups" ] && $sudo_exec usermod -a -G "$groups" "$user"
          grep -q "^$user:" $goboSettings/passwd || {
 	    Log_Error "Error adding user $user"
-	    Log_Verbose "Reason: ${useraddmsg}"
+	    Log_Error "Reason: ${useraddmsg}"
 	 }
       done
    fi
