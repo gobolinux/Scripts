@@ -4,24 +4,34 @@
 # STRING OPERATIONS
 # //////////////////////////////////////////////////
 
-function Is_Empty() { [ -z "$*" ] ;}
+function Is_Empty() { [[ -z "$*" ]] ;}
+
+function Has_Substring() {
+   alt=${1/$2/}
+   [[ "$alt" != "$1" ]]
+}
+
+function File_Contains_Substring() {
+   var=$(<"$1")
+   Has_Substring "$var" "$2"
+}
 
 # example: Starts_With "oper" "operations"
 function Starts_With() {
-   l=${#1}                                           
+   l=${#1}         
    [[ "${2:0:l}" = "$1" ]]
 }
 
 #detsch, 23/08/2004
 # example: Ends_With "tions" "operations"
 function Ends_With() {
-   l2=${#2}                                    
+   l2=${#2}
    l3=$[ ${#2} - ${#1} ]
    [[ "${2:l3:l2}" = "$1" ]]
 }
 
 function Has_Uppercase() {
-   echo "$1" | grep "[[:upper:]]" &> /dev/null
+   expr index "$1" "ABCDEFGHIJKLMNOPQRSTUVWXYZ" &> /dev/null
 }
 
 function Capitalize() {
