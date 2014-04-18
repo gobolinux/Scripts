@@ -63,6 +63,19 @@ filesdir=$(Get_System_Paths "$disabled")
 Log_Normal "Removing links..."
 echo "$filesdir" | RemoveBroken || Die "Couldn't cleanup links."
 
+progsettings="$goboPrograms/$programname/Settings"
+if [[ -d "$progsettings" ]]
+then
+   entries=("$goboPrograms/$programname"/*)
+   if [[ ${#entries[@]} = 2 ]]
+   then
+      mv "$progsettings" "$progsettings-Disabled"
+      Log_Normal "Removing links at settings..."
+      find "$goboSettings" -type l | RemoveBroken
+      mv "$progsettings-Disabled"  "$progsettings"
+   fi
+fi
+
 if [ -f ${disabled}/Resources/UnmanagedFiles ] && ! Is_Entry "unmanaged" "keep"
 then
    if Is_Entry "unmanaged" "ask"
