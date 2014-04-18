@@ -532,7 +532,6 @@ function Post_Installation_Clean_Up() {
          Log_Terse "Installation was moved to ${goboPrograms}/${appname}/${appver}-failed"
       fi
       
-
       if [ -e "${goboPrograms}/${appname}/${appver}-safelinking" ]
       then
          Progress_Start "Restoring safe copy"
@@ -671,8 +670,14 @@ function Traverse_Program_Tree() {
       fi
    fi
 
-   if Dir_Set Manuals && [ ! "$goboIndex" ] && Boolean "tree"
-   then ln -nfs "$prefix/man" "$prefix/share/man"
+   if Dir_Set Manuals && Boolean "tree"
+   then
+      if [ ! "$goboIndex" ] 
+      then
+         ln -nfs "$prefix/man" "$prefix/share/man"
+      else
+         ln -nfs "$prefix/share/man" "$prefix/man"
+      fi
    fi
 }
 
@@ -831,7 +836,7 @@ function Get_System_Paths () {
    while read path
    do
       Programs_To_System_Path "${path}"
-   done < <(find "${programpath}" -mindepth 2 )
+   done < <(cd "${programpath}"; find *)
 }
 
 # Inspect to which package a linked file points to
