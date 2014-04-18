@@ -182,158 +182,76 @@ def addToDict(d, p, v, r, u):
 		d[p][v][r] = []
 	d[p][v][r].append(u)
 
-class LazyDict:
-	def __init__(self):
-		self.cache = None
-	
-	def force(self, v):
-		if self.cache != None:
-			return
-		self.cache = {}
-		# Populate cache in your subclass
-	
-	def __getitem__(self, v):
-		self.force(v)
-		return self.cache[v]
+def getUnpackedLocalPackagesOrRecipes(directory, searching_packages=False, d=None, default_revision='', current_only=False):
+	import os, os.path
 
-	def __setitem__(self, key, val):
-		self.force(key)
-		self.cache[key] = val
-	
-	def __len__(self):
-		if self.cache == None:
-			return 0
-		else:
-			return len(self.cache)
+	if d is None:
+		d = KeyInsensitiveDict();
 
-	def has_key(self, v):
-		self.force(v)
-		return self.cache.has_key(v)
-		
-	def keys(self):
-		self.force('dummy')
-		return self.cache.keys()
+	if not os.path.isdir(directory):
+		return d
 
-class LazyVersionsDict(LazyDict):
-	def __init__(self, directory, program, default_revision='', check_revision=False):
-		self.path = directory+'/'+program
-		self.cache = None
-		self.default_revision = default_revision
-		self.check_revision = check_revision
-		
-	def force(self, v):
-		if self.cache != None:
-			return
-			
-		self.cache = KeyInsensitiveDict()
+	programs = os.listdir(directory)
+
+	for i in range(len(programs)):
+		p = programs[i]
+		if not os.path.isdir(directory+'/'+p):
+			continue
+
+		if current_only:
+			if not os.path.isdir(directory+'/'+p+'/'+'Current'):
+				continue
+
+			try:
+				v = os.readlink(directory+'/'+p+'/'+'Current').split('/')[-1]
+			except:
+				continue
+
+			u = directory+'/'+p+'/'+v
+			if os.access(u+'/'+'Resources/Revision', os.R_OK):
+				f = open(u+'/'+'Resources/Revision')
+				r = f.read().strip()
+				f.close()
+			else:
+				r = default_revision
+			addToDict(d, p,v,r,u)
+			continue
+
 		try:
-			dirs = os.listdir(self.path)
-			versions = [ v for v in dirs if v not in ['Current', 'Settings', 'Variable', 'Headers'] ]
-			versions = [ v for v in versions if os.path.isdir(self.path+'/'+v) ]
-			for v in versions:
+			ds = os.listdir(directory+'/'+p)
+		except:
+			continue
+
+		versions = [ v for v in ds if v not in ['Current', 'Settings', 'Variable', 'Headers'] ]
+		versions = [ v for v in versions if os.path.isdir(directory+'/'+p+'/'+v) ]
+
+		# Verify: what to do with an empty program entry?
+		if not versions:
+			continue
+
+		for v in versions:
+			if not searching_packages:
 				v, r = Split_Version_Revision(v)
-				u = self.path+'/'+v
+				u = directory+'/'+p+'/'+v
 				if r:
 					u += '-'+r
 				else:
-					r = self.default_revision
-				if os.access(u+'/'+'Recipe', os.R_OK):
-					self.cache[v] = {}
-					self.cache[v][r] = [u]
-		except:
-			pass
-
-class LazyCurrentVersionsDict(LazyVersionsDict):
-
-	def force(self, v):
-		if self.cache != None:
-			return
-			
-		self.cache = {}
-		if not os.path.isdir(self.path):
-			raise KeyError()
-		if v != os.readlink(self.path+'/'+'Current').split('/')[-1]:
-			raise KeyError()
-		u = self.path + '/' + v
-		r = self.default_revision
-		if self.check_revision:
-			revfile = u+'/Resources/Revision'
-		 	if os.access(revfile, os.R_OK):
-				f = open(u+'/Resources/Revision')
-				r = f.read().strip()
-				f.close()
-		self.cache[v] = {}
-		self.cache[v][r] = [u]
-
-class LazySearchingVersionsDict(LazyVersionsDict):
-
-	def force(self, v):
-		if self.cache != None:
-			return
-		self.cache = {}
-		try:
-			dirs = os.listdir(self.path)
-			versions = [ v for v in dirs if v not in ['Current', 'Settings', 'Variable', 'Headers'] ]
-			versions = [ v for v in versions if os.path.isdir(self.path+'/'+v) ]
-			for v in versions:
-				u = self.path+'/'+v
-				r = self.default_revision
-				if self.check_revision:
-					if os.access(u+'/'+'Resources/Revision', os.R_OK):
-						f = open(u+'/'+'Resources/Revision')
-						r = f.read().strip()
-						f.close()
-				self.cache[v] = {}
-				self.cache[v][r] = [u]
-		except:
-			pass
-	
-
-class LazyProgramsDict(LazyDict):
-	def __init__(self, directory, searching_packages=False, default_revision='', current_only=False, check_revision=False):
-		self.directory = directory
-		self.cache = None
-		self.searching_packages = searching_packages
-		self.current_only = current_only
-		self.default_revision = default_revision
-		self.check_revision = check_revision
-	
-	def create_version(self, program):
-		if self.current_only:
-			return LazyCurrentVersionsDict(self.directory, program, self.default_revision, self.check_revision)
-		elif self.searching_packages:
-			return LazySearchingVersionsDict(self.directory, program, self.default_revision, self.check_revision)
-		else:
-			return LazyVersionsDict(self.directory, program, self.default_revision, self.check_revision)
-
-	def force(self, p):
-		if self.cache == None:
-			self.cache = KeyInsensitiveDict()
-		if not (self.searching_packages or self.current_only):
-			return
-		if self.cache.has_key(p):
-			return
-
-		options = [ p.title() ]
-		if p.lower().startswith("lib"):
-			options.append("Lib" + p[3:].title())
-		options += [ p[0:i].upper()+p[i:].lower() for i in range(2, len(p)) ]
-		
-		for option in options:
-			if os.path.isdir(self.directory+'/'+option):
-				self.cache[option] = self.create_version(option)
-				return
-		
-		for entry in os.listdir(self.directory):
-			self.cache[entry] = self.create_version(entry)
-	
-
-def getUnpackedLocalPackagesOrRecipes(directory, searching_packages=False, d=None, default_revision='', current_only=False, check_revision=False):
-	
-	if len(d['programs']) == 0:
-		d['programs'] = LazyProgramsDict(directory, searching_packages, default_revision, current_only, check_revision)
+					r = default_revision
+				if not os.access(u+'/'+'Recipe', os.R_OK):
+					continue
+			else:
+				u = directory+'/'+p+'/'+v
+				if os.access(u+'/'+'Resources/Revision', os.R_OK):
+					f = open(u+'/'+'Resources/Revision')
+					r = f.read().strip()
+					f.close()
+				else:
+					r = default_revision
+			addToDict(d, p,v,r,u)
+	return d
 
 def getPackedLocalPackages(directory, d = None, default_revision=''):
+	import os.path
 	if directory and directory[-1] != '/':
 		directory = directory + '/'
 
@@ -379,8 +297,7 @@ def getVersionsFromList(file, url, d = None):
 		if d == None:
 			d = KeyInsensitiveDict()
 	except Exception, e:
-		raise e
-		Log_Terse("1) Cannot open %s - %s\nRemoving..."%(file,str(e)),"GetAvailable")
+		Log_Terse("Cannot open %s - %s\nRemoving..."%(file,str(e)),"GetAvailable")
 		os.remove(file)
 		return d
 
@@ -426,13 +343,12 @@ def getVersionsFromPackagesList(file, url, path_prefix = '', d = None):
 				addToDict(d, p,v,r, path_prefix+line.strip())
 		return d
 	except Exception, e:
-		raise e
-		Log_Terse("2) Cannot open %s - %s\nRemoving...."%(file,str(e)),"GetAvailable")
+		Log_Terse("Cannot open %s - %s\nRemoving...."%(file,str(e)),"GetAvailable")
 		os.remove(file)
 		return d
 
 
-def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables=None, accessWeb=True, doNotUpdate=False, goboPrograms=None, check_revision=True):
+def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables=None, accessWeb=True, doNotUpdate=False, goboPrograms=None):
 	if 'recipe' in types:
 		compileRecipeDirs, getRecipeStores = getCompileOptions()
 
@@ -448,7 +364,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 			availables['installed'] = {}
 		if not availables['installed'].has_key('programs') or not availables['installed']['programs']:
 			availables['installed']['programs'] = KeyInsensitiveDict()
-		getUnpackedLocalPackagesOrRecipes(path, True, availables['installed'], default_revision= 'r1', check_revision=check_revision)
+		getUnpackedLocalPackagesOrRecipes(path, True, availables['installed']['programs'], default_revision= 'r1')
 
 	if 'current' in types:
 		if goboPrograms:
@@ -459,7 +375,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 			availables['current'] = {}
 		if not availables['current'].has_key('programs') or not availables['current']['programs']:
 			availables['current']['programs'] = KeyInsensitiveDict()
-		getUnpackedLocalPackagesOrRecipes(path, True, availables['current'], default_revision= 'r1', current_only=True, check_revision=check_revision)
+		getUnpackedLocalPackagesOrRecipes(path, True, availables['current']['programs'], default_revision= 'r1', current_only=True)
 
 	if 'local_package' in types:
 		if not availables.has_key('local_package') or not availables['local_package']:
@@ -471,11 +387,12 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 		if not localdirs:
 			localdirs = globalSettings['defaultLocalPackagesPaths']
 
+		import os
 		# Placing local_packages in par with local recipes
 		default_revision='r'+str(sys.maxint)
 		for directory in localdirs:
 			getPackedLocalPackages(os.path.expanduser(directory.strip()), availables['local_package']['programs'], default_revision=default_revision)
-			getUnpackedLocalPackagesOrRecipes(os.path.expanduser(directory.strip()), True, availables['local_package'], default_revision=default_revision, check_revision=check_revision)
+			getUnpackedLocalPackagesOrRecipes(os.path.expanduser(directory.strip()), True, availables['local_package']['programs'], default_revision=default_revision)
 
 	if accessWeb and (not doNotUpdate or forceupdate):
 		UpdateCache(types, forceupdate, hook)
@@ -516,15 +433,12 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 		default_revision='r'+str(sys.maxint)
 		for compileRecipeDir in compileRecipeDirs:
 			availables['recipe']['programs'] = getPackedLocalPackages(compileRecipeDir, availables['recipe']['programs'])
-			getUnpackedLocalPackagesOrRecipes(compileRecipeDir, False, availables['recipe'], default_revision=default_revision, check_revision=check_revision)
+			availables['recipe']['programs'] = getUnpackedLocalPackagesOrRecipes(compileRecipeDir, False, availables['recipe']['programs'], default_revision=default_revision)
 			default_revision = ''
 		if accessWeb:
 			i=0
 			for getRecipeStore in getRecipeStores:
-				my_filename = cacheDir+'RecipeList'+str(i)+'.bz2'
-				my_avs = availables['recipe']['programs']
-				my_versions = getVersionsFromPackagesList(my_filename, getRecipeStore, getRecipeStore, my_avs)
-				availables['recipe']['programs'] = my_versions
+				availables['recipe']['programs'] = getVersionsFromPackagesList(cacheDir+'RecipeList'+str(i)+'.bz2', getRecipeStore, getRecipeStore, availables['recipe']['programs'])
 				i = i + 1
 
 	if hook:
@@ -552,7 +466,7 @@ if __name__ == '__main__':
 	import getopt, os
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], 't:WRhp:', ['type=', 'types=', 'local-dirs=', 'full-list', 'force-update', 'no-web', 'no-revision', 'gobo-programs=', 'help'])
+		opts, args = getopt.getopt(sys.argv[1:], 't:Whp:', ['type=', 'types=', 'local-dirs=', 'full-list', 'force-update', 'no-web', 'gobo-programs=', 'help'])
 	except getopt.GetoptError, detail:
 		print sys.argv[0].split('/')[-1]+': '+str(detail)
 		sys.exit(1)
@@ -564,7 +478,6 @@ if __name__ == '__main__':
 	forceupdate = False
 	noWeb = False
 	goboPrograms = None
-	check_revision = True
 
 	for o, a in opts:
 		if o in ['--types','--type', '-t']:
@@ -584,8 +497,6 @@ if __name__ == '__main__':
 			forceupdate = True
 		elif o in ['--gobo-programs', '-p']:
 			goboPrograms = a
-		elif o in ['--no-revision', '-R']:
-			check_revision = False
 		elif o in ['--no-web', '-W']:
 			noWeb = True
 			if not typesChanged:
@@ -621,9 +532,6 @@ Options:
                       remote recipes and packages (if not explicitly listed
                       in '--types='). Overrides '--force-update'
 
- -R, --no-revision    do not check revision number in installed packages.
-                      Speeds up execution.
-
  -p
  --gobo-programs      Override default """+getGoboVariable("goboPrograms")+""" as path of installed packages
 
@@ -636,7 +544,7 @@ Examples of usage:
 
 	hook = consoleProgressHook
 
-	availables = GetAvailable(types, localdirs, forceupdate, accessWeb=not noWeb, hook=hook, goboPrograms=goboPrograms, check_revision=check_revision)
+	availables = GetAvailable(types, localdirs, forceupdate, accessWeb=not noWeb, hook=hook, goboPrograms=goboPrograms)
 
 	for t in availables.keys():
 		for p in caseinsensitive_sort(availables[t]['programs'].keys()):

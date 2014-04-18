@@ -8,6 +8,8 @@ from GetAvailable import *
 from GuessLatest import *
 from FindPackage import *
 from PythonUtils import *
+from UseFlags import *
+import Alien
 
 import re
 
@@ -51,10 +53,9 @@ def add_compatible_dependencies(rule):
 def get_rules_of_files(depfiles, t=None, no_compatlist=False):
 	toReturn = []
 	if depfiles and 'Recipes' in depfiles[0]:
-		import UseFlags
 		index = depfiles[0].rfind('/Resources/')
 		basedir = depfiles[0][0:index]
-		flags = UseFlags.UseFlags(basedir)
+		flags = UseFlags(basedir)
 	else:
 		flags = frozenset()
 	for depfile in depfiles:
@@ -88,7 +89,7 @@ def get_rules_of_files(depfiles, t=None, no_compatlist=False):
 # Notice that type may be required since dependencies(recipe(p)) != dependencies(package(p))
 def get_rules_for(p, v, r, t, u, noWeb=False, no_compatlist=False, no_builddeps=False, availables=None):
 	if availables is None:
-		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb, check_revision=True )
+		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb)
 	depfiles = find_dependencies_files(p, v, r, t, u, noWeb=False, no_builddeps=no_builddeps, availables=availables)
 	toReturn = get_rules_of_files(depfiles, t=t, no_compatlist=no_compatlist)
 	return toReturn
@@ -96,7 +97,7 @@ def get_rules_for(p, v, r, t, u, noWeb=False, no_compatlist=False, no_builddeps=
 global_not_found_cache=[]
 def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False, goboPrograms=None, availables=None):
 	if availables is None:
-		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb, check_revision=True )
+		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb)
 	if t == 'installed':
 		p = GuessProgramCase(p, v)
 		if goboPrograms:
@@ -106,7 +107,7 @@ def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False,
 		if os.access(localdep, os.R_OK):
 			return [ localdep ]
 	if availables is None:
-		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb, check_revision=True )
+		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb)
 	elif t == 'local_package':
 		if not u or not os.access(u, os.R_OK):
 			ret = FindPackage(p, v, r, types=[t], availables=availables, accessWeb=not noWeb)
@@ -276,7 +277,7 @@ def find_matching_package(rule, acceptable_types, noWeb=False, goboPrograms=None
 		return global_matches_cache[string_rule]
 
 	if not availables:
-		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb, localdirs=localdirs, goboPrograms=goboPrograms, check_revision=True)
+		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb, localdirs=localdirs, goboPrograms=goboPrograms)
 
 	available_options = FindPackage(rule['program'], types=acceptable_types, availables=availables, accessWeb=not noWeb, fulllist=True, goboPrograms=goboPrograms, localdirs=localdirs)
 
@@ -363,7 +364,7 @@ def ask_if_install(match, goboPrograms=None):
 #
 # Recursivelly identifies the dependencies for a given package / recipe as long as a 'solution' for each one
 #
-def get_all_dependencies_and_matches_for( p, v=None, r='r1', t=None, u=None,
+def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	                                    acceptable_types=None, mode='missing', recursive=True, hook=None,
 	                                    noWeb=False, add_self='if_required', install_optional='ask', ask_hook=None,
 	                                    all_matches = None, no_compatlist=False, depfile=None,
@@ -372,9 +373,8 @@ def get_all_dependencies_and_matches_for( p, v=None, r='r1', t=None, u=None,
 	global global_dependencies_blacklist
 	ordered_matches, ordered_rules = [], []
 	self_match, self_rule = None, None
-
 	if availables is None:
-		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb, localdirs=localdirs, goboPrograms=goboPrograms, check_revision=True )
+		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb, localdirs=localdirs, goboPrograms=goboPrograms)
 
 	if all_matches == None:
 		global_always_do = None
@@ -429,7 +429,6 @@ def get_all_dependencies_and_matches_for( p, v=None, r='r1', t=None, u=None,
 		if hook:
 			hook("Checking dependencies", len(all_matches), len(all_matches)+1)
 		if ':' in rule['program']:
-			import Alien
 			# It's an alien.
 			alientype, alienpkg = Alien.split(rule['program'])
 			if not Alien.havealienmanager(alientype):

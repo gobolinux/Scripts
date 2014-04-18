@@ -33,16 +33,16 @@ def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, 
 			continue
 
 		matched_programs = [] # programs that match
-		d = availables[t]['programs']
-		
-		if substring:
-			for pname in d.keys():
+		for pname in availables[t]['programs'].keys():
+			if substring:
 				if pname.lower().find(p.lower()) > -1:
 					matched_programs.append(pname)
-		else:
-			if d.has_key(p):
-				matched_programs = [p]
+			else:
+				if pname.lower() == p.lower():
+					matched_programs.append(pname)
+					break
 
+		d = availables[t]['programs']
 		for mp in matched_programs :
 			if v:
 				if d[mp].has_key(v):
@@ -59,7 +59,6 @@ def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, 
 					for fr in d[mp][fv]:
 						for u in d[mp][fv][fr]:
 							relevant_items.append((mp,fv,fr,t,u))
-
 
 	#################################################################################
 	# Phase 3: Prepare the output, sorting if required
