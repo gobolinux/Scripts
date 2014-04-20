@@ -183,7 +183,7 @@ def Link_Or_Expand(new, conflict, relative = False) :
 	    return os.path.realpath(os.path.realpath(p))
 
         if os.path.islink(p) :
-            points = os.path.realpath(os.path.realpath(p)).replace('/share/', '/Shared/')
+            points = os.path.realpath(os.path.realpath(p))
             if points[0] != '/' :
                 points = os.path.dirname(p)+'/'+points
             return points

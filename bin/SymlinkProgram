@@ -258,15 +258,15 @@ then
       Link_Directory "$current/man/man7" "$goboManuals/man7" "${symlinkrelative}" "${symlinkoverwrite}"
       Link_Directory "$current/man/man8" "$goboManuals/man8" "${symlinkrelative}" "${symlinkoverwrite}"
    else
-      Link_Directory "$current/Shared/man/man0" "$goboManuals/man0" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/Shared/man/man1" "$goboManuals/man1" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/Shared/man/man2" "$goboManuals/man2" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/Shared/man/man3" "$goboManuals/man3" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/Shared/man/man4" "$goboManuals/man4" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/Shared/man/man5" "$goboManuals/man5" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/Shared/man/man6" "$goboManuals/man6" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/Shared/man/man7" "$goboManuals/man7" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/Shared/man/man8" "$goboManuals/man8" "${symlinkrelative}" "${symlinkoverwrite}"
+      Link_Directory "$current/share/man/man0" "$goboManuals/man0" "${symlinkrelative}" "${symlinkoverwrite}"
+      Link_Directory "$current/share/man/man1" "$goboManuals/man1" "${symlinkrelative}" "${symlinkoverwrite}"
+      Link_Directory "$current/share/man/man2" "$goboManuals/man2" "${symlinkrelative}" "${symlinkoverwrite}"
+      Link_Directory "$current/share/man/man3" "$goboManuals/man3" "${symlinkrelative}" "${symlinkoverwrite}"
+      Link_Directory "$current/share/man/man4" "$goboManuals/man4" "${symlinkrelative}" "${symlinkoverwrite}"
+      Link_Directory "$current/share/man/man5" "$goboManuals/man5" "${symlinkrelative}" "${symlinkoverwrite}"
+      Link_Directory "$current/share/man/man6" "$goboManuals/man6" "${symlinkrelative}" "${symlinkoverwrite}"
+      Link_Directory "$current/share/man/man7" "$goboManuals/man7" "${symlinkrelative}" "${symlinkoverwrite}"
+      Link_Directory "$current/share/man/man8" "$goboManuals/man8" "${symlinkrelative}" "${symlinkoverwrite}"
    fi   
    cd "$current"
 fi
@@ -362,7 +362,7 @@ then
    # it's ok to install the GConf schemas even if they are already installed
    # we do this to ensure that the schemas are really installed
    Is_Real_Nonempty_Directory "${goboPrograms}/${package}/Settings/gconf/schemas" && Install_GConf_Schemas "${package}"
-#   Is_Real_Nonempty_Directory "${current}/Shared/sgml" && Install_SGML_DTD "${package}"
+#   Is_Real_Nonempty_Directory "${currentshare}/sgml" && Install_SGML_DTD "${package}"
 fi
 
 ################################################################################

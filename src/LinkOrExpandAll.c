@@ -202,7 +202,6 @@ static char* points_to(char* p) {
       realpath(p, points);
    } else if (os_path_islink(p)) {
       realpath(p, points);
-      string_replace1(points, points, "/share/", "/Shared/", PATH_MAX);
       if (*points != '/') {
          char* dname = dirname(p);
          string_set(points, PATH_MAX, dname, '/', points);

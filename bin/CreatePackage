@@ -140,6 +140,7 @@ Quiet rmdir $package/$versionnumber/Resources
 if [ ! -e "$package/$versionnumber/Shared" ]
 then
    Quiet rm -- "$package/$versionnumber/share"
+   Quiet rmdir "$package/$versionnumber/share"
 fi
 
 
