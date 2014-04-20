@@ -27,15 +27,12 @@ export goboHeaders="${goboIndex}/include"
 export goboShared="${goboIndex}/share"
 export goboManuals="${goboIndex}/share/man"
 
+export goboTasks="${goboSystem}/Tasks"
+export goboEnvironment="${goboSystem}/Environment"
 export goboSettings="${goboSystem}/Settings"
 export goboKernel="${goboSystem}/Kernel"
 export goboModules="${goboKernel}/Modules"
 export goboBoot="${goboKernel}/Boot"
-
-# goboLinks is still needed for Tasks and Environment
-export goboLinks="${goboSystem}/Links"
-export goboTasks="${goboLinks}/Tasks"
-export goboEnvironment="${goboLinks}/Environment"
 
 export goboVariable="${goboData}/Variable"
 export goboTemp="${goboVariable}/tmp"

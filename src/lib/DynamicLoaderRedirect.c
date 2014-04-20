@@ -17,7 +17,7 @@
 #include <fcntl.h>
 #include <dlfcn.h>
 
-#define GOBO_LIBRARIES    "/System/Links/Libraries"
+#define GOBO_LIBRARIES    "/System/Index/lib"
 #define GOBO_PROGRAMS     "/Programs"
 #define GOBO_PROGRAMS_LEN  9
 

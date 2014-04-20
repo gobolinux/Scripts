@@ -23,8 +23,8 @@ function Create_Filesystem_Tree() {
    filesdir="Data"
    variabledir="$filesdir/Variable"
    create_dir $root/System/Settings
-   create_dir $root/System/Links/Tasks
-   create_dir $root/System/Links/Environment
+   create_dir $root/System/Tasks
+   create_dir $root/System/Environment
    create_dir $root/$variabledir/log
    create_dir $root/$variabledir/tmp 0 a+wt
    create_dir $root/$variabledir/log
@@ -75,7 +75,7 @@ function Create_Filesystem_Tree() {
    create_dir $root/proc
 
    #
-   # Legacy Links
+   # Legacy links
    #
    create_dir $root/usr
    create_link System/Index/lib            $root/lib
@@ -102,9 +102,6 @@ function Create_Filesystem_Tree() {
    create_link Users/$superuser            $root/root
    create_link $filesdir                   $root/srv
    create_link /System/Kernel/Modules      $root/System/Index/lib/modules
-   create_link ../../System/Index/bin      $root/System/Links/Executables
-   create_link ../../System/Index/lib      $root/System/Links/Libraries
-   create_link ../../System/Index/share    $root/System/Links/Shared
 }
 
 function Create_Device_Nodes() {
