@@ -1,6 +1,6 @@
 
 PROGRAM=Scripts
-VERSION=svn-$(shell date +%Y%m%d)
+VERSION=3.0
 PACKAGE_DIR=$(HOME)
 PACKAGE_FILE=$(PACKAGE_DIR)/$(PROGRAM)--$(VERSION)--$(shell uname -m).tar.bz2
 TARBALL_BASE=$(PROGRAM)-$(VERSION)
@@ -64,16 +64,12 @@ verify:
 	@{ svn status 2>&1 | grep -v "Resources/SettingsBackup" | grep "^\?" ;} && { echo -e "Error: unknown files exist. Please take care of them first.\n"; exit 1 ;} || exit 0
 	@{ svn status 2>&1 | grep "^M" ;} && { echo -e "Error: modified files exist. Please checkin/revert them first.\n"; exit 1 ;} || exit 0
 
-update_version: version_check verify
-	sed -i "s/CURRENT_SCRIPTS_VERSION=.*#/CURRENT_SCRIPTS_VERSION="${VERSION}" #/g" bin/CreateRootlessEnvironment
-	svn commit -m "Update version for CreateRootlessEnvironment." bin/CreateRootlessEnvironment
-
-dist: update_version
+dist:
 	@echo; echo "Press enter to create a subversion tag and tarball for version $(VERSION) or ctrl-c to abort."
 	@read _
 	@$(MAKE) tag
 
-tag: version_check verify
+tag: version_check
 	svn cp http://svn.gobolinux.org/tools/trunk/$(PROGRAM) http://svn.gobolinux.org/tools/tags/$(SVNTAG) -m"Tagging $(PROGRAM) $(VERSION)"
 	svn switch http://svn.gobolinux.org/tools/tags/$(SVNTAG)
 	sed -i 's/^VERSION=.*/VERSION='"$(VERSION)"'/' Makefile
@@ -92,7 +88,6 @@ $(PACKAGE_FILE): $(all_files)
 	cd $(PACKAGE_DIR); tar cvp $(PROGRAM)/$(VERSION) | bzip2 > $(PACKAGE_FILE)
 	rm -rf $(PACKAGE_DIR)/$(PROGRAM)/$(VERSION)
 	rmdir $(PACKAGE_DIR)/$(PROGRAM)
-	SignProgram $(PACKAGE_FILE)
 
 manuals: $(man_files)
 
@@ -118,6 +113,6 @@ install-svn: install-files
 	@echo "Installing subversion information"
 	@find -name ".svn" -exec echo "$(PREFIX)$(DESTDIR)/{}" \; -exec cp --archive --remove-destination '{}' "$(PREFIX)$(DESTDIR)"/'{}' \;
 
-.PHONY: default all debug python version_check clean cleanup verify update_version
+.PHONY: default all debug python version_check clean cleanup update_version
 
 .PHONY: dist tag tarball manuals install install-files install-svn
