@@ -1,6 +1,6 @@
 
 PROGRAM=BootScripts
-VERSION=svn-$(shell date +%Y%m%d)
+VERSION=015
 PACKAGE_DIR=$(HOME)
 PACKAGE_FILE=$(PACKAGE_DIR)/$(PROGRAM)--$(VERSION)--$(shell uname -m).tar.bz2
 goboPrograms ?= /Programs
@@ -39,9 +39,9 @@ cleanup:
 verify:
 	@svn update
 	@{ svn status 2>&1 | grep -v "Resources/SettingsBackup" | grep "^\?" ;} && { echo -e "Error: unknown files exist. Please take care of them first.\n"; exit 1 ;} || exit 0
-	@{ svn status 2>&1 | grep "^M" ;} && { echo -e "Error: modified files exist. Please checkin/revert them first.\n"; exit 1 ;} || exit 0
+	#@{ svn status 2>&1 | grep "^M" ;} && { echo -e "Error: modified files exist. Please checkin/revert them first.\n"; exit 1 ;} || exit 0
 
-dist: version_check verify manuals tarball
+dist: version_check verify tarball
 	@echo; echo "Press enter to create a subversion tag for version $(VERSION) or ctrl-c to abort."
 	@read
 	@make tag
@@ -66,13 +66,6 @@ $(PACKAGE_FILE): $(all_files)
 	cd $(PACKAGE_DIR); tar cvp $(PROGRAM)/$(VERSION) | bzip2 > $(PACKAGE_FILE)
 	rm -rf $(PACKAGE_DIR)/$(PROGRAM)/$(VERSION)
 	rmdir $(PACKAGE_DIR)/$(PROGRAM)
-	SignProgram $(PACKAGE_FILE)
-
-manuals: $(man_files)
-
-$(man_files): Shared/man/man1/%.1: bin/%
-	@mkdir -p Shared/man/man1
-	help2man --name=" " --source="GoboLinux" --no-info $< --output $@
 
 install: $(INSTALL_TARGET)
 
@@ -87,4 +80,4 @@ install-svn: install-files
 
 .PHONY: default version_check clean cleanup verify dist tag tarball
 
-.PHONY: manuals install install-files install-svn
+.PHONY: install install-files install-svn
