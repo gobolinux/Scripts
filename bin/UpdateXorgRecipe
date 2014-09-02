@@ -166,13 +166,16 @@ class XorgRepository :
 					# NewVersion already invoked for this package + version
 					continue
 				error = recipe.checkout()
-				if error :
+				if error == 0 and recipe.exists() :
+					# Recipe is already updated
+					continue
+				elif error == 0 :
+					# There is at least one recipe for this package
+					recipe.update()
+				else :
 					# There isn't any recipe for this package
 					metarecipeNames = TranslationTable().lookup(dirName)
 					recipe.create(metarecipeNames)
-				else :
-					# There is at least one recipe for this package
-					recipe.update()
 
 	def getRecipeList(self) :
 		return self.dirs
