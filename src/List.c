@@ -16,6 +16,7 @@
 #include <getopt.h>
 #include <time.h>
 #include <sys/types.h>
+#include <sys/ioctl.h>
 #define __USE_LARGEFILE64
 #define __USE_FILE_OFFSET64
 #include <sys/stat.h>
@@ -572,10 +573,8 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
 }
 
 int
-time_sort(const void *void_a, const void *void_b)
+time_sort(const struct dirent **a, const struct dirent **b)
 {
-   struct dirent **a = (struct dirent **) void_a;
-   struct dirent **b = (struct dirent **) void_b;
    struct stat status_a, status_b;
    char filename_a[PATH_MAX];
    char filename_b[PATH_MAX];
@@ -589,10 +588,8 @@ time_sort(const void *void_a, const void *void_b)
 }
 
 int
-size_sort(const void *void_a, const void *void_b)
+size_sort(const struct dirent **a, const struct dirent **b)
 {
-   struct dirent **a = (struct dirent **) void_a;
-   struct dirent **b = (struct dirent **) void_b;
    struct stat status_a, status_b;
    char filename_a[PATH_MAX];
    char filename_b[PATH_MAX];
@@ -822,6 +819,7 @@ summarize(struct statfs status, long long total, long counter, long hiddenfiles,
    static int cols = 0;
    static long bytes_used = 0, bytes_free = 0, bytes_total = 0;
    static float percent = 0.0;
+   struct winsize w;
    int i;
    
    /* let's use a sane output */
@@ -842,9 +840,9 @@ summarize(struct statfs status, long long total, long counter, long hiddenfiles,
       summarize_simple(total, counter, hiddenfiles);
       return;
    }
-   
-   if (!getenv("COLUMNS") || !sscanf(getenv("COLUMNS"), "%d", &cols)) 
-      cols=80;
+
+   ioctl(0, TIOCGWINSZ, &w);
+   cols = w.ws_col;
    
    printf("\033[0m");
    for (i = 0; i < cols; ++i)

@@ -36,7 +36,6 @@ export HISTIGNORE="ls:exit"
 export HISTFILE="${XDG_CACHE_HOME:-"${goboUserPrefix}/.cache"}/zsh_history"
 export HISTSIZE=100
 export SAVEHIST=200
-export COLUMNS
 
 export MANPATH="${goboManuals}:${goboShared}/man${MANPATH:+:$MANPATH}:$(manpath 2> /dev/null)"
 export MANPATH="${MANPATH%:}"
