@@ -1,5 +1,7 @@
+#!/bin/zsh
+
 prompt_lode_help () {
-  cat <<'EOF'
+  cat <<EOF
 This prompt is color-scheme-able.  You can invoke it thus:
 
   prompt lode [<color1>]
@@ -12,9 +14,13 @@ EOF
 }
 
 prompt_lode_setup () {
-
 if [[ "$TERM" != "dumb" ]]; then
-   export PROMPT="%{$fg[${1:-cyan}]%}%n%B@%b%{$fg[${1:-cyan}]%}%m %B%5~]%b%{$reset_color%}"
+   local set_title=""
+   local reset_term=$'\017'
+   if [[ "$DISPLAY" != "" ]] ; then
+      set_title=$'\033]0;%3~\033\\'
+   fi
+   export PROMPT="%{$reset_term$set_title$fg[${1:-cyan}]%}%n%B@%b%{$fg[${1:-cyan}]%}%m %B%5~]%b%{$reset_color%}"
 else
    export PROMPT="%n%B@%b%m %B%~]%b"
 fi
