@@ -12,15 +12,16 @@ ifeq ($(IS_CYGWIN),yes)
    RM_EXE=-rm -f *.exe
 endif
 
-dynamic_exec = SuperUserName IsExecutable usleep LinkOrExpandAll List CommandNotFound FindDependencies GetSupportedFilesystems
+dynamic_exec = SuperUserName IsExecutable usleep LinkOrExpandAll List CommandNotFound GetSupportedFilesystems
 static_exec = RescueSymlinkProgram
+other_exec = FindDependencies Runner
 
 # first rule
 default: all
 
-.PHONY: all defult
+.PHONY: all default
 
-all: $(dynamic_exec) $(static_exec)
+all: $(dynamic_exec) $(static_exec) $(other_exec)
 
 $(dynamic_exec): %: %.c
 	$(CC) $(MYCFLAGS) $< -o $@
@@ -34,6 +35,13 @@ $(static_exec): %: %.c
 		mv $@.exe $@; \
 	fi
 
+FindDependencies: %: %.c
+	$(CC) $(MYCFLAGS) $< -o $@ -DBUILD_MAIN
+
+Runner: Runner.c FindDependencies.c
+	$(CC) $(MYCFLAGS) $^ -o $@
+	chmod 4755 $@
+
 debug: MYCFLAGS = -g -DDEBUG -Wall
 debug: all
 
@@ -41,7 +49,7 @@ static: MYCFLAGS = $(STATIC)
 static: all
 
 clean:
-	rm -f $(dynamic_exec) $(static_exec) lib*.so lib*.so.* *.o
+	rm -f $(dynamic_exec) $(static_exec) $(other_exec) lib*.so lib*.so.* *.o
 	$(RM_EXE)
 
 .PHONY: all clean static debug install
