@@ -22,7 +22,7 @@
    #include <sys/syslimits.h>
 #endif
 
-#include "LinuxList.h"
+#include "FindDependencies.h"
 
 #ifdef DEBUG
 #define DBG(a...) fprintf(stderr,a)
@@ -31,60 +31,6 @@
 #endif
 
 static char * const currentString = "Current";
-static char * goboPrograms;
-
-typedef enum {
-	NONE,
-	GREATER_THAN,			// >
-	GREATER_THAN_OR_EQUAL,		// >=
-	EQUAL,				// =
-	NOT_EQUAL,			// !=
-	LESS_THAN,			// <
-	LESS_THAN_OR_EQUAL,		// <=
-} operator_t;
-
-typedef enum {
-	LOCAL_PROGRAMS,
-	LOCAL_DIRECTORY,
-	PACKAGE_STORE,
-	RECIPE_STORE,
-} repository_t;
-
-struct version {
-	struct list_head list;		// link to the list on which we're inserted
-	char *version;			// version as listed in Resources/Dependencies
-	operator_t op;			// one of the operators listed above
-};
-
-struct parse_data {
-	char *workbuf;			// buffer from the latest line read in Resources/Dependencies
-	char *saveptr;			// strtok_r pointer for safe reentrancy
-	char *depname;			// dependency name, as listed in Resources/Dependencies
-	struct list_head *versions;	// link to the list of versions we've extracted
-	struct list_head *ranges;	// link to the list of ranges we've built
-	char fversion[NAME_MAX];	// final version after restrictions were applied.
-	char url[NAME_MAX];		// url to dependency, when using the FindPackage backend
-};
-
-struct range {
-	struct list_head list;		// link to the list on which we're inserted
-	struct version low;		// low limit
-	struct version high;		// high limit
-};
-
-struct list_data {
-	struct list_head list;	// link to the list on which we're inserted
-	char path[PATH_MAX];	// full url or path to dependency
-};
-
-struct search_options {
-	repository_t repository;
-	int help;
-	int quiet;
-	char *dependency;
-	char *depsfile;
-	char *searchdir;
-};
 
 const char *GetOperatorString(operator_t op)
 {
@@ -339,7 +285,7 @@ char **GetVersionsFromAlien(struct parse_data *data)
   return versions;
 }
 
-bool GetCurrentVersion(struct parse_data *data)
+bool GetCurrentVersion(struct parse_data *data, struct search_options *options)
 {
 	ssize_t ret;
 	char buf[PATH_MAX], path[PATH_MAX];
@@ -360,7 +306,7 @@ bool GetCurrentVersion(struct parse_data *data)
       }
       return true;
     }
-	snprintf(path, sizeof(path)-1, "%s/%s/Current", goboPrograms, data->depname);
+	snprintf(path, sizeof(path)-1, "%s/%s/Current", options->goboPrograms, data->depname);
 	ret = readlink(path, buf, sizeof(buf));
 	if (ret < 0) {
 		fprintf(stderr, "WARNING: %s: %s, ignoring dependency.\n", path, strerror(errno));
@@ -372,7 +318,7 @@ bool GetCurrentVersion(struct parse_data *data)
 	return true;
 }
 
-char **GetVersionsFromReadDir(struct parse_data *data)
+char **GetVersionsFromReadDir(struct parse_data *data, struct search_options *options)
 {
 	DIR *dp;
 	int num = 0;
@@ -383,7 +329,7 @@ char **GetVersionsFromReadDir(struct parse_data *data)
     if (strchr(data->depname, ':'))
       return GetVersionsFromAlien(data);
 
-	snprintf(path, sizeof(path)-1, "%s/%s", goboPrograms, data->depname);
+	snprintf(path, sizeof(path)-1, "%s/%s", options->goboPrograms, data->depname);
 	dp = opendir(path);
 	if (! dp) {
 		fprintf(stderr, "WARNING: %s: %s, ignoring dependency.\n", path, strerror(errno));
@@ -480,7 +426,7 @@ bool GetBestVersion(struct parse_data *data, struct search_options *options)
 	char latest[NAME_MAX], cmdline[PATH_MAX];
 
 	if (options->repository == LOCAL_PROGRAMS) {
-		versions = GetVersionsFromReadDir(data);
+		versions = GetVersionsFromReadDir(data, options);
 	} else if (options->repository == LOCAL_DIRECTORY) {
 		snprintf(cmdline, sizeof(cmdline), "bash -c \"ls %s/%s--*--*.tar.bz2 2> /dev/null\"", options->searchdir, data->depname);
 		versions = GetVersionsFromStore(data, options, cmdline);
@@ -530,11 +476,11 @@ void ListAppend(struct list_head *head, struct parse_data *data, struct search_o
 		// in Dependencies/BuildDependencies. Just resolve the "Current" symlink, returning "any"
 		// available version as result.
 		if (!data->fversion || !strlen(data->fversion))
-			GetCurrentVersion(data);
+			GetCurrentVersion(data, options);
         if (strchr(data->depname, ':'))
           snprintf(ldata->path, sizeof(ldata->path), "#%s=%s", data->depname, data->fversion);
         else
-          snprintf(ldata->path, sizeof(ldata->path), "%s/%s/%s", goboPrograms, data->depname, data->fversion);
+          snprintf(ldata->path, sizeof(ldata->path), "%s/%s/%s", options->goboPrograms, data->depname, data->fversion);
 	} else {
 		snprintf(ldata->path, sizeof(ldata->path), "%s", data->url);
 	}
@@ -885,6 +831,16 @@ struct list_head *ParseDependencies(struct search_options *options)
 	return head;
 }
 
+void FreeDependencies(struct list_head **deps)
+{
+	if (deps && *deps) {
+		struct list_data *entry, *aux;
+		list_for_each_entry_safe(entry, aux, *deps, list)
+			free(entry);
+		free(*deps);
+	}
+}
+
 void usage(char *appname, int retval)
 {
 	fprintf(stderr, "Usage: %s [options] <Dependencies file>\n"
@@ -900,6 +856,7 @@ void usage(char *appname, int retval)
 	exit(retval);
 }
 
+#ifdef BUILD_MAIN
 int main(int argc, char **argv)
 {
 	int c, index;
@@ -954,8 +911,8 @@ int main(int argc, char **argv)
 		}
 	}
 
-	goboPrograms = getenv("goboPrograms");
-	if (! goboPrograms && options.repository == LOCAL_PROGRAMS) {
+	options.goboPrograms = getenv("goboPrograms");
+	if (! options.goboPrograms && options.repository == LOCAL_PROGRAMS) {
 		fprintf(stderr, "To use local programs as repository you need to 'source GoboPath' before running this program.\n");
 		return 1;
 	}
@@ -976,3 +933,4 @@ int main(int argc, char **argv)
 	}
 	return 0;
 }
+#endif /* BUILD_MAIN */
