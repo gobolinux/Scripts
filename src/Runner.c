@@ -340,6 +340,8 @@ mount_overlay (const char *executable)
 	struct list_data *entry;
 
 	programdir = get_program_dir(executable);
+	if (! programdir)
+		return 1;
 
 	/* check if the software's Resources/Dependencies file exists */
 	if (asprintf(&fname, "%s/Resources/Dependencies", programdir) <= 0) {
