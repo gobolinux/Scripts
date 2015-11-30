@@ -1,0 +1,99 @@
+#!/bin/sh
+# Shell script implementing the Aliens interface for PIP
+# Copyright 2015 Lucas C. Villa Real based on LuaRocks interface by Michael Homer. Released under the GNU GPL 2 or later.
+
+source GoboPath
+
+getversion() {
+   local prog=$(echo "$1" | sed 's,\(.*\),\L\1,g')
+   local proginfo=$(pip list | sed 's,\(.*\),\L\1,g' | grep "^${progr} ")
+   if [ -z "$proginfo" ]
+   then exit 1
+   else echo "$proginfo | cut -d\( -f2 | cut -d\) -f1"
+   fi
+}
+
+in_version_range() {
+   lower="$1"
+   ver="$2"
+   upper="$3"
+   [ "$ver" ] || return 1
+   [ "$ver" != "$lower" -a "$(GuessLatest "$ver" "$lower")" = "$lower" ] && return 1
+   [ "$upper" ] || return 0
+   [ "$(GuessLatest "$ver" "$upper")" = "$upper" ] || return 1
+   [ "$ver" = "$upper" -a "$ver" != "$lower" ] && return 1
+   return 0
+}
+
+getinstallversion() {
+   prog="$1"
+   versions=($(python - << EOF 
+import json, urllib2
+from distutils.version import StrictVersion
+def available_versions(prog):
+   try:
+     url = "https://pypi.python.org/pypi/%s/json" %prog
+     data = json.load(urllib2.urlopen(urllib2.Request(url)))
+     versions = data["releases"].keys()
+     versions.sort(key=StrictVersion)
+     return versions
+   except:
+     return ''
+print "\n".join(available_versions("$prog"))
+EOF
+   ))
+   for V in ${versions[@]}
+   do
+      if in_version_range "$2" "$V" "$3"
+      then
+         echo $V
+         return 0
+      fi
+   done
+}
+
+install() {
+   local prog="$1"
+   local ver="$2"
+   local target="$goboSystem/Aliens/PIP"
+   local srcdir="$goboData/Compile/Sources"
+   if [ ! -d "$target" ]
+   then
+      mkdir -p "$target" || { echo "Failed to create $target."; exit 1; }
+   fi
+   # TODO: we may need to include --upgrade (needs testing)
+   pip install --target=$target --src=$srcdir "$prog" $ver
+}
+
+command="$1"
+prog="$2"
+
+case "$command" in
+   --getversion)
+      echo $(getversion "$2")
+      ;;
+   --getinstallversion)
+      echo $(getinstallversion "$2" "$3" "$4")
+      ;;
+   --greater-than)
+      ver=$(getversion "$2")
+      latest=$(GuessLatest "$ver" "$3")
+      [ "$latest" = "$3" ] && exit 1 || exit 0
+      ;;
+   --met|--within-range|--interval)
+      prog="$2"
+      lower="$3"
+      upper="$4"
+      ver=$(getversion "$2")
+	  in_version_range "$lower" "$ver" "$upper"
+      ;;
+   --have-manager)
+      which pip >/dev/null 2>&1 || exit 1
+      ;;
+   --get-manager-rule)
+      echo "PIP >= 7.0.0"
+      ;;
+   --install)
+      install "$2" "$3"
+      ;;
+esac # is ridiculous

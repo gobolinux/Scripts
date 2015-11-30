@@ -80,9 +80,11 @@ if __name__ == '__main__':
         print "Valid options for AlienType are:"
         print "    CPAN"
         print "    LuaRocks"
+        print "    PIP"
         print "    RubyGems\n"
         print "Example:"
         print "    Alien --install CPAN:XML::Parser"
+        print "    Alien --install PIP:burn"
         exit(1)
     mode = sys.argv[1]
     prog = sys.argv[2]
