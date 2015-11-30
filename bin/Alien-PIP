@@ -1,6 +1,11 @@
 #!/bin/sh
-# Shell script implementing the Aliens interface for PIP
-# Copyright 2015 Lucas C. Villa Real based on LuaRocks interface by Michael Homer. Released under the GNU GPL 2 or later.
+
+# Shell script implementing the Aliens interface for PIP.
+# Packages are installed onto /System/Aliens/PIP. The Python module search path
+# must include that directory, either through PYTHONPATH or through a .pth file.
+#
+# Copyright 2015 Lucas C. Villa Real based on LuaRocks interface by Michael Homer.
+# Released under the GNU GPL 2 or later.
 
 source GoboPath
 
