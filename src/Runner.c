@@ -28,6 +28,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <getopt.h>
 #include <limits.h>
 #include <errno.h>
 #include <ctype.h>
@@ -50,7 +51,7 @@
 #endif
 
 /**
- * li_compare_versions:
+ * compare_kernel_versions:
  *
  * Compare alpha and numeric segments of two versions.
  * This algorithm is also used in RPM and licensed under a GPLv2+
@@ -61,10 +62,10 @@
  *		 -1: b is newer than a
  */
 int
-li_compare_versions (const char* a, const char *b)
+compare_kernel_versions(const char* a, const char *b)
 {
 	/* easy comparison to see if versions are identical */
-	if (strcmp (a, b) == 0)
+	if (strcmp(a, b) == 0)
 		return 0;
 
 	char oldch1, oldch2;
@@ -82,8 +83,8 @@ li_compare_versions (const char* a, const char *b)
 
 	/* loop through each version segment of str1 and str2 and compare them */
 	while (*one || *two) {
-		while (*one && !isalnum (*one) && *one != '~') one++;
-		while (*two && !isalnum (*two) && *two != '~') two++;
+		while (*one && !isalnum(*one) && *one != '~') one++;
+		while (*two && !isalnum(*two) && *two != '~') two++;
 
 		/* handle the tilde separator, it sorts before everything else */
 		if (*one == '~' || *two == '~') {
@@ -103,13 +104,13 @@ li_compare_versions (const char* a, const char *b)
 		/* grab first completely alpha or completely numeric segment */
 		/* leave one and two pointing to the start of the alpha or numeric */
 		/* segment and walk str1 and str2 to end of segment */
-		if (isdigit (*str1)) {
-			while (*str1 && isdigit (*str1)) str1++;
-			while (*str2 && isdigit (*str2)) str2++;
+		if (isdigit(*str1)) {
+			while (*str1 && isdigit(*str1)) str1++;
+			while (*str2 && isdigit(*str2)) str2++;
 			isnum = true;
 		} else {
-			while (*str1 && isalpha (*str1)) str1++;
-			while (*str2 && isalpha (*str2)) str2++;
+			while (*str1 && isalpha(*str1)) str1++;
+			while (*str2 && isalpha(*str2)) str2++;
 			isnum = false;
 		}
 
@@ -127,7 +128,7 @@ li_compare_versions (const char* a, const char *b)
 		/* take care of the case where the two version segments are */
 		/* different types: one numeric, the other alpha (i.e. empty) */
 		/* numeric segments are always newer than alpha segments */
-		if (two == str2) return (isnum ? 1 : -1);
+		if (two == str2) return isnum ? 1 : -1;
 
 		if (isnum) {
 			size_t onelen, twolen;
@@ -140,8 +141,8 @@ li_compare_versions (const char* a, const char *b)
 			while (*two == '0') two++;
 
 			/* whichever number has more digits wins */
-			onelen = strlen (one);
-			twolen = strlen (two);
+			onelen = strlen(one);
+			twolen = strlen(two);
 			if (onelen > twolen) return 1;
 			if (twolen > onelen) return -1;
 		}
@@ -150,8 +151,8 @@ li_compare_versions (const char* a, const char *b)
 		/* segments are alpha or if they are numeric.  don't return  */
 		/* if they are equal because there might be more segments to */
 		/* compare */
-		rc = strcmp (one, two);
-		if (rc) return (rc < 1 ? -1 : 1);
+		rc = strcmp(one, two);
+		if (rc) return rc < 1 ? -1 : 1;
 
 		/* restore character that was replaced by null above */
 		*str1 = oldch1;
@@ -276,40 +277,40 @@ get_program_dir(const char *executable)
  * create_mount_namespace:
  */
 static int
-create_mount_namespace (void)
+create_mount_namespace()
 {
 	int mount_count;
 	int res;
 
 	debug_printf("creating new namespace\n");
-	res = unshare (CLONE_NEWNS);
+	res = unshare(CLONE_NEWNS);
 	if (res != 0) {
-		fprintf (stderr, "Failed to create new namespace: %s\n", strerror(errno));
+		fprintf(stderr, "Failed to create new namespace: %s\n", strerror(errno));
 		return 1;
 	}
 
 	mount_count = 0;
-	res = mount (GOBO_INDEX_DIR, GOBO_INDEX_DIR,
+	res = mount(GOBO_INDEX_DIR, GOBO_INDEX_DIR,
 				 NULL, MS_PRIVATE, NULL);
-	debug_printf("mount (private) = %d\n", res);
+	debug_printf("mount(private) = %d\n", res);
 	if (res != 0 && errno == EINVAL) {
 		/* Maybe if failed because there is no mount
 		 * to be made private at that point, lets
 		 * add a bind mount there. */
-		res = mount (GOBO_INDEX_DIR, GOBO_INDEX_DIR,
+		res = mount(GOBO_INDEX_DIR, GOBO_INDEX_DIR,
 					 NULL, MS_BIND, NULL);
-		debug_printf("mount (bind) = %d\n", res);
+		debug_printf("mount(bind) = %d\n", res);
 		/* And try again */
 		if (res == 0) {
 			mount_count++; /* Bind mount succeeded */
-			res = mount (GOBO_INDEX_DIR, GOBO_INDEX_DIR,
+			res = mount(GOBO_INDEX_DIR, GOBO_INDEX_DIR,
 						 NULL, MS_PRIVATE, NULL);
-			debug_printf("mount (private) = %d\n", res);
+			debug_printf("mount(private) = %d\n", res);
 		}
 	}
 
 	if (res != 0) {
-		fprintf (stderr, "Failed to make prefix namespace private\n");
+		fprintf(stderr, "Failed to make prefix namespace private\n");
 		goto error_out;
 	}
 
@@ -317,17 +318,16 @@ create_mount_namespace (void)
 
 error_out:
 	while (mount_count-- > 0)
-		umount (GOBO_INDEX_DIR);
+		umount(GOBO_INDEX_DIR);
 	return 1;
 }
 
 /**
  * mount_overlay:
- * @pkgname
- * @pkgver
+ * @executable
  */
 static int
-mount_overlay (const char *executable)
+mount_overlay(const char *executable, const char *dependencies)
 {
 	int res = 0;
 	char *fname = NULL;
@@ -339,21 +339,28 @@ mount_overlay (const char *executable)
 	struct list_head *deps;
 	struct list_data *entry;
 
-	programdir = get_program_dir(executable);
-	if (! programdir)
-		return 1;
-
-	/* check if the software's Resources/Dependencies file exists */
-	if (asprintf(&fname, "%s/Resources/Dependencies", programdir) <= 0) {
-		fprintf(stderr, "Not enough memory\n");
+	if (dependencies) {
+		fname = strdup(dependencies);
+		if (!fname) {
+			fprintf(stderr, "Not enough memory\n");
+			return 1;
+		}
+	} else {
+		/* check if the software's Resources/Dependencies file exists */
+		programdir = get_program_dir(executable);
+		if (! programdir)
+			return 1;
+		if (asprintf(&fname, "%s/Resources/Dependencies", programdir) <= 0) {
+			fprintf(stderr, "Not enough memory\n");
+			free(programdir);
+			return 1;
+		}
 		free(programdir);
-		return 1;
 	}
-	free(programdir);
 
 	res = stat(fname, &statbuf);
 	if (res < 0) {
-		fprintf(stderr, "Unable to find software metadata at %s\n", fname);
+		fprintf(stderr, "Unable to find file at %s\n", fname);
 		free(fname);
 		return 1;
 	}
@@ -389,7 +396,7 @@ mount_overlay (const char *executable)
 	}
 
 	/* safeguard againt the case where only one path is set for lowerdir.
-	 * OFS doesn't like that, so we always set the root path as source too. */
+	 * Overlayfs doesn't like that, so we always set the root path as source too. */
 	strcat(mergedirs, GOBO_INDEX_DIR);
 
 	if (asprintf(&lower, "lowerdir=%s", mergedirs) < 0) {
@@ -399,11 +406,11 @@ mount_overlay (const char *executable)
 		free(fname);
 		return 1;
 	}
-	res = mount ("overlay", GOBO_INDEX_DIR,
+	res = mount("overlay", GOBO_INDEX_DIR,
 			"overlay", MS_MGC_VAL | MS_RDONLY | MS_NOSUID, lower);
-	debug_printf("mount (overlay): %d\n", res);
+	debug_printf("mount(overlay): %d\n", res);
 	if (res != 0)
-		fprintf (stderr, "Failed to mount overlayfs\n");
+		fprintf(stderr, "Failed to mount overlayfs\n");
 
 	FreeDependencies(&deps);
 	free(mergedirs);
@@ -416,23 +423,78 @@ mount_overlay (const char *executable)
  * update_env_var_list:
  */
 static void
-update_env_var_list (const char *var, const char *item)
+update_env_var_list(const char *var, const char *item)
 {
 	const char *env;
 	char *value;
 	int ret;
 
-	env = getenv (var);
+	env = getenv(var);
 	if (env == NULL || *env == 0) {
-		setenv (var, item, 1);
+		setenv(var, item, 1);
 	} else {
 		ret = asprintf(&value, "%s:%s", item, env);
 		if (ret <= 0) {
-			fprintf (stderr, "Out of memory!\n");
+			fprintf(stderr, "Out of memory!\n");
 		} else {
-			setenv (var, value, 1);
-			free (value);
+			setenv(var, value, 1);
+			free(value);
 		}
+	}
+}
+
+/**
+ * parse_arguments:
+ */
+char **
+parse_arguments(int argc, char *argv[], char **executable, char **dependencies)
+{
+	char **child_argv;
+
+	/* Don't stop on errors */
+	opterr = 0;
+
+	while (1) {
+		int option_index = 0;
+		static struct option long_options[] = {
+			{"dependencies",  required_argument, 0,  'd'},
+			{"help",          no_argument,       0,  'h'},
+			{0,               0,                 0,   0 }
+		};
+
+		int c = getopt_long(argc, argv, "d:h", long_options, &option_index);
+		if (c == -1)
+			break;
+		switch (c) {
+			case 'd':
+				*dependencies = optarg;
+				break;
+			case 'h':
+				printf("Syntax: %s [options] <command>\n", argv[0]);
+				printf("Available options are:\n"
+					   "  -d, --dependencies=FILE       Path to GoboLinux Dependencies file to use\n"
+					   "  -h, --help                    This help\n\n");
+				exit(0);
+			case '?':
+			default:
+				break;
+		}
+	}
+
+	if (optind < argc) {
+		int i, num = argc - optind + 1;
+		child_argv = calloc(num, sizeof(char *));
+		if (child_argv == NULL) {
+			fprintf(stderr, "Out of memory!\n");
+			return NULL;
+		}
+		for (i = optind; i < argc; i++)
+			child_argv[i-optind] = argv[i];
+		*executable = argv[optind];
+		return child_argv;
+	} else {
+		fprintf(stderr, "No executable was specified.\n");
+		return NULL;
 	}
 }
 
@@ -440,13 +502,13 @@ update_env_var_list (const char *var, const char *item)
  * main:
  */
 int
-main (int argc, char *argv[])
+main(int argc, char *argv[])
 {
-	uint i;
 	int ret;
 	struct utsname uts_data;
 	char *executable = NULL;
 	char **child_argv = NULL;
+	char *dependencies = NULL;
 	uid_t uid = getuid(), euid = geteuid();
 
 	if ((uid > 0) && (uid == euid)) {
@@ -454,49 +516,34 @@ main (int argc, char *argv[])
 		return 3;
 	}
 
-	if (argc <= 1) {
-		fprintf (stderr, "No executable was specified.\n");
+	child_argv = parse_arguments(argc, argv, &executable, &dependencies);
+	if (! child_argv)
 		return 1;
-	}
 
-	executable = argv[1];
+	uname(&uts_data);
+	/* we need at least Linux 4.0 */
+	if (compare_kernel_versions("4.0", uts_data.release) > 0)
+		fprintf(stderr, "Running on Linux %s. At least Linux 4.0 is needed.\n", uts_data.release);
 
-	uname (&uts_data);
-	/* we need at least Linux 4.0 for Limba to work properly */
-	if (li_compare_versions ("4.0", uts_data.release) > 0)
-		fprintf (stderr, "Running on Linux %s. At least Linux 4.0 is needed.\n", uts_data.release);
-
-	ret = create_mount_namespace ();
+	ret = create_mount_namespace();
 	if (ret > 0)
 		return ret;
 
-	ret = mount_overlay (executable);
+	ret = mount_overlay(executable, dependencies);
 	if (ret > 0)
 		return ret;
 
 	/* Now we have everything we need CAP_SYS_ADMIN for, so drop setuid */
-	setuid (getuid ());
+	setuid(getuid());
 
 	/* add generic library path */
-	update_env_var_list ("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib");
-	update_env_var_list ("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib64");
+	update_env_var_list("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib");
+	update_env_var_list("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib64");
 
 	/* add generic binary directory to PATH */
-	update_env_var_list ("PATH", GOBO_INDEX_DIR "/bin");
+	update_env_var_list("PATH", GOBO_INDEX_DIR "/bin");
 
-	child_argv = malloc ((argc) * sizeof (char *));
-	if (child_argv == NULL) {
-		fprintf (stderr, "Out of memory!\n");
-		return 1;
-	}
-
-	/* give absolute executable path as argv[0] */
-	child_argv[0] = executable;
-	for (i = 1; i < argc - 1; i++)
-		child_argv[i] = argv[i+1];
-	child_argv[i++] = NULL;
-
-	ret = execvp (executable, child_argv);
+	ret = execvp(executable, child_argv);
 	fprintf(stderr, "execv failed: %s\n", strerror(errno));
 	return ret;
 }
