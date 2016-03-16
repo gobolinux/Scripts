@@ -324,7 +324,7 @@ bool GetCurrentVersion(struct parse_data *data, struct search_options *options)
 	return true;
 }
 
-bool SupportedArchitecture(const char *path, const char *version)
+bool SupportedArchitecture(const char *depname, const char *version, struct search_options *options)
 {
 	static struct utsname *uts = NULL;
 	char arch[PATH_MAX], line[256];
@@ -343,7 +343,7 @@ bool SupportedArchitecture(const char *path, const char *version)
 		}
 	}
 
-	snprintf(arch, sizeof(arch)-1, "%s/%s/Resources/Architecture", path, version);
+	snprintf(arch, sizeof(arch)-1, "%s/%s/%s/Resources/Architecture", options->goboPrograms, depname, version);
 	fd = open(arch, O_RDONLY);
 	if (fd < 0)
 		return true;
@@ -357,8 +357,8 @@ bool SupportedArchitecture(const char *path, const char *version)
 	close(fd);
 
 	if (strcmp(line, uts->machine)) {
-		fprintf(stderr, "WARNING: architecture %s differs from %s, ignoring version %s\n",
-				line, uts->machine, version);
+		fprintf(stderr, "WARNING: architecture %s differs from %s, ignoring %s version %s\n",
+				line, uts->machine, depname, version);
 		return false;
 	}
 	return true;
@@ -396,7 +396,7 @@ char **GetVersionsFromReadDir(struct parse_data *data, struct search_options *op
 	num = 0;
 	rewinddir(dp);
 	while ((entry = readdir(dp))) {
-		if (entry->d_name[0] != '.' && SupportedArchitecture(path, entry->d_name))
+		if (entry->d_name[0] != '.' && SupportedArchitecture(data->depname, entry->d_name, options))
 			versions[num++] = strdup(entry->d_name);
 	}
 	closedir(dp);
