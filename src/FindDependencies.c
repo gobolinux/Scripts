@@ -13,8 +13,10 @@
 #include <limits.h>
 #include <libgen.h>
 #include <errno.h>
+#include <sys/utsname.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <fcntl.h>
 #include <ctype.h>
 #define _GNU_SOURCE
 #include <getopt.h>
@@ -110,6 +112,10 @@ int VersionCmp(char *_candidate, char *_specified)
 			ptr--;
 		} while (*ptr == ' ');
 	}
+
+	// search for x86_64 packages borrowed from other distros
+	if (strstr(candidate, "x86_64") && strstr(specified, "x86_64"))
+		return strcmp(candidate, specified);
 
 	// for text-based versions just propagate retval from strcmp().
 	if (isalpha(candidate[0]) && isalpha(specified[0]))
@@ -318,6 +324,46 @@ bool GetCurrentVersion(struct parse_data *data, struct search_options *options)
 	return true;
 }
 
+bool SupportedArchitecture(const char *path, const char *version)
+{
+	static struct utsname *uts = NULL;
+	char arch[PATH_MAX], line[256];
+	ssize_t n;
+	int fd;
+
+	if (! uts) {
+		uts = (struct utsname *) malloc(sizeof(struct utsname));
+		if (! uts) {
+			perror("malloc");
+			return true;
+		}
+		if (uname(uts) < 0) {
+			free(uts);
+			return true;
+		}
+	}
+
+	snprintf(arch, sizeof(arch)-1, "%s/%s/Resources/Architecture", path, version);
+	fd = open(arch, O_RDONLY);
+	if (fd < 0)
+		return true;
+
+	memset(line, 0, sizeof(line));
+	n = read(fd, line, sizeof(line)-1);
+	if (n < 0)
+		return true;
+	if (line[n-1] == '\n')
+		line[n-1] = '\0';
+	close(fd);
+
+	if (strcmp(line, uts->machine)) {
+		fprintf(stderr, "WARNING: architecture %s differs from %s, ignoring version %s\n",
+				line, uts->machine, version);
+		return false;
+	}
+	return true;
+}
+
 char **GetVersionsFromReadDir(struct parse_data *data, struct search_options *options)
 {
 	DIR *dp;
@@ -350,7 +396,7 @@ char **GetVersionsFromReadDir(struct parse_data *data, struct search_options *op
 	num = 0;
 	rewinddir(dp);
 	while ((entry = readdir(dp))) {
-		if (entry->d_name[0] != '.')
+		if (entry->d_name[0] != '.' && SupportedArchitecture(path, entry->d_name))
 			versions[num++] = strdup(entry->d_name);
 	}
 	closedir(dp);
