@@ -536,6 +536,8 @@ main(int argc, char *argv[])
 	/* Now we have everything we need CAP_SYS_ADMIN for, so drop setuid */
 	setuid(getuid());
 
+	setenv("GOBOLINUX_RUNNER", "1", 1);
+
 	/* add generic library path */
 	update_env_var_list("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib");
 	update_env_var_list("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib64");
