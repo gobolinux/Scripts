@@ -504,7 +504,7 @@ parse_arguments(int argc, char *argv[], char **executable, char **dependencies)
 int
 main(int argc, char *argv[])
 {
-	int ret;
+	int ret = 1;
 	struct utsname uts_data;
 	char *executable = NULL;
 	char **child_argv = NULL;
@@ -513,12 +513,12 @@ main(int argc, char *argv[])
 
 	if ((uid > 0) && (uid == euid)) {
 		fprintf (stderr, "This program needs the suid bit to be set to function correctly.\n");
-		return 3;
+		goto fallback;
 	}
 
 	child_argv = parse_arguments(argc, argv, &executable, &dependencies);
 	if (! child_argv)
-		return 1;
+		goto fallback;
 
 	uname(&uts_data);
 	/* we need at least Linux 4.0 */
@@ -527,12 +527,13 @@ main(int argc, char *argv[])
 
 	ret = create_mount_namespace();
 	if (ret > 0)
-		return ret;
+		goto fallback;
 
 	ret = mount_overlay(executable, dependencies);
 	if (ret > 0)
-		return ret;
+		goto fallback;
 
+fallback:
 	/* Now we have everything we need CAP_SYS_ADMIN for, so drop setuid */
 	setuid(getuid());
 
