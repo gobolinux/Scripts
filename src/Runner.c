@@ -450,11 +450,13 @@ char **
 parse_arguments(int argc, char *argv[], char **executable, char **dependencies)
 {
 	char **child_argv;
+	bool valid = true;
+	int next = optind;
 
 	/* Don't stop on errors */
 	opterr = 0;
 
-	while (1) {
+	while (valid) {
 		int option_index = 0;
 		static struct option long_options[] = {
 			{"dependencies",  required_argument, 0,  'd'},
@@ -477,10 +479,14 @@ parse_arguments(int argc, char *argv[], char **executable, char **dependencies)
 				exit(0);
 			case '?':
 			default:
+				valid = false;
 				break;
 		}
+		if (valid)
+			next = optind;
 	}
 
+	optind = next;
 	if (optind < argc) {
 		int i, num = argc - optind + 1;
 		child_argv = calloc(num, sizeof(char *));
