@@ -329,41 +329,41 @@ error_out:
 static int
 mount_overlay(const char *executable, const char *dependencies)
 {
-	int res = 0;
+	int res = -1;
 	char *fname = NULL;
 	char *programdir = NULL;
-	char *mergedirs, *lower;
+	char *mergedirs = NULL, *lower = NULL;
 	int   mergedirs_len = 0;
 	struct search_options options;
 	struct stat statbuf;
-	struct list_head *deps;
+	struct list_head *deps = NULL;
 	struct list_data *entry;
 
+	programdir = get_program_dir(executable);
+
+	/* TODO: parse both the provided dependency and the programdir's */
 	if (dependencies) {
+		/* take user-provided dependencies file */
 		fname = strdup(dependencies);
-		if (!fname) {
+		if (! fname) {
 			fprintf(stderr, "Not enough memory\n");
-			return 1;
+			goto out_free;
 		}
-	} else {
+	} else if (programdir) {
 		/* check if the software's Resources/Dependencies file exists */
-		programdir = get_program_dir(executable);
-		if (! programdir)
-			return 1;
 		if (asprintf(&fname, "%s/Resources/Dependencies", programdir) <= 0) {
 			fprintf(stderr, "Not enough memory\n");
-			free(programdir);
-			return 1;
+			goto out_free;
 		}
-		free(programdir);
 	}
 
 	res = stat(fname, &statbuf);
 	if (res < 0) {
 		fprintf(stderr, "Unable to find file at %s\n", fname);
-		free(fname);
-		return 1;
+		goto out_free;
 	}
+	/* reset error flag */
+	res = -1;
 	
 	memset(&options, 0, sizeof(options));
 	options.repository = LOCAL_PROGRAMS;
@@ -371,13 +371,13 @@ mount_overlay(const char *executable, const char *dependencies)
 	options.goboPrograms = GOBO_PROGRAMS_DIR;
 
 	deps = ParseDependencies(&options);
-	if (!deps || list_empty(deps)) {
+	if ((!deps || list_empty(deps)) && !programdir) {
 		fprintf(stderr, "Could not parse dependencies list from %s\n", fname);
-		free(fname);
-		return 1;
+		goto out_free;
 	}
 	
 	/* Allocate and prepare the mergedirs string */
+	mergedirs_len += programdir ? strlen(programdir) + 1 : 0;
 	list_for_each_entry(entry, deps, list)
 		mergedirs_len += strlen(entry->path) + 1;
 	mergedirs_len += strlen(GOBO_INDEX_DIR) + 1;
@@ -386,9 +386,11 @@ mount_overlay(const char *executable, const char *dependencies)
 	mergedirs = calloc(mergedirs_len, sizeof(char));
 	if (! mergedirs) {
 		fprintf(stderr, "Not enough memory\n");
-		FreeDependencies(&deps);
-		free(fname);
-		return 1;
+		goto out_free;
+	}
+	if (programdir) {
+		strcat(mergedirs, programdir);
+		strcat(mergedirs, ":");
 	}
 	list_for_each_entry(entry, deps, list) {
 		strcat(mergedirs, entry->path);
@@ -401,10 +403,7 @@ mount_overlay(const char *executable, const char *dependencies)
 
 	if (asprintf(&lower, "lowerdir=%s", mergedirs) < 0) {
 		fprintf(stderr, "Not enough memory\n");
-		FreeDependencies(&deps);
-		free(mergedirs);
-		free(fname);
-		return 1;
+		goto out_free;
 	}
 	res = mount("overlay", GOBO_INDEX_DIR,
 			"overlay", MS_MGC_VAL | MS_RDONLY | MS_NOSUID, lower);
@@ -412,10 +411,17 @@ mount_overlay(const char *executable, const char *dependencies)
 	if (res != 0)
 		fprintf(stderr, "Failed to mount overlayfs\n");
 
-	FreeDependencies(&deps);
-	free(mergedirs);
-	free(fname);
-	free(lower);
+out_free:
+	if (deps)
+		FreeDependencies(&deps);
+	if (programdir)
+		free(programdir);
+	if (mergedirs)
+		free(mergedirs);
+	if (fname)
+		free(fname);
+	if (lower)
+		free(lower);
 	return res;
 }
 
@@ -536,7 +542,7 @@ main(int argc, char *argv[])
 		goto fallback;
 
 	ret = mount_overlay(executable, dependencies);
-	if (ret > 0)
+	if (ret != 0)
 		goto fallback;
 
 fallback:
