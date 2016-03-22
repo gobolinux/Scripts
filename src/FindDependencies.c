@@ -533,7 +533,7 @@ void ListAppend(struct list_head *head, struct parse_data *data, struct search_o
 	list_add_tail(&ldata->list, head);
 }
 
-bool AlreadyInList(struct list_head *head, struct parse_data *data, char *depfile)
+bool AlreadyInList(struct list_head *head, struct parse_data *data, const char *depfile)
 {
 	struct list_data *ldata;
 	char bufname[NAME_MAX+3];

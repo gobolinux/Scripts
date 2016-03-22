@@ -51,9 +51,9 @@ struct search_options {
 	repository_t repository;
 	int help;
 	int quiet;
-	char *dependency;
-	char *depsfile;
-	char *searchdir;
+	const char *dependency;
+	const char *depsfile;
+	const char *searchdir;
 	const char *goboPrograms;
 };
 
