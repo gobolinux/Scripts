@@ -330,6 +330,7 @@ prepare_merge_string(const char *dependencies)
 	struct list_head *deps;
 	char *mergedirs = NULL;
 	int mergedirs_len = 0;
+	struct stat statbuf;
 
 	memset(&options, 0, sizeof(options));
 	options.repository = LOCAL_PROGRAMS;
@@ -353,8 +354,10 @@ prepare_merge_string(const char *dependencies)
 		goto out_free;
 	}
 	list_for_each_entry(entry, deps, list) {
-		strcat(mergedirs, entry->path);
-		strcat(mergedirs, ":");
+		if (stat(entry->path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
+			strcat(mergedirs, entry->path);
+			strcat(mergedirs, ":");
+		}
 	}
 out_free:
 	if (deps)
@@ -425,12 +428,12 @@ mount_overlay(const char *executable, const char *dependencies)
 		goto out_free;
 	}
 
-	printf("%s\n", lower);
 	res = mount("overlay", GOBO_INDEX_DIR, "overlay",
 			MS_MGC_VAL | MS_RDONLY | MS_NOSUID, lower);
-	if (res != 0)
+	if (res != 0) {
 		fprintf(stderr, "Failed to mount overlayfs\n");
-
+		fprintf(stderr, "%s\n", lower);
+	}
 out_free:
 	if (programdir) { free(programdir); }
 	if (mergedirs_program) { free(mergedirs_program); }
