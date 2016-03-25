@@ -600,7 +600,7 @@ void PrintRestrictions(struct parse_data *data)
 	struct range *rentry;
 
 	if (list_empty(data->ranges)) {
-		printf("Conflicting dependency caused invalid restrictions\n");
+		fprintf(stderr, "Conflicting dependency caused invalid restrictions\n");
 	} else {
 		list_for_each_entry(rentry, data->ranges, list) {
 			switch (rentry->low.op) {
