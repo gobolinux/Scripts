@@ -467,6 +467,19 @@ update_env_var_list(const char *var, const char *item)
 	}
 }
 
+void
+show_usage_and_exit(char *exec, int err)
+{
+	printf("Executes a command with a read-only view of /System/Index overlaid with\n"
+			"dependencies extracted from the program's Resources/Dependencies and/or\n"
+			"from the given dependencies file.\n\n");
+	printf("Syntax: %s [options] <command>\n\n", exec);
+	printf("Available options are:\n"
+			"  -d, --dependencies=FILE       Path to GoboLinux Dependencies file to use\n"
+			"  -h, --help                    This help\n\n");
+	exit(err);
+}
+
 /**
  * parse_arguments:
  */
@@ -496,11 +509,8 @@ parse_arguments(int argc, char *argv[], char **executable, char **dependencies)
 				*dependencies = optarg;
 				break;
 			case 'h':
-				printf("Syntax: %s [options] <command>\n", argv[0]);
-				printf("Available options are:\n"
-					   "  -d, --dependencies=FILE       Path to GoboLinux Dependencies file to use\n"
-					   "  -h, --help                    This help\n\n");
-				exit(0);
+				show_usage_and_exit(argv[0], 0);
+				break;
 			case '?':
 			default:
 				valid = false;
@@ -523,9 +533,11 @@ parse_arguments(int argc, char *argv[], char **executable, char **dependencies)
 		*executable = argv[optind];
 		return child_argv;
 	} else {
-		fprintf(stderr, "No executable was specified.\n");
-		return NULL;
+		fprintf(stderr, "Error: no executable was specified.\n\n");
+		show_usage_and_exit(argv[0], 1);
 	}
+	/* Should be never reached */
+	return NULL;
 }
 
 /**
@@ -548,7 +560,7 @@ main(int argc, char *argv[])
 
 	child_argv = parse_arguments(argc, argv, &executable, &dependencies);
 	if (! child_argv)
-		goto fallback;
+		return 1;
 
 	uname(&uts_data);
 	/* we need at least Linux 4.0 */
