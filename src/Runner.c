@@ -37,6 +37,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mount.h>
+#include <sys/wait.h>
+#include <ftw.h>
 
 #include "LinuxList.h"
 #include "FindDependencies.h"
@@ -290,21 +292,18 @@ create_mount_namespace()
 	}
 
 	mount_count = 0;
-	res = mount(GOBO_INDEX_DIR, GOBO_INDEX_DIR,
-				 NULL, MS_PRIVATE, NULL);
+	res = mount("/", "/", NULL, MS_PRIVATE, NULL);
 	debug_printf("mount(private) = %d\n", res);
 	if (res != 0 && errno == EINVAL) {
 		/* Maybe if failed because there is no mount
 		 * to be made private at that point, lets
 		 * add a bind mount there. */
-		res = mount(GOBO_INDEX_DIR, GOBO_INDEX_DIR,
-					 NULL, MS_BIND, NULL);
+		res = mount("/", "/", NULL, MS_BIND, NULL);
 		debug_printf("mount(bind) = %d\n", res);
 		/* And try again */
 		if (res == 0) {
 			mount_count++; /* Bind mount succeeded */
-			res = mount(GOBO_INDEX_DIR, GOBO_INDEX_DIR,
-						 NULL, MS_PRIVATE, NULL);
+			res = mount("/", "/", NULL, MS_PRIVATE, NULL);
 			debug_printf("mount(private) = %d\n", res);
 		}
 	}
@@ -318,7 +317,7 @@ create_mount_namespace()
 
 error_out:
 	while (mount_count-- > 0)
-		umount(GOBO_INDEX_DIR);
+		umount("/");
 	return 1;
 }
 
@@ -330,6 +329,7 @@ prepare_merge_string(const char *dependencies)
 	struct list_head *deps;
 	char *mergedirs = NULL;
 	int mergedirs_len = 0;
+	int count = 0;
 	struct stat statbuf;
 
 	memset(&options, 0, sizeof(options));
@@ -344,8 +344,10 @@ prepare_merge_string(const char *dependencies)
 	}
 
 	/* Allocate and prepare the mergedirs string */
-	list_for_each_entry(entry, deps, list)
+	list_for_each_entry(entry, deps, list) {
 		mergedirs_len += strlen(entry->path) + 1;
+		count++;
+	}
 	mergedirs_len++;
 	
 	mergedirs = calloc(mergedirs_len, sizeof(char));
@@ -354,9 +356,11 @@ prepare_merge_string(const char *dependencies)
 		goto out_free;
 	}
 	list_for_each_entry(entry, deps, list) {
+		count--;
 		if (stat(entry->path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
 			strcat(mergedirs, entry->path);
-			strcat(mergedirs, ":");
+			if (count)
+				strcat(mergedirs, ":");
 		}
 	}
 out_free:
@@ -365,12 +369,33 @@ out_free:
 	return mergedirs;
 }
 
+static int
+create_tmpdir(const char *workdir, char **tmpdir)
+{
+	int err;
+	char *p = *tmpdir;
+
+	err = asprintf(&p, "%s/.RunnerXXXXXX", workdir ? workdir : "/tmp");
+	if (err < 0) {
+		perror("strdup");
+		return err;
+	}
+	if (!mkdtemp(p)) {
+		err = errno;
+		perror(p);
+		free(p);
+		return -err;
+	}
+	*tmpdir = p;
+	return 0;
+}
+
 /**
  * mount_overlay:
  * @executable
  */
 static int
-mount_overlay(const char *executable, const char *dependencies)
+mount_overlay(const char *executable, const char *dependencies, const char *workdir, char **tmpdir)
 {
 	int res = -1;
 	char *fname = NULL;
@@ -378,8 +403,10 @@ mount_overlay(const char *executable, const char *dependencies)
 	int merge_len = 0;
 	char *mergedirs_user = NULL;
 	char *mergedirs_program = NULL;
-	char *lower = NULL;
+	char *dirs = NULL;
 	struct stat statbuf;
+
+	*tmpdir = NULL;
 
 	if (dependencies) {
 		/* take user-provided dependencies file */
@@ -417,29 +444,34 @@ mount_overlay(const char *executable, const char *dependencies)
 		fname = NULL;
 	}
 
-	/* safeguard againt the case where only one path is set for lowerdir.
-	 * Overlayfs doesn't like that, so we always set the root path as source too. */
-	res = asprintf(&lower, "lowerdir=%s%s%s",
+	res = create_tmpdir(workdir, tmpdir);
+	if (res < 0) {
+		fprintf(stderr, "Failed to create work directory\n");
+		goto out_free;
+	}
+
+	res = asprintf(&dirs, "lowerdir=%s%s%s,upperdir=%s,workdir=%s",
 			mergedirs_user ? mergedirs_user : "",
+			mergedirs_user && mergedirs_program ? ":" : "",
 			mergedirs_program ? mergedirs_program : "",
-			GOBO_INDEX_DIR);
+			GOBO_INDEX_DIR, *tmpdir);
 	if (res < 0) {
 		fprintf(stderr, "Not enough memory\n");
 		goto out_free;
 	}
 
-	res = mount("overlay", GOBO_INDEX_DIR, "overlay",
-			MS_MGC_VAL | MS_RDONLY | MS_NOSUID, lower);
+	res = mount("overlay", GOBO_INDEX_DIR, "overlay", MS_NOSUID, dirs);
 	if (res != 0) {
-		fprintf(stderr, "Failed to mount overlayfs\n");
-		fprintf(stderr, "%s\n", lower);
+		fprintf(stderr, "Failed to mount overlayfs: %s\n", strerror(errno));
+		fprintf(stderr, "%s\n", dirs);
 	}
 out_free:
+	if (*tmpdir && res < 0) { rmdir(*tmpdir); free(*tmpdir); *tmpdir = NULL; }
 	if (programdir) { free(programdir); }
 	if (mergedirs_program) { free(mergedirs_program); }
 	if (mergedirs_user) { free(mergedirs_user); }
 	if (fname) { free(fname); }
-	if (lower) { free(lower); }
+	if (dirs) { free(dirs); }
 	return res;
 }
 
@@ -471,7 +503,7 @@ update_env_var_list(const char *var, const char *item)
  * parse_arguments:
  */
 char **
-parse_arguments(int argc, char *argv[], char **executable, char **dependencies)
+parse_arguments(int argc, char *argv[], char **executable, char **dependencies, char **workdir)
 {
 	char **child_argv;
 	bool valid = true;
@@ -485,21 +517,26 @@ parse_arguments(int argc, char *argv[], char **executable, char **dependencies)
 		static struct option long_options[] = {
 			{"dependencies",  required_argument, 0,  'd'},
 			{"help",          no_argument,       0,  'h'},
+			{"workdir",       required_argument, 0,  'w'},
 			{0,               0,                 0,   0 }
 		};
 
-		int c = getopt_long(argc, argv, "+d:h", long_options, &option_index);
+		int c = getopt_long(argc, argv, "+d:hw:", long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
 			case 'd':
 				*dependencies = optarg;
 				break;
+			case 'w':
+				*workdir = optarg;
+				break;
 			case 'h':
 				printf("Syntax: %s [options] <command>\n", argv[0]);
 				printf("Available options are:\n"
 					   "  -d, --dependencies=FILE       Path to GoboLinux Dependencies file to use\n"
-					   "  -h, --help                    This help\n\n");
+					   "  -h, --help                    This help\n"
+					   "  -w, --workdir=DIR             Temporary work directory for overlayfs (default: /tmp)\n\n");
 				exit(0);
 			case '?':
 			default:
@@ -528,6 +565,15 @@ parse_arguments(int argc, char *argv[], char **executable, char **dependencies)
 	}
 }
 
+int cleanup_workdir(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf)
+{
+	if (S_ISDIR(sb->st_mode))
+		rmdir(fpath);
+	else
+		unlink(fpath);
+	return 0;
+}
+
 /**
  * main:
  */
@@ -536,6 +582,8 @@ main(int argc, char *argv[])
 {
 	int ret = 1;
 	struct utsname uts_data;
+	char *tmpdir = NULL;
+	char *workdir = NULL;
 	char *executable = NULL;
 	char **child_argv = NULL;
 	char *dependencies = NULL;
@@ -546,7 +594,7 @@ main(int argc, char *argv[])
 		goto fallback;
 	}
 
-	child_argv = parse_arguments(argc, argv, &executable, &dependencies);
+	child_argv = parse_arguments(argc, argv, &executable, &dependencies, &workdir);
 	if (! child_argv)
 		goto fallback;
 
@@ -559,7 +607,7 @@ main(int argc, char *argv[])
 	if (ret > 0)
 		goto fallback;
 
-	ret = mount_overlay(executable, dependencies);
+	ret = mount_overlay(executable, dependencies, workdir, &tmpdir);
 	if (ret != 0)
 		goto fallback;
 
@@ -576,7 +624,41 @@ fallback:
 	/* add generic binary directory to PATH */
 	update_env_var_list("PATH", GOBO_INDEX_DIR "/bin");
 
-	ret = execvp(executable, child_argv);
-	fprintf(stderr, "execv failed: %s\n", strerror(errno));
-	return ret;
+	if (ret == 0) {
+		/* Overlay is mounted */
+		pid_t pid = fork();
+		if (pid < 0) {
+			/* Could not fork. We can fail or we can exec() and live with
+			 * a potential leak of whatever contents are left on workdir.
+			 * Let's pick the latter.
+			 */
+			execvp(executable, child_argv);
+			fprintf(stderr, "execvp failed: %s\n", strerror(errno));
+			return 1;
+		} else if (pid == 0) {
+			/* Child runs the executable */
+			execvp(executable, child_argv);
+			fprintf(stderr, "execvp failed: %s\n", strerror(errno));
+			return 1;
+		} else {
+			ret = waitpid(pid, NULL, 0);
+			if (ret < 0) {
+				perror("waitpid");
+				return 1;
+			}
+			if (tmpdir) {
+				nftw(tmpdir, cleanup_workdir, 1024, FTW_CHDIR | FTW_DEPTH | FTW_PHYS);
+				rmdir(tmpdir);
+				free(tmpdir);
+			}
+			return 0;
+		}
+	} else {
+		/* Overlay is not mounted; simply spawn provided executable */
+		execvp(executable, child_argv);
+		fprintf(stderr, "execv failed: %s\n", strerror(errno));
+		return 1;
+	}
+	/* Should be never reached */
+	return 1;
 }
