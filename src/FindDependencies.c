@@ -564,6 +564,7 @@ bool AlreadyInList(struct list_head *head, struct parse_data *data, const char *
 
 char *ReadLine(char *buf, int size, FILE *fp)
 {
+	int next;
 	char *ptr, *ret = fgets(buf, size, fp);
 	if (ret) {
 		if (buf[strlen(buf)-1] == '\n')
@@ -574,6 +575,12 @@ char *ReadLine(char *buf, int size, FILE *fp)
 		ptr = strstr(buf, "[");
 		if (ptr)
 			*ptr = '\0';
+		/* lookahead */
+		next = fgetc(fp);
+		ungetc(next, fp);
+		if (next != EOF && !isprint(next))
+			/* this is likely an ELF file; stop parsing it */
+			return NULL;
 	}
 	return ret;
 }
