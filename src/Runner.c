@@ -231,12 +231,12 @@ get_program_dir(const char *executable)
 	if (path == NULL) {
 		exec = which(executable);
 		if (! exec) {
-			fprintf(stderr, "Unable to get real path to %s: %s\n", executable, strerror(errno));
+			fprintf(stderr, "Unable to resolve path to '%s': %s\n", executable, strerror(errno));
 			return NULL;
 		}
 		path = realpath(exec, NULL);
 		if (path == NULL) {
-			fprintf(stderr, "Unable to get real path to %s: %s\n", executable, strerror(errno));
+			fprintf(stderr, "Unable to resolve path to '%s': %s\n", executable, strerror(errno));
 			free(exec);
 			return NULL;
 		}
@@ -244,7 +244,7 @@ get_program_dir(const char *executable)
 	}
 
 	if (strlen(path) < strlen(GOBO_PROGRAMS_DIR)) {
-		fprintf(stderr, "%s resolves to %s, which doesn't seem to be a proper %s directory\n",
+		debug_printf("'%s' resolves to '%s', which doesn't seem to be a proper %s directory\n",
 			executable, path, GOBO_PROGRAMS_DIR);
 		free(path);
 		return NULL;
@@ -256,7 +256,7 @@ get_program_dir(const char *executable)
 			count++;
 	if (count != 1) {
 		// Too many '/' components!
-		fprintf(stderr, "%s resolves to %s, which doesn't seem to be a proper %s directory\n",
+		debug_printf("'%s' resolves to '%s', which doesn't seem to be a proper %s directory\n",
 			executable, path, GOBO_PROGRAMS_DIR);
 		free(path);
 		return NULL;
@@ -323,7 +323,7 @@ error_out:
 }
 
 static char *
-prepare_merge_string(const char *dependencies)
+prepare_merge_string(const char *dependencies, bool quiet)
 {
 	struct search_options options;
 	struct list_data *entry;
@@ -335,6 +335,7 @@ prepare_merge_string(const char *dependencies)
 	memset(&options, 0, sizeof(options));
 	options.repository = LOCAL_PROGRAMS;
 	options.depsfile = dependencies;
+	options.quiet = quiet;
 	options.goboPrograms = GOBO_PROGRAMS_DIR;
 
 	deps = ParseDependencies(&options);
@@ -370,7 +371,7 @@ out_free:
  * @executable
  */
 static int
-mount_overlay(const char *executable, const char *dependencies)
+mount_overlay(const char *executable, const char *dependencies, bool quiet)
 {
 	int res = -1;
 	char *fname = NULL;
@@ -393,7 +394,7 @@ mount_overlay(const char *executable, const char *dependencies)
 			perror(fname);
 			goto out_free;
 		}
-		mergedirs_user = prepare_merge_string(fname);
+		mergedirs_user = prepare_merge_string(fname, quiet);
 		merge_len += mergedirs_user ? strlen(mergedirs_user) : 0;
 		free(fname);
 		fname = NULL;
@@ -411,7 +412,7 @@ mount_overlay(const char *executable, const char *dependencies)
 			perror(fname);
 			goto out_free;
 		}
-		mergedirs_program = prepare_merge_string(fname);
+		mergedirs_program = prepare_merge_string(fname, quiet);
 		merge_len += mergedirs_program ? strlen(mergedirs_program) : 0;
 		free(fname);
 		fname = NULL;
@@ -432,7 +433,7 @@ mount_overlay(const char *executable, const char *dependencies)
 			MS_MGC_VAL | MS_RDONLY | MS_NOSUID, lower);
 	if (res != 0) {
 		fprintf(stderr, "Failed to mount overlayfs\n");
-		fprintf(stderr, "%s\n", lower);
+		debug_printf("%s\n", lower);
 	}
 out_free:
 	if (programdir) { free(programdir); }
@@ -475,8 +476,9 @@ show_usage_and_exit(char *exec, int err)
 			"from the given dependencies file.\n\n");
 	printf("Syntax: %s [options] <command>\n\n", exec);
 	printf("Available options are:\n"
-			"  -d, --dependencies=FILE       Path to GoboLinux Dependencies file to use\n"
-			"  -h, --help                    This help\n\n");
+			"  -d, --dependencies=FILE   Path to GoboLinux Dependencies file to use\n"
+			"  -h, --help                This help\n"
+			"  -q, --quiet               Ignore warnings when parsing the dependencies file(s)\n\n");
 	exit(err);
 }
 
@@ -484,7 +486,7 @@ show_usage_and_exit(char *exec, int err)
  * parse_arguments:
  */
 char **
-parse_arguments(int argc, char *argv[], char **executable, char **dependencies)
+parse_arguments(int argc, char *argv[], char **executable, char **dependencies, bool *quiet)
 {
 	char **child_argv;
 	bool valid = true;
@@ -498,10 +500,11 @@ parse_arguments(int argc, char *argv[], char **executable, char **dependencies)
 		static struct option long_options[] = {
 			{"dependencies",  required_argument, 0,  'd'},
 			{"help",          no_argument,       0,  'h'},
+			{"quiet",         no_argument,       0,  'q'},
 			{0,               0,                 0,   0 }
 		};
 
-		int c = getopt_long(argc, argv, "+d:h", long_options, &option_index);
+		int c = getopt_long(argc, argv, "+d:hq", long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -510,6 +513,9 @@ parse_arguments(int argc, char *argv[], char **executable, char **dependencies)
 				break;
 			case 'h':
 				show_usage_and_exit(argv[0], 0);
+				break;
+			case 'q':
+				*quiet = true;
 				break;
 			case '?':
 			default:
@@ -547,6 +553,7 @@ int
 main(int argc, char *argv[])
 {
 	int ret = 1;
+	bool quiet = false;
 	struct utsname uts_data;
 	char *executable = NULL;
 	char **child_argv = NULL;
@@ -558,7 +565,7 @@ main(int argc, char *argv[])
 		goto fallback;
 	}
 
-	child_argv = parse_arguments(argc, argv, &executable, &dependencies);
+	child_argv = parse_arguments(argc, argv, &executable, &dependencies, &quiet);
 	if (! child_argv)
 		return 1;
 
@@ -571,7 +578,7 @@ main(int argc, char *argv[])
 	if (ret > 0)
 		goto fallback;
 
-	ret = mount_overlay(executable, dependencies);
+	ret = mount_overlay(executable, dependencies, quiet);
 	if (ret != 0)
 		goto fallback;
 
@@ -589,6 +596,6 @@ fallback:
 	update_env_var_list("PATH", GOBO_INDEX_DIR "/bin");
 
 	ret = execvp(executable, child_argv);
-	fprintf(stderr, "execv failed: %s\n", strerror(errno));
+	perror(executable);
 	return ret;
 }
