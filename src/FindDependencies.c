@@ -960,7 +960,7 @@ int main(int argc, char **argv)
 				}
 				break;
 			case 'q':
-				options.quiet = 1;
+				options.quiet = true;
 				break;
 			case 'h':
 				usage(argv[0], 0);
