@@ -26,11 +26,7 @@
 
 #include "FindDependencies.h"
 
-#ifdef DEBUG
-#define DBG(a...) fprintf(stderr,a)
-#else
-#define DBG(a...)
-#endif
+#define WARN(opt,fmt...) do { if (!(opt)->quiet) fprintf(stderr, fmt); } while(0)
 
 static char * const currentString = "Current";
 static inline struct utsname *RunningKernelInfo();
@@ -237,7 +233,7 @@ bool RuleBestThanLatest(char *candidate, char *latest)
 	return strcmp(candidate, latest) >= 0 ? true : false;
 }
 
-char **GetVersionsFromAlien(struct parse_data *data)
+char **GetVersionsFromAlien(struct parse_data *data, struct search_options *options)
 {
   char *sp, **versions;
   char alien[LINE_MAX];
@@ -247,7 +243,7 @@ char **GetVersionsFromAlien(struct parse_data *data)
 
   sp = strchr(data->depname, ':');
   if (!sp) {
-    fprintf(stderr, "WARNING: %s is not an Alien dependency, ignoring dependency.\n", data->depname);
+    WARN(options, "WARNING: %s is not an Alien dependency, ignoring dependency.\n", data->depname);
     return NULL;
   }
   strncpy(alien, data->depname, sp-data->depname);
@@ -256,7 +252,7 @@ char **GetVersionsFromAlien(struct parse_data *data)
   snprintf(aliencmd, sizeof(aliencmd)-1, "Alien-%s --getversion %s", alien, sp+1);
   fp = popen(aliencmd, "r");
   if (!fp) {
-    fprintf(stderr, "WARNING: %s: %s\n", aliencmd, strerror(errno));
+    WARN(options, "WARNING: %s: %s\n", aliencmd, strerror(errno));
     return NULL;
   }
 
@@ -302,9 +298,9 @@ bool GetCurrentVersion(struct parse_data *data, struct search_options *options)
 
     if (strchr(data->depname, ':'))
     {
-      char **vers = GetVersionsFromAlien(data);
+      char **vers = GetVersionsFromAlien(data, options);
       if (!vers || !vers[0]) {
-        fprintf(stderr, "WARNING: %s is uninstalled Alien\n", data->depname);
+        WARN(options, "WARNING: %s is uninstalled Alien\n", data->depname);
         return false;
       }
       strncpy(data->fversion, vers[0], sizeof(data->fversion)-1);
@@ -319,7 +315,7 @@ bool GetCurrentVersion(struct parse_data *data, struct search_options *options)
 	snprintf(path, sizeof(path)-1, "%s/%s/Current", options->goboPrograms, data->depname);
 	ret = readlink(path, buf, sizeof(buf));
 	if (ret < 0) {
-		fprintf(stderr, "WARNING: %s: %s, ignoring dependency.\n", path, strerror(errno));
+		WARN(options, "WARNING: %s: %s, ignoring dependency.\n", path, strerror(errno));
 		return false;
 	}
 	buf[ret] = '\0';
@@ -370,7 +366,7 @@ bool SupportedArchitecture(const char *depname, const char *version, struct sear
 	close(fd);
 
 	if (strcmp(line, uts->machine)) {
-		fprintf(stderr, "WARNING: architecture %s differs from %s, ignoring %s version %s\n",
+		WARN(options, "WARNING: architecture %s differs from %s, ignoring %s version %s\n",
 				line, uts->machine, depname, version);
 		return false;
 	}
@@ -386,12 +382,12 @@ char **GetVersionsFromReadDir(struct parse_data *data, struct search_options *op
 	char **versions;
 
     if (strchr(data->depname, ':'))
-      return GetVersionsFromAlien(data);
+      return GetVersionsFromAlien(data, options);
 
 	snprintf(path, sizeof(path)-1, "%s/%s", options->goboPrograms, data->depname);
 	dp = opendir(path);
 	if (! dp) {
-		fprintf(stderr, "WARNING: %s: %s, ignoring dependency.\n", path, strerror(errno));
+		WARN(options, "WARNING: %s: %s, ignoring dependency.\n", path, strerror(errno));
 		return NULL;
 	}
 	
@@ -426,13 +422,12 @@ char **GetVersionsFromStore(struct parse_data *data, struct search_options *opti
 	
 	fp = popen(cmdline, "r");
 	if (! fp) {
-		fprintf(stderr, "WARNING: %s: %s\n", cmdline, strerror(errno));
+		WARN(options, "WARNING: %s: %s\n", cmdline, strerror(errno));
 		return NULL;
 	}
 
 	while (! feof(fp)) {
 		char *name, *version, *end, *ptr;
-
 		if (! fgets(buf, sizeof(buf), fp))
 			break;
 		end = &buf[strlen(buf)-1];
@@ -498,8 +493,7 @@ bool GetBestVersion(struct parse_data *data, struct search_options *options)
 	}
 
 	if (! versions) {
-		if (! options->quiet)
-			fprintf(stderr, "WARNING: No packages were found for dependency %s\n", data->depname);
+		WARN(options, "WARNING: No packages were found for dependency %s\n", data->depname);
 		return false;
 	}
 
@@ -515,8 +509,7 @@ bool GetBestVersion(struct parse_data *data, struct search_options *options)
 	}
 
 	if (! latest[0]) {
-		if (! options->quiet)
-			fprintf(stderr, "WARNING: No packages matching requirements were found, skipping dependency %s\n", data->depname);
+		WARN(options, "WARNING: No packages matching requirements were found, skipping dependency %s\n", data->depname);
 	} else if (options->repository != LOCAL_PROGRAMS) {
 		char *ptr = versions[latestindex] + strlen(versions[latestindex]) + 1;
 		strncpy(data->url, ptr, sizeof(data->url));
@@ -546,17 +539,17 @@ void ListAppend(struct list_head *head, struct parse_data *data, struct search_o
 	list_add_tail(&ldata->list, head);
 }
 
-bool AlreadyInList(struct list_head *head, struct parse_data *data, const char *depfile)
+bool AlreadyInList(struct list_head *head, struct parse_data *data, struct search_options *options)
 {
 	struct list_data *ldata;
 	char bufname[NAME_MAX+3];
-	if (list_empty(head))
-		return false;
-	sprintf(bufname,"/%s--",data->depname);
-	list_for_each_entry(ldata, head, list) {
-		if (strstr(ldata->path, bufname)) {
-			fprintf(stderr, "WARNING: '%s' is included twice in %s\n", data->depname, depfile);
-			return true;
+	if (!list_empty(head)) {
+		sprintf(bufname, "/%s--", data->depname);
+		list_for_each_entry(ldata, head, list) {
+			if (strstr(ldata->path, bufname)) {
+				WARN(options, "WARNING: '%s' is included twice in %s\n", data->depname, options->depsfile);
+				return true;
+			}
 		}
 	}
 	return false;
@@ -602,12 +595,12 @@ bool EmptyLine(char *buf)
 	return false;
 }
 
-void PrintRestrictions(struct parse_data *data) 
+void PrintRestrictions(struct parse_data *data, struct search_options *options)
 {
 	struct range *rentry;
 
 	if (list_empty(data->ranges)) {
-		fprintf(stderr, "Conflicting dependency caused invalid restrictions\n");
+		WARN(options, "Conflicting dependency caused invalid restrictions\n");
 	} else {
 		list_for_each_entry(rentry, data->ranges, list) {
 			switch (rentry->low.op) {
@@ -842,12 +835,13 @@ bool ParseRanges(struct parse_data *data, struct search_options *options)
 
 struct list_head *ParseDependencies(struct search_options *options)
 {
+	FILE *fp;
 	int line = 0;
-	FILE *fp = fopen(options->depsfile, "r");
 	struct list_head *head;
 
+	fp = fopen(options->depsfile, "r");
 	if (! fp) {
-		fprintf(stderr, "WARNING: %s: %s\n", options->depsfile, strerror(errno));
+		WARN(options, "WARNING: %s: %s\n", options->depsfile, strerror(errno));
 		return NULL;
 	}
 
@@ -875,12 +869,12 @@ struct list_head *ParseDependencies(struct search_options *options)
 		}
 		data->workbuf = buf;
 
-		if (! ParseName(data, options) || AlreadyInList(head, data, options->depsfile)) {
+		if (! ParseName(data, options) || AlreadyInList(head, data, options)) {
 			free(data);
 			continue;
 		}
 		if (! ParseVersions(data, options)) {
-			fprintf(stderr, "WARNING: %s:%d: syntax error, ignoring dependency %s.\n", options->depsfile, line, data->depname);
+			WARN(options, "WARNING: %s:%d: syntax error, ignoring dependency %s.\n", options->depsfile, line, data->depname);
 			free(data);
 			continue;
 		}
