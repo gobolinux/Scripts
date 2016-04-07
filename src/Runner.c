@@ -430,7 +430,7 @@ mount_overlay(const char *executable, const char *dependencies, bool quiet)
 	}
 
 	res = mount("overlay", GOBO_INDEX_DIR, "overlay",
-			MS_MGC_VAL | MS_RDONLY | MS_NOSUID, lower);
+			MS_MGC_VAL | MS_RDONLY, lower);
 	if (res != 0) {
 		fprintf(stderr, "Failed to mount overlayfs\n");
 		debug_printf("%s\n", lower);
