@@ -50,6 +50,12 @@
 #define debug_printf(msg...) do { } while(0)
 #endif
 
+struct args {
+	bool quiet;                /* Run in quiet mode? */
+	const char *executable;    /* Executable to run */
+	const char **dependencies; /* NULL-terminated */
+};
+
 /**
  * compare_kernel_versions:
  *
@@ -373,10 +379,10 @@ out_free:
  * @executable
  */
 static int
-mount_overlay(const char *executable, const char *dependencies, bool quiet)
+mount_overlay(struct args *args)
 {
-	int res = -1;
-	char *fname = NULL;
+	int i, res = -1;
+	char *fname = NULL, *tmpstr;
 	char *programdir = NULL;
 	int merge_len = 0;
 	char *mergedirs_user = NULL;
@@ -384,9 +390,9 @@ mount_overlay(const char *executable, const char *dependencies, bool quiet)
 	char *lower = NULL;
 	struct stat statbuf;
 
-	if (dependencies) {
+	for (i=0; args->dependencies[i]; ++i) {
 		/* take user-provided dependencies file */
-		fname = strdup(dependencies);
+		fname = strdup(args->dependencies[i]);
 		if (! fname) {
 			fprintf(stderr, "Not enough memory\n");
 			goto out_free;
@@ -396,13 +402,29 @@ mount_overlay(const char *executable, const char *dependencies, bool quiet)
 			perror(fname);
 			goto out_free;
 		}
-		mergedirs_user = prepare_merge_string(fname, quiet);
-		merge_len += mergedirs_user ? strlen(mergedirs_user) : 0;
+		tmpstr = prepare_merge_string(fname, args->quiet);
+		merge_len += tmpstr ? strlen(tmpstr) : 0;
 		free(fname);
 		fname = NULL;
+
+		/* concatenate */
+		if (mergedirs_user == NULL)
+			mergedirs_user = tmpstr;
+		else if (tmpstr) {
+			char *newstr;
+			res = asprintf(&newstr, "%s%s", mergedirs_user, tmpstr);
+			if (res < 0) {
+				perror("asprintf");
+				free(tmpstr);
+				goto out_free;
+			}
+			free(mergedirs_user);
+			mergedirs_user = newstr;
+			res = 0;
+		}
 	}
 
-	programdir = get_program_dir(executable);
+	programdir = get_program_dir(args->executable);
 	if (programdir) {
 		/* check if the software's Resources/Dependencies file exists */
 		if (asprintf(&fname, "%s/Resources/Dependencies", programdir) <= 0) {
@@ -414,7 +436,7 @@ mount_overlay(const char *executable, const char *dependencies, bool quiet)
 			perror(fname);
 			goto out_free;
 		}
-		mergedirs_program = prepare_merge_string(fname, quiet);
+		mergedirs_program = prepare_merge_string(fname, args->quiet);
 		merge_len += mergedirs_program ? strlen(mergedirs_program) : 0;
 		free(fname);
 		fname = NULL;
@@ -477,7 +499,7 @@ show_usage_and_exit(char *exec, int err)
 	printf(
 	"Executes a command with a read-only view of /System/Index overlaid with\n"
 	"dependencies extracted from the program's Resources/Dependencies and/or\n"
-	"from the given dependencies file.\n"
+	"from the given dependencies file(s).\n"
 	"\n"
 	"Syntax: %s [options] <command>\n"
 	"\n"
@@ -493,36 +515,58 @@ show_usage_and_exit(char *exec, int err)
  * parse_arguments:
  */
 char **
-parse_arguments(int argc, char *argv[], char **executable, char **dependencies, bool *quiet)
+parse_arguments(int argc, char *argv[], struct args *out_args)
 {
+	struct option long_options[] = {
+		{"dependencies",  required_argument, 0,  'd'},
+		{"help",          no_argument,       0,  'h'},
+		{"quiet",         no_argument,       0,  'q'},
+		{0,               0,                 0,   0 }
+	};
+	const char *short_options = "+d:hq";
 	char **child_argv;
 	bool valid = true;
 	int next = optind;
+	int num_deps = 0;
+	int dep_nr = 0;
 
 	/* Don't stop on errors */
 	opterr = 0;
 
+	/* Count how many dependency files were given */
 	while (valid) {
-		int option_index = 0;
-		static struct option long_options[] = {
-			{"dependencies",  required_argument, 0,  'd'},
-			{"help",          no_argument,       0,  'h'},
-			{"quiet",         no_argument,       0,  'q'},
-			{0,               0,                 0,   0 }
-		};
+		int c = getopt_long(argc, argv, short_options, long_options, NULL);
+		if (c == -1)
+			break;
+		else if (c == 'd')
+			num_deps++;
+		else if (!(c == 'h' || c == 'q'))
+			valid = false;
+	}
 
-		int c = getopt_long(argc, argv, "+d:hq", long_options, &option_index);
+	/* Default values */
+	out_args->quiet = false;
+	out_args->executable = NULL;
+	out_args->dependencies = (const char **) calloc(num_deps+1, sizeof(char *));
+	if (! out_args->dependencies) {
+		perror("calloc");
+		return NULL;
+	}
+
+	optind = 1;
+	while (valid) {
+		int c = getopt_long(argc, argv, short_options, long_options, NULL);
 		if (c == -1)
 			break;
 		switch (c) {
 			case 'd':
-				*dependencies = optarg;
+				out_args->dependencies[dep_nr++] = optarg;
 				break;
 			case 'h':
 				show_usage_and_exit(argv[0], 0);
 				break;
 			case 'q':
-				*quiet = true;
+				out_args->quiet = true;
 				break;
 			case '?':
 			default:
@@ -543,7 +587,7 @@ parse_arguments(int argc, char *argv[], char **executable, char **dependencies, 
 		}
 		for (i = optind; i < argc; i++)
 			child_argv[i-optind] = argv[i];
-		*executable = argv[optind];
+		out_args->executable = argv[optind];
 		return child_argv;
 	} else {
 		fprintf(stderr, "Error: no executable was specified.\n\n");
@@ -560,11 +604,9 @@ int
 main(int argc, char *argv[])
 {
 	int ret = 1;
-	bool quiet = false;
+	struct args args;
 	struct utsname uts_data;
-	char *executable = NULL;
 	char **child_argv = NULL;
-	char *dependencies = NULL;
 	uid_t uid = getuid(), euid = geteuid();
 
 	if ((uid > 0) && (uid == euid)) {
@@ -572,7 +614,7 @@ main(int argc, char *argv[])
 		goto fallback;
 	}
 
-	child_argv = parse_arguments(argc,argv, &executable, &dependencies, &quiet);
+	child_argv = parse_arguments(argc, argv, &args);
 	if (! child_argv)
 		return 1;
 
@@ -587,7 +629,7 @@ main(int argc, char *argv[])
 	if (ret > 0)
 		goto fallback;
 
-	ret = mount_overlay(executable, dependencies, quiet);
+	ret = mount_overlay(&args);
 	if (ret != 0)
 		goto fallback;
 
@@ -604,7 +646,7 @@ fallback:
 	/* add generic binary directory to PATH */
 	update_env_var_list("PATH", GOBO_INDEX_DIR "/bin");
 
-	ret = execvp(executable, child_argv);
-	perror(executable);
+	ret = execvp(args.executable, child_argv);
+	perror(args.executable);
 	return ret;
 }
