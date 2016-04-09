@@ -345,6 +345,7 @@ prepare_merge_string(const char *dependencies, bool quiet)
 	options.depsfile = dependencies;
 	options.quiet = quiet;
 	options.goboPrograms = GOBO_PROGRAMS_DIR;
+	options.noOperator = EQUAL;
 
 	deps = ParseDependencies(&options);
 	if (!deps || list_empty(deps)) {

@@ -50,6 +50,7 @@ struct list_data {
 struct search_options {
 	repository_t repository;
 	bool quiet;
+	operator_t noOperator;
 	const char *dependency;
 	const char *depsfile;
 	const char *searchdir;

@@ -629,7 +629,7 @@ bool ParseName(struct parse_data *data, struct search_options *options)
 	return data->depname ? true : false;
 }
 
-bool MakeVersion(char *buf, struct version *v)
+bool MakeVersion(char *buf, struct version *v, struct search_options *options)
 {
 	// Remove white space
 	while(!strncmp(buf," ",1))
@@ -657,8 +657,9 @@ bool MakeVersion(char *buf, struct version *v)
 		v->op = LESS_THAN;
 		buf++;
 	} else {
-		// ptr holds the version alone. Consider operator as GREATER_THAN_OR_EQUAL (XXX)
-		v->op = GREATER_THAN_OR_EQUAL;
+		// ptr holds the version alone
+		v->op = options->noOperator != NONE ?
+			options->noOperator : GREATER_THAN_OR_EQUAL;
 		v->version = buf;
 		return true;
 	}
@@ -689,7 +690,7 @@ bool ParseVersions(struct parse_data *data, struct search_options *options)
 			free(data->versions);
 			return false;
 		}
-		if (! MakeVersion(ptr,version)) {
+		if (! MakeVersion(ptr, version, options)) {
 			perror("Syntax error");
 			free(version);
 			continue;
@@ -704,7 +705,7 @@ bool ParseVersions(struct parse_data *data, struct search_options *options)
 			free(data->versions);
 			return false;
 		}
-		if (! MakeVersion(">= 0",version)) {
+		if (! MakeVersion(">= 0", version, options)) {
 			perror("Syntax error");
 			free(version);
 		}
