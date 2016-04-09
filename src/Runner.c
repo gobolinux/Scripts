@@ -231,12 +231,14 @@ get_program_dir(const char *executable)
 	if (path == NULL) {
 		exec = which(executable);
 		if (! exec) {
-			fprintf(stderr, "Unable to resolve path to '%s': %s\n", executable, strerror(errno));
+			fprintf(stderr, "Unable to resolve path to '%s': %s\n",
+					executable, strerror(errno));
 			return NULL;
 		}
 		path = realpath(exec, NULL);
 		if (path == NULL) {
-			fprintf(stderr, "Unable to resolve path to '%s': %s\n", executable, strerror(errno));
+			fprintf(stderr, "Unable to resolve path to '%s': %s\n",
+					executable, strerror(errno));
 			free(exec);
 			return NULL;
 		}
@@ -244,7 +246,7 @@ get_program_dir(const char *executable)
 	}
 
 	if (strlen(path) < strlen(GOBO_PROGRAMS_DIR)) {
-		debug_printf("'%s' resolves to '%s', which doesn't seem to be a proper %s directory\n",
+		debug_printf("'%s' ('%s') is not in a $goboPrograms subdirectory\n",
 			executable, path, GOBO_PROGRAMS_DIR);
 		free(path);
 		return NULL;
@@ -256,7 +258,7 @@ get_program_dir(const char *executable)
 			count++;
 	if (count != 1) {
 		// Too many '/' components!
-		debug_printf("'%s' resolves to '%s', which doesn't seem to be a proper %s directory\n",
+		debug_printf("'%s' ('%s') has too many '/' components\n",
 			executable, path, GOBO_PROGRAMS_DIR);
 		free(path);
 		return NULL;
@@ -285,7 +287,7 @@ create_mount_namespace()
 	debug_printf("creating new namespace\n");
 	res = unshare(CLONE_NEWNS);
 	if (res != 0) {
-		fprintf(stderr, "Failed to create new namespace: %s\n", strerror(errno));
+		fprintf(stderr, "Failed to create namespace: %s\n", strerror(errno));
 		return 1;
 	}
 
@@ -340,7 +342,7 @@ prepare_merge_string(const char *dependencies, bool quiet)
 
 	deps = ParseDependencies(&options);
 	if (!deps || list_empty(deps)) {
-		fprintf(stderr, "Could not parse dependencies list from %s\n", dependencies);
+		fprintf(stderr, "Could not parse dependencies from %s\n", dependencies);
 		goto out_free;
 	}
 
@@ -418,8 +420,9 @@ mount_overlay(const char *executable, const char *dependencies, bool quiet)
 		fname = NULL;
 	}
 
-	/* safeguard againt the case where only one path is set for lowerdir.
-	 * Overlayfs doesn't like that, so we always set the root path as source too. */
+	/* Safeguard againt the case where only one path is set for lowerdir.
+	 * Overlayfs doesn't like that, so we always set the root path as a
+	 * source too. */
 	res = asprintf(&lower, "lowerdir=%s%s%s",
 			mergedirs_user ? mergedirs_user : "",
 			mergedirs_program ? mergedirs_program : "",
@@ -471,14 +474,18 @@ update_env_var_list(const char *var, const char *item)
 void
 show_usage_and_exit(char *exec, int err)
 {
-	printf("Executes a command with a read-only view of /System/Index overlaid with\n"
-			"dependencies extracted from the program's Resources/Dependencies and/or\n"
-			"from the given dependencies file.\n\n");
-	printf("Syntax: %s [options] <command>\n\n", exec);
-	printf("Available options are:\n"
-			"  -d, --dependencies=FILE   Path to GoboLinux Dependencies file to use\n"
-			"  -h, --help                This help\n"
-			"  -q, --quiet               Ignore warnings when parsing the dependencies file(s)\n\n");
+	printf(
+	"Executes a command with a read-only view of /System/Index overlaid with\n"
+	"dependencies extracted from the program's Resources/Dependencies and/or\n"
+	"from the given dependencies file.\n"
+	"\n"
+	"Syntax: %s [options] <command>\n"
+	"\n"
+	"Available options are:\n"
+	"  -d, --dependencies=FILE   Path to GoboLinux Dependencies file to use\n"
+	"  -h, --help                This help\n"
+	"  -q, --quiet               Don't warn on bogus dependencies file(s)\n"
+	"\n", exec);
 	exit(err);
 }
 
@@ -561,18 +568,20 @@ main(int argc, char *argv[])
 	uid_t uid = getuid(), euid = geteuid();
 
 	if ((uid > 0) && (uid == euid)) {
-		fprintf (stderr, "This program needs the suid bit to be set to function correctly.\n");
+		fprintf (stderr, "This program needs its suid bit to be set\n");
 		goto fallback;
 	}
 
-	child_argv = parse_arguments(argc, argv, &executable, &dependencies, &quiet);
+	child_argv = parse_arguments(argc,argv, &executable, &dependencies, &quiet);
 	if (! child_argv)
 		return 1;
 
 	uname(&uts_data);
-	/* we need at least Linux 4.0 */
-	if (compare_kernel_versions("4.0", uts_data.release) > 0)
-		fprintf(stderr, "Running on Linux %s. At least Linux 4.0 is needed.\n", uts_data.release);
+	if (compare_kernel_versions("4.0", uts_data.release) > 0) {
+		fprintf(stderr, "Running on Linux %s. At least Linux 4.0 is needed.\n",
+				uts_data.release);
+		goto fallback;
+	}
 
 	ret = create_mount_namespace();
 	if (ret > 0)
