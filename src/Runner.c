@@ -45,7 +45,7 @@
 #define GOBO_PROGRAMS_DIR "/Programs"
 
 #ifdef DEBUG
-#define debug_print printf
+#define debug_printf(msg...) fprintf(stderr, msg)
 #else
 #define debug_printf(msg...) do { } while(0)
 #endif
@@ -253,7 +253,7 @@ get_program_dir(const char *executable)
 
 	if (strlen(path) < strlen(GOBO_PROGRAMS_DIR)) {
 		debug_printf("'%s' ('%s') is not in a $goboPrograms subdirectory\n",
-			executable, path, GOBO_PROGRAMS_DIR);
+			executable, path);
 		free(path);
 		return NULL;
 	}
@@ -265,7 +265,7 @@ get_program_dir(const char *executable)
 	if (count != 1) {
 		// Too many '/' components!
 		debug_printf("'%s' ('%s') has too many '/' components\n",
-			executable, path, GOBO_PROGRAMS_DIR);
+			executable, path);
 		free(path);
 		return NULL;
 	}
@@ -349,7 +349,8 @@ prepare_merge_string(const char *dependencies, bool quiet)
 
 	deps = ParseDependencies(&options);
 	if (!deps || list_empty(deps)) {
-		fprintf(stderr, "Could not parse dependencies from %s\n", dependencies);
+		if (! quiet)
+			fprintf(stderr, "Could not parse dependencies from %s\n", dependencies);
 		goto out_free;
 	}
 
@@ -611,7 +612,7 @@ main(int argc, char *argv[])
 	uid_t uid = getuid(), euid = geteuid();
 
 	if ((uid > 0) && (uid == euid)) {
-		fprintf (stderr, "This program needs its suid bit to be set\n");
+		fprintf(stderr, "This program needs its suid bit to be set\n");
 		goto fallback;
 	}
 
