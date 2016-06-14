@@ -350,7 +350,7 @@ prepare_merge_string(const char *dependencies, bool quiet)
 	deps = ParseDependencies(&options);
 	if (!deps || list_empty(deps)) {
 		if (! quiet)
-			fprintf(stderr, "Could not parse dependencies from %s\n", dependencies);
+			fprintf(stderr, "Could not resolve dependencies from %s\n", dependencies);
 		goto out_free;
 	}
 
