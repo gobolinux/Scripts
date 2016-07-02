@@ -73,7 +73,11 @@ then
    filename=$(basename ${url})
    #rm -f ${goboTemp}/`basename $1`
    Log_Normal "Downloading package to ${goboTemp}/${filename}."
-   wget -c "${url}" -O "${goboTemp}/${filename}" || Die "Error downloading package."
+   if wget --help | grep -q "no-check-certificate"
+   then wget_cmd="wget --no-check-certificate"
+   else wget_cmd="wget"
+   fi
+   ${wget_cmd} -c "${url}" -O "${goboTemp}/${filename}" || Die "Error downloading package."
 
    if [ "${keep}" ]
    then   
