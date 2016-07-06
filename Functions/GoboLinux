@@ -58,7 +58,7 @@ function Gen_Env_Cache() {
       echo >> "$cache"
    done
    unsetvars="$(grep export "$goboExecutables/GoboPath" | awk {'print $1 " " $2'} | grep "^export" | sed -e 's,=.*,,g' -e 's,export,unset,g')"
-   echo -e "if [ \"\$unsetvars\" ]\nthen\n$unsetvars\nfi\n" >> "$cache"
+   echo -e "if [ \"\$unsetvars\" ]\nthen\n${unsetvars:-:}\nfi\n" >> "$cache"
 }
 
 # Creates links from one directory into another.
