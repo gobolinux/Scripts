@@ -32,6 +32,7 @@ clean:
 	cd src && $(MAKE) clean
 	cd $(PYTHON_SITE) && rm -f *.pyc *.pyo
 	rm -f $(exec_files)
+	rm -rf share/man/man1
 
 manuals: $(man_files)
 
