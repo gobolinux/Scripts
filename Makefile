@@ -2,6 +2,11 @@
 PYTHON_VERSION=2.7
 PYTHON_LIBS=FindPackage GetAvailable GuessLatest CheckDependencies DescribeProgram UseFlags Corrections Alien
 PYTHON_SITE=lib/python$(PYTHON_VERSION)/site-packages
+PROGRAM=Scripts
+VERSION=git-$(shell date +%Y%m%d)
+goboPrograms?=/Programs
+PREFIX?=
+DESTDIR=$(goboPrograms)/$(PROGRAM)/$(VERSION)
 
 man_files = $(shell cd bin; grep -l Parse_Options * | xargs -i echo share/man/man1/{}.1)
 exec_files = $(patsubst src/%.c,bin/%,$(wildcard src/*.c))
@@ -27,6 +32,7 @@ clean:
 	cd src && $(MAKE) clean
 	cd $(PYTHON_SITE) && rm -f *.pyc *.pyo
 	rm -f $(exec_files)
+	rm -rf share/man/man1
 
 manuals: $(man_files)
 
@@ -42,3 +48,10 @@ src/%: src/%.c
 	$(MAKE) -C src
 
 .PHONY: all python manuals debug clean
+
+install: python $(exec_files) manuals
+	@echo "Installing Scripts into $(PREFIX)/$(DESTDIR)"
+	@install -d  -m 755 $(PREFIX)/$(DESTDIR)
+	@echo "Copying files ..."
+	@./bin/ListProgramFiles `pwd` | grep -v "^src" | grep -v "^Makefile" | \
+	cpio --pass-through --quiet --verbose --unconditional $(PREFIX)/$(DESTDIR)
