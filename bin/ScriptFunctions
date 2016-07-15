@@ -46,6 +46,7 @@ Import() {
       for try in "${scriptPath}/$1.import" \
                  "${scriptPath}/../Functions/$1" \
                  "${goboScripts}/../Functions/$1" \
+                 "${goboPrefix}/Programs/Scripts/Current/Functions/$1" \
                  "/Programs/Scripts/Current/Functions/$1"
       do
          if [ -e "$try.sh" ]
