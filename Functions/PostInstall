@@ -3,6 +3,17 @@
 Import Directories
 Import File
 
+function Cleanup_LeftOvers() {
+   local sandbox_rw="$1"
+   if [ -d "$sandbox_rw" ]
+   then
+      Quiet pushd "$sandbox_rw"
+      rmdir --ignore-fail-on-non-empty ./dev
+      rmdir --ignore-fail-on-non-empty ./proc
+      Quiet popd
+   fi
+}
+
 function Run_PostInstall() {
    local app_name app_ver sandbox_list map_list chroot_dir
    Parameters "$@" app_name app_ver sandbox_list map_list chroot_dir
@@ -44,6 +55,7 @@ function Run_PostInstall() {
          $sandbox_options $map_options -- ${program_dir}/Resources/PostInstall
 
       #Postprocess $rw_dest
+      Cleanup_LeftOvers "$rw_dest"
       Log_Normal "Postprocessing PostInstall changes."
       local leftovers=`(cd "/$rw_dest"; find *) 2>/dev/null`
       [ "$leftovers" ] && Log_Normal "PostInstall tried to change:\n$leftovers" 
