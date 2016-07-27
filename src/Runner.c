@@ -44,17 +44,15 @@
 #define GOBO_INDEX_DIR    "/System/Index"
 #define GOBO_PROGRAMS_DIR "/Programs"
 
-#ifdef DEBUG
-#define debug_printf(msg...) fprintf(stderr, msg)
-#else
-#define debug_printf(msg...) do { } while(0)
-#endif
+#define debug_printf(msg...) if (args.verbose) fprintf(stderr, msg)
 
-struct args {
+struct runner_args {
 	bool quiet;                /* Run in quiet mode? */
+	bool verbose;              /* Run in verbose mode? */
 	const char *executable;    /* Executable to run */
 	const char **dependencies; /* NULL-terminated */
 };
+static struct runner_args args;
 
 /**
  * compare_kernel_versions:
@@ -331,7 +329,7 @@ error_out:
 }
 
 static char *
-prepare_merge_string(const char *dependencies, bool quiet)
+prepare_merge_string(const char *dependencies)
 {
 	struct search_options options;
 	struct list_data *entry;
@@ -340,16 +338,21 @@ prepare_merge_string(const char *dependencies, bool quiet)
 	int mergedirs_len = 0;
 	struct stat statbuf;
 
+	if (stat(dependencies, &statbuf) == 0 && statbuf.st_size == 0) {
+		/* nothing to parse */
+		return NULL;
+	}
+
 	memset(&options, 0, sizeof(options));
 	options.repository = LOCAL_PROGRAMS;
 	options.depsfile = dependencies;
-	options.quiet = quiet;
+	options.quiet = args.quiet;
 	options.goboPrograms = GOBO_PROGRAMS_DIR;
 	options.noOperator = EQUAL;
 
 	deps = ParseDependencies(&options);
 	if (!deps || list_empty(deps)) {
-		if (! quiet)
+		if (! args.quiet)
 			fprintf(stderr, "Could not resolve dependencies from %s\n", dependencies);
 		goto out_free;
 	}
@@ -366,6 +369,7 @@ prepare_merge_string(const char *dependencies, bool quiet)
 	}
 	list_for_each_entry(entry, deps, list) {
 		if (stat(entry->path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
+			debug_printf("adding dependency at %s\n", entry->path);
 			strcat(mergedirs, entry->path);
 			strcat(mergedirs, ":");
 		}
@@ -378,10 +382,9 @@ out_free:
 
 /**
  * mount_overlay:
- * @executable
  */
 static int
-mount_overlay(struct args *args)
+mount_overlay()
 {
 	int i, res = -1;
 	char *fname = NULL, *tmpstr;
@@ -392,9 +395,9 @@ mount_overlay(struct args *args)
 	char *lower = NULL;
 	struct stat statbuf;
 
-	for (i=0; args->dependencies[i]; ++i) {
+	for (i=0; args.dependencies[i]; ++i) {
 		/* take user-provided dependencies file */
-		fname = strdup(args->dependencies[i]);
+		fname = strdup(args.dependencies[i]);
 		if (! fname) {
 			fprintf(stderr, "Not enough memory\n");
 			goto out_free;
@@ -404,7 +407,7 @@ mount_overlay(struct args *args)
 			perror(fname);
 			goto out_free;
 		}
-		tmpstr = prepare_merge_string(fname, args->quiet);
+		tmpstr = prepare_merge_string(fname);
 		merge_len += tmpstr ? strlen(tmpstr) : 0;
 		free(fname);
 		fname = NULL;
@@ -426,7 +429,7 @@ mount_overlay(struct args *args)
 		}
 	}
 
-	programdir = get_program_dir(args->executable);
+	programdir = get_program_dir(args.executable);
 	if (programdir) {
 		/* check if the software's Resources/Dependencies file exists */
 		if (asprintf(&fname, "%s/Resources/Dependencies", programdir) <= 0) {
@@ -438,7 +441,7 @@ mount_overlay(struct args *args)
 			perror(fname);
 			goto out_free;
 		}
-		mergedirs_program = prepare_merge_string(fname, args->quiet);
+		mergedirs_program = prepare_merge_string(fname);
 		merge_len += mergedirs_program ? strlen(mergedirs_program) : 0;
 		free(fname);
 		fname = NULL;
@@ -509,6 +512,7 @@ show_usage_and_exit(char *exec, int err)
 	"  -d, --dependencies=FILE   Path to GoboLinux Dependencies file to use\n"
 	"  -h, --help                This help\n"
 	"  -q, --quiet               Don't warn on bogus dependencies file(s)\n"
+	"  -v, --verbose             Run in verbose mode\n"
 	"\n", exec);
 	exit(err);
 }
@@ -517,15 +521,16 @@ show_usage_and_exit(char *exec, int err)
  * parse_arguments:
  */
 char **
-parse_arguments(int argc, char *argv[], struct args *out_args)
+parse_arguments(int argc, char *argv[])
 {
 	struct option long_options[] = {
 		{"dependencies",  required_argument, 0,  'd'},
 		{"help",          no_argument,       0,  'h'},
 		{"quiet",         no_argument,       0,  'q'},
+		{"verbose",       no_argument,       0,  'v'},
 		{0,               0,                 0,   0 }
 	};
-	const char *short_options = "+d:hq";
+	const char *short_options = "+d:hqv";
 	char **child_argv;
 	bool valid = true;
 	int next = optind;
@@ -542,15 +547,16 @@ parse_arguments(int argc, char *argv[], struct args *out_args)
 			break;
 		else if (c == 'd')
 			num_deps++;
-		else if (!(c == 'h' || c == 'q'))
+		else if (!(c == 'h' || c == 'q' || c == 'v'))
 			valid = false;
 	}
 
 	/* Default values */
-	out_args->quiet = false;
-	out_args->executable = NULL;
-	out_args->dependencies = (const char **) calloc(num_deps+1, sizeof(char *));
-	if (! out_args->dependencies) {
+	args.quiet = false;
+	args.verbose = false;
+	args.executable = NULL;
+	args.dependencies = (const char **) calloc(num_deps+1, sizeof(char *));
+	if (! args.dependencies) {
 		perror("calloc");
 		return NULL;
 	}
@@ -562,13 +568,16 @@ parse_arguments(int argc, char *argv[], struct args *out_args)
 			break;
 		switch (c) {
 			case 'd':
-				out_args->dependencies[dep_nr++] = optarg;
+				args.dependencies[dep_nr++] = optarg;
 				break;
 			case 'h':
 				show_usage_and_exit(argv[0], 0);
 				break;
 			case 'q':
-				out_args->quiet = true;
+				args.quiet = true;
+				break;
+			case 'v':
+				args.verbose = true;
 				break;
 			case '?':
 			default:
@@ -577,6 +586,11 @@ parse_arguments(int argc, char *argv[], struct args *out_args)
 		}
 		if (valid)
 			next = optind;
+	}
+
+	if (args.quiet && args.verbose) {
+		fprintf(stderr, "Error: --quiet and --verbose are mutually exclusive\n");
+		return NULL;
 	}
 
 	optind = next;
@@ -589,7 +603,7 @@ parse_arguments(int argc, char *argv[], struct args *out_args)
 		}
 		for (i = optind; i < argc; i++)
 			child_argv[i-optind] = argv[i];
-		out_args->executable = argv[optind];
+		args.executable = argv[optind];
 		return child_argv;
 	} else {
 		fprintf(stderr, "Error: no executable was specified.\n\n");
@@ -606,7 +620,6 @@ int
 main(int argc, char *argv[])
 {
 	int ret = 1;
-	struct args args;
 	struct utsname uts_data;
 	char **child_argv = NULL;
 	uid_t uid = getuid(), euid = geteuid();
@@ -616,7 +629,7 @@ main(int argc, char *argv[])
 		goto fallback;
 	}
 
-	child_argv = parse_arguments(argc, argv, &args);
+	child_argv = parse_arguments(argc, argv);
 	if (! child_argv)
 		return 1;
 
@@ -631,7 +644,7 @@ main(int argc, char *argv[])
 	if (ret > 0)
 		goto fallback;
 
-	ret = mount_overlay(&args);
+	ret = mount_overlay();
 	if (ret != 0)
 		goto fallback;
 
