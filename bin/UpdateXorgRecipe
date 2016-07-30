@@ -7,6 +7,7 @@
 # 
 
 import os
+import ssl
 import glob
 import urllib
 
@@ -101,7 +102,8 @@ class XorgModule :
 
 	def parse(self) :
 		print "Parsing the URL for Xorg module %s" %self.module
-		result = urllib.urlopen(self.baseuri + '/' + self.module)
+		sslctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+		result = urllib.urlopen(self.baseuri + '/' + self.module, context=sslctx)
 		for line in result.readlines() :
 			data = line.split("href=")
 			if not data or len(data) < 2 :
