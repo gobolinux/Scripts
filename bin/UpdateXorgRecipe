@@ -10,6 +10,8 @@ import os
 import ssl
 import glob
 import urllib
+import subprocess
+from GuessLatest import *
 
 # Global settings
 g_IncludeReleaseCandidates = False
@@ -187,10 +189,16 @@ class Recipe :
 	def __init__(self, name, version, url) :
 		self.name = name
 		self.version = version
+		self.currentVersion = 0
 		self.url = url
 		self.localrecipes = g_goboFiles + "/Compile/LocalRecipes"
 
 	def exists(self) :
+		newver = str(self.version)
+		curver = str(self.currentVersion)
+		if GuessLatest([newver, curver]) == curver:
+			print "Recipe for %s is already up to date" %(self.name)
+			return True
 		recipes = glob.glob(self.localrecipes + "/*")
 		for r in recipes :
 			rname = r[len(self.localrecipes)+1:]
@@ -242,8 +250,12 @@ class Recipe :
 
 	def checkout(self) :
 		cmd = "EditRecipe --no-edit %s" %self.name
-		return os.system(cmd)
-
+		p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		recipedir = p.stdout.readline().strip("\n")
+		if len(recipedir) > 0 and os.path.exists(recipedir) :
+			self.currentVersion = os.path.basename(recipedir)
+		p.wait()
+		return p.returncode
 
 class MetaRecipe :
 	def __init__(self, name, version) :
