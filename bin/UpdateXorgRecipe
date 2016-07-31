@@ -320,7 +320,7 @@ class MetaRecipe :
 		# Append packages that were not previously part of the meta-recipe
 		if len(tarballs) > 0 :
 			newf.write("%s# --- New packages added by UpdateXorgRecipe ---\n" %padding)
-			for pkgName in tarballs.keys() :
+			for pkgName in sorted(tarballs.keys()) :
 				pkgVersion = tarballs[pkgName][0]
 				newf.write("%s%s--%s\n" %(padding, pkgName, pkgVersion))
 		newf.write(")\n")
