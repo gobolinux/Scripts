@@ -293,20 +293,37 @@ class MetaRecipe :
 
 	def _updateRecipe(self, recipe) :
 		print "Updating %s" %recipe
+		padding = " " * 4
 		f = open(recipe, "r")
 		newf = open(recipe + ".new", "w")
+		newf.write("include=(\n")
+		tarballs = self.latestTarballs.copy()
 		for line in f.readlines() :
+			line = line.replace("\t", padding)
+			commentedOut = line.strip().find("#") == 0
 			if line.find("--") > 0 :
-				pkgName = line.strip().split("--")[0]
+				pkgName = line.strip().split("--")[0].split()[-1]
 				pkgVersion = line.strip().split("--")[1]
-				padding = line[0:line.find(pkgName)]
-				if self.latestTarballs.has_key(pkgName) :
-					newVersion = self.latestTarballs[pkgName][0]
+				if not commentedOut and tarballs.has_key(pkgName) :
+					newVersion = tarballs[pkgName][0]
 					newf.write("%s%s--%s\n" %(padding, pkgName, newVersion))
+					del tarballs[pkgName]
+				elif commentedOut and tarballs.has_key(pkgName) :
+					newVersion = tarballs[pkgName][0]
+					newf.write(line.replace(pkgVersion, newVersion))
+					del tarballs[pkgName]
 				else :
 					newf.write(line)
-			else :
+			elif line.find("#") >= 0 :
+				# Preserve all kind of comments
 				newf.write(line)
+		# Append packages that were not previously part of the meta-recipe
+		if len(tarballs) > 0 :
+			newf.write("%s# --- New packages added by UpdateXorgRecipe ---\n" %padding)
+			for pkgName in tarballs.keys() :
+				pkgVersion = tarballs[pkgName][0]
+				newf.write("%s%s--%s\n" %(padding, pkgName, pkgVersion))
+		newf.write(")\n")
 		newf.close()
 		f.close()
 		os.rename(recipe + ".new", recipe)
