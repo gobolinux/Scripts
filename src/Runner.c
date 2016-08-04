@@ -380,6 +380,87 @@ out_free:
 	return mergedirs;
 }
 
+static int
+make_path(const char *namestart, const char *subdir, char *out)
+{
+	struct stat statbuf;
+	const char *nameend;
+	int res;
+
+	/* non-empty strings returned by prepare_merge_string() always terminate with ":" */
+	nameend = strchr(namestart, ':');
+	sprintf(out, "%.*s/%s", nameend-namestart, namestart, subdir);
+	if (stat(out, &statbuf) != 0) {
+		*out = '\0';
+		return 0;
+	}
+	res = strlen(out);
+	out[res] = ':';
+	return res+1;
+}
+
+static int
+mount_overlay_dirs(const char *mergedirs, const char *mountpoint)
+{
+	const char *dir[] = {"bin", "include", "lib", "libexec", "share", NULL};
+	const char *link_src[] = {"sbin", "lib64", NULL};
+	const char *link_target[] = {"bin", "lib", NULL};
+	const char *dirptr;
+
+	char *lower, mp[strlen(mountpoint)+strlen("libexec")+2];
+	int i, res, lower_idx = 0, dircount = 0;
+	size_t lower_size = 0;
+
+	for (i=0; i<strlen(mergedirs); ++i)
+		if (mergedirs[i] == ':')
+			dircount++;
+
+	lower_size = strlen("lowerdir=") + strlen(mergedirs) + dircount *(strlen("libexec")+1) + 1;
+	lower_size += strlen(mountpoint) + strlen("libexec") + 2;
+	lower = (char *) malloc(lower_size * sizeof(char));
+	if (! lower) {
+		perror("calloc");
+		return -ENOMEM;
+	}
+	/* Mount directories from dir[] as overlays on /System/Index/@dir */
+	for (i=0; dir[i]; ++i) {
+		sprintf(lower, "lowerdir=");
+		for (lower_idx=strlen(lower), dirptr=mergedirs; dirptr; dirptr=strchr(dirptr, ':')) {
+			if (dirptr != mergedirs) { dirptr++; }
+			if (strlen(dirptr)) { lower_idx += make_path(dirptr, dir[i], &lower[lower_idx]); }
+		}
+		if (lower_idx != strlen(lower)) {
+			sprintf(mp, "%s/%s", mountpoint, dir[i]);
+			sprintf(&lower[lower_idx], "%s", mp);
+			res = mount("overlay", mp, "overlay", MS_MGC_VAL | MS_RDONLY, lower);
+			if (res != 0)
+				goto out_free;
+		}
+	}
+	/* Mount symlinks from link_src[] as overlays on /System/Index/@link_target */
+	for (i=0; link_src[i]; ++i) {
+		sprintf(lower, "lowerdir=");
+		for (lower_idx=strlen(lower), dirptr=mergedirs; dirptr; dirptr=strchr(dirptr, ':')) {
+			if (dirptr != mergedirs) { dirptr++; }
+			if (strlen(dirptr)) { lower_idx += make_path(dirptr, link_src[i], &lower[lower_idx]); }
+		}
+		if (lower_idx != strlen(lower)) {
+			sprintf(mp, "%s/%s", mountpoint, link_target[i]);
+			sprintf(&lower[lower_idx], "%s", mp);
+			res = mount("overlay", mp, "overlay", MS_MGC_VAL | MS_RDONLY, lower);
+			if (res != 0)
+				goto out_free;
+		}
+	}
+out_free:
+	if (res != 0) {
+		fprintf(stderr, "Failed to mount overlayfs\n");
+		debug_printf("%s\n", lower);
+	}
+	free(lower);
+	return res;
+}
+
 /**
  * mount_overlay:
  */
@@ -392,7 +473,7 @@ mount_overlay()
 	int merge_len = 0;
 	char *mergedirs_user = NULL;
 	char *mergedirs_program = NULL;
-	char *lower = NULL;
+	char *mergedirs = NULL;
 	struct stat statbuf;
 
 	for (i=0; args.dependencies[i]; ++i) {
@@ -447,30 +528,20 @@ mount_overlay()
 		fname = NULL;
 	}
 
-	/* Safeguard againt the case where only one path is set for lowerdir.
-	 * Overlayfs doesn't like that, so we always set the root path as a
-	 * source too. */
-	res = asprintf(&lower, "lowerdir=%s%s%s",
+	res = asprintf(&mergedirs, "%s%s",
 			mergedirs_user ? mergedirs_user : "",
-			mergedirs_program ? mergedirs_program : "",
-			GOBO_INDEX_DIR);
+			mergedirs_program ? mergedirs_program : "");
 	if (res < 0) {
-		fprintf(stderr, "Not enough memory\n");
+		perror("asprintf");
 		goto out_free;
 	}
-
-	res = mount("overlay", GOBO_INDEX_DIR, "overlay",
-			MS_MGC_VAL | MS_RDONLY, lower);
-	if (res != 0) {
-		fprintf(stderr, "Failed to mount overlayfs\n");
-		debug_printf("%s\n", lower);
-	}
+	res = mount_overlay_dirs(mergedirs, GOBO_INDEX_DIR);
 out_free:
 	if (programdir) { free(programdir); }
 	if (mergedirs_program) { free(mergedirs_program); }
 	if (mergedirs_user) { free(mergedirs_user); }
+	if (mergedirs) { free(mergedirs); }
 	if (fname) { free(fname); }
-	if (lower) { free(lower); }
 	return res;
 }
 
@@ -626,7 +697,7 @@ main(int argc, char *argv[])
 
 	if ((uid > 0) && (uid == euid)) {
 		fprintf(stderr, "This program needs its suid bit to be set\n");
-		goto fallback;
+		return 1;
 	}
 
 	child_argv = parse_arguments(argc, argv);
