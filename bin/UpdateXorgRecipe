@@ -7,8 +7,11 @@
 # 
 
 import os
+import ssl
 import glob
 import urllib
+import subprocess
+from GuessLatest import *
 
 # Global settings
 g_IncludeReleaseCandidates = False
@@ -101,7 +104,8 @@ class XorgModule :
 
 	def parse(self) :
 		print "Parsing the URL for Xorg module %s" %self.module
-		result = urllib.urlopen(self.baseuri + '/' + self.module)
+		sslctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+		result = urllib.urlopen(self.baseuri + '/' + self.module, context=sslctx)
 		for line in result.readlines() :
 			data = line.split("href=")
 			if not data or len(data) < 2 :
@@ -185,10 +189,16 @@ class Recipe :
 	def __init__(self, name, version, url) :
 		self.name = name
 		self.version = version
+		self.currentVersion = 0
 		self.url = url
 		self.localrecipes = g_goboFiles + "/Compile/LocalRecipes"
 
 	def exists(self) :
+		newver = str(self.version)
+		curver = str(self.currentVersion)
+		if GuessLatest([newver, curver]) == curver:
+			print "Recipe for %s is already up to date" %(self.name)
+			return True
 		recipes = glob.glob(self.localrecipes + "/*")
 		for r in recipes :
 			rname = r[len(self.localrecipes)+1:]
@@ -239,9 +249,23 @@ class Recipe :
 			self.appendPartOf(thisRecipe, metarecipeNames[0])
 
 	def checkout(self) :
-		cmd = "EditRecipe --no-edit %s" %self.name
-		return os.system(cmd)
+		cmd = "GetRecipe %s" %self.name
+		p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		recipedir = p.stdout.readline().strip("\n")
+		p.wait()
+		if len(recipedir) > 0 and os.path.exists(recipedir) :
+			self.currentVersion = os.path.basename(recipedir)
+			if GuessLatest([str(self.version), self.currentVersion]) == self.currentVersion :
+				# Recipe is already up to date
+				return 0
 
+		cmd = "EditRecipe --no-edit %s" %self.name
+		p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		recipedir = p.stdout.readline().strip("\n")
+		p.wait()
+		if len(recipedir) > 0 and os.path.exists(recipedir) :
+			self.currentVersion = os.path.basename(recipedir)
+		return p.returncode
 
 class MetaRecipe :
 	def __init__(self, name, version) :
@@ -269,20 +293,37 @@ class MetaRecipe :
 
 	def _updateRecipe(self, recipe) :
 		print "Updating %s" %recipe
+		padding = " " * 4
 		f = open(recipe, "r")
 		newf = open(recipe + ".new", "w")
+		newf.write("include=(\n")
+		tarballs = self.latestTarballs.copy()
 		for line in f.readlines() :
+			line = line.replace("\t", padding)
+			commentedOut = line.strip().find("#") == 0
 			if line.find("--") > 0 :
-				pkgName = line.strip().split("--")[0]
+				pkgName = line.strip().split("--")[0].split()[-1]
 				pkgVersion = line.strip().split("--")[1]
-				padding = line[0:line.find(pkgName)]
-				if self.latestTarballs.has_key(pkgName) :
-					newVersion = self.latestTarballs[pkgName][0]
+				if not commentedOut and tarballs.has_key(pkgName) :
+					newVersion = tarballs[pkgName][0]
 					newf.write("%s%s--%s\n" %(padding, pkgName, newVersion))
+					del tarballs[pkgName]
+				elif commentedOut and tarballs.has_key(pkgName) :
+					newVersion = tarballs[pkgName][0]
+					newf.write(line.replace(pkgVersion, newVersion))
+					del tarballs[pkgName]
 				else :
 					newf.write(line)
-			else :
+			elif line.find("#") >= 0 :
+				# Preserve all kind of comments
 				newf.write(line)
+		# Append packages that were not previously part of the meta-recipe
+		if len(tarballs) > 0 :
+			newf.write("%s# --- New packages added by UpdateXorgRecipe ---\n" %padding)
+			for pkgName in sorted(tarballs.keys()) :
+				pkgVersion = tarballs[pkgName][0]
+				newf.write("%s%s--%s\n" %(padding, pkgName, pkgVersion))
+		newf.write(")\n")
 		newf.close()
 		f.close()
 		os.rename(recipe + ".new", recipe)

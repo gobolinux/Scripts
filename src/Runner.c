@@ -45,14 +45,46 @@
 #define GOBO_PROGRAMS_DIR "/Programs"
 
 #define debug_printf(msg...) if (args.verbose) fprintf(stderr, msg)
+#define error_printf(fun, msg) fprintf(stderr, "Error:%s: %s at %s:%d\n", #fun, msg, __FILE__, __LINE__)
+
+#define ERR_LEN 255
+#define CHECK(x, use_perror) do { \
+    int retval = (x); \
+    char err_msg[ERR_LEN] = "Unexpected error"; \
+    if (retval) { \
+        if (use_perror) { \
+            strncpy(err_msg, strerror(errno), ERR_LEN); \
+        } \
+        else { \
+            switch(retval) { \
+                case ERR_OUTMEMORY: \
+                    strncpy(err_msg, "Not enough memory", ERR_LEN); \
+                    break; \
+            } \
+        } \
+        error_printf(x, err_msg); \
+        exit(retval); \
+    } \
+} while (0)
+
+#define ERR_OUTMEMORY         1      /* Out of memory */
+#define ERR_NOEXECUTABLE      2      /* No executable */
+#define ERR_NOSANDBOX         3      /* No sandbox available */
+#define ERR_MNT_NAMESPACE     4      /* Error creating mount namespace */
+#define ERR_MNT_OVERLAY       5      /* Error mounting overlay fs */
+#define ERR_BAD_ARGS          6      /* Bad arguments */
 
 struct runner_args {
 	bool quiet;                /* Run in quiet mode? */
 	bool verbose;              /* Run in verbose mode? */
+	bool check;                /* Run in check mode? */
+	bool fallback;             /* Run in fallback mode if sandbox is not available */
 	const char *executable;    /* Executable to run */
 	const char **dependencies; /* NULL-terminated */
+	char **arguments;          /* Arguments to pass to executable */
 };
 static struct runner_args args;
+
 
 /**
  * compare_kernel_versions:
@@ -297,20 +329,20 @@ create_mount_namespace()
 
 	mount_count = 0;
 	res = mount(GOBO_INDEX_DIR, GOBO_INDEX_DIR,
-				 NULL, MS_PRIVATE, NULL);
+				NULL, MS_PRIVATE, NULL);
 	debug_printf("mount(private) = %d\n", res);
 	if (res != 0 && errno == EINVAL) {
 		/* Maybe if failed because there is no mount
 		 * to be made private at that point, lets
 		 * add a bind mount there. */
 		res = mount(GOBO_INDEX_DIR, GOBO_INDEX_DIR,
-					 NULL, MS_BIND, NULL);
+					NULL, MS_BIND, NULL);
 		debug_printf("mount(bind) = %d\n", res);
 		/* And try again */
 		if (res == 0) {
 			mount_count++; /* Bind mount succeeded */
 			res = mount(GOBO_INDEX_DIR, GOBO_INDEX_DIR,
-						 NULL, MS_PRIVATE, NULL);
+						NULL, MS_PRIVATE, NULL);
 			debug_printf("mount(private) = %d\n", res);
 		}
 	}
@@ -380,6 +412,87 @@ out_free:
 	return mergedirs;
 }
 
+static int
+make_path(const char *namestart, const char *subdir, char *out)
+{
+	struct stat statbuf;
+	const char *nameend;
+	int res;
+
+	/* non-empty strings returned by prepare_merge_string() always terminate with ":" */
+	nameend = strchr(namestart, ':');
+	sprintf(out, "%.*s/%s", nameend-namestart, namestart, subdir);
+	if (stat(out, &statbuf) != 0) {
+		*out = '\0';
+		return 0;
+	}
+	res = strlen(out);
+	out[res] = ':';
+	return res+1;
+}
+
+static int
+mount_overlay_dirs(const char *mergedirs, const char *mountpoint)
+{
+	const char *dir[] = {"bin", "include", "lib", "libexec", "share", NULL};
+	const char *link_src[] = {"sbin", "lib64", NULL};
+	const char *link_target[] = {"bin", "lib", NULL};
+	const char *dirptr;
+
+	char *lower, mp[strlen(mountpoint)+strlen("libexec")+2];
+	int i, res, lower_idx = 0, dircount = 0;
+	size_t lower_size = 0;
+
+	for (i=0; i<strlen(mergedirs); ++i)
+		if (mergedirs[i] == ':')
+			dircount++;
+
+	lower_size = strlen("lowerdir=") + strlen(mergedirs) + dircount *(strlen("libexec")+1) + 1;
+	lower_size += strlen(mountpoint) + strlen("libexec") + 2;
+	lower = (char *) malloc(lower_size * sizeof(char));
+	if (! lower) {
+		perror("calloc");
+		return -ENOMEM;
+	}
+	/* Mount directories from dir[] as overlays on /System/Index/@dir */
+	for (i=0; dir[i]; ++i) {
+		sprintf(lower, "lowerdir=");
+		for (lower_idx=strlen(lower), dirptr=mergedirs; dirptr; dirptr=strchr(dirptr, ':')) {
+			if (dirptr != mergedirs) { dirptr++; }
+			if (strlen(dirptr)) { lower_idx += make_path(dirptr, dir[i], &lower[lower_idx]); }
+		}
+		if (lower_idx != strlen(lower)) {
+			sprintf(mp, "%s/%s", mountpoint, dir[i]);
+			sprintf(&lower[lower_idx], "%s", mp);
+			res = mount("overlay", mp, "overlay", MS_MGC_VAL | MS_RDONLY, lower);
+			if (res != 0)
+				goto out_free;
+		}
+	}
+	/* Mount symlinks from link_src[] as overlays on /System/Index/@link_target */
+	for (i=0; link_src[i]; ++i) {
+		sprintf(lower, "lowerdir=");
+		for (lower_idx=strlen(lower), dirptr=mergedirs; dirptr; dirptr=strchr(dirptr, ':')) {
+			if (dirptr != mergedirs) { dirptr++; }
+			if (strlen(dirptr)) { lower_idx += make_path(dirptr, link_src[i], &lower[lower_idx]); }
+		}
+		if (lower_idx != strlen(lower)) {
+			sprintf(mp, "%s/%s", mountpoint, link_target[i]);
+			sprintf(&lower[lower_idx], "%s", mp);
+			res = mount("overlay", mp, "overlay", MS_MGC_VAL | MS_RDONLY, lower);
+			if (res != 0)
+				goto out_free;
+		}
+	}
+out_free:
+	if (res != 0) {
+		fprintf(stderr, "Failed to mount overlayfs\n");
+		debug_printf("%s\n", lower);
+	}
+	free(lower);
+	return res;
+}
+
 /**
  * mount_overlay:
  */
@@ -392,7 +505,7 @@ mount_overlay()
 	int merge_len = 0;
 	char *mergedirs_user = NULL;
 	char *mergedirs_program = NULL;
-	char *lower = NULL;
+	char *mergedirs = NULL;
 	struct stat statbuf;
 
 	for (i=0; args.dependencies[i]; ++i) {
@@ -447,37 +560,27 @@ mount_overlay()
 		fname = NULL;
 	}
 
-	/* Safeguard againt the case where only one path is set for lowerdir.
-	 * Overlayfs doesn't like that, so we always set the root path as a
-	 * source too. */
-	res = asprintf(&lower, "lowerdir=%s%s%s",
+	res = asprintf(&mergedirs, "%s%s",
 			mergedirs_user ? mergedirs_user : "",
-			mergedirs_program ? mergedirs_program : "",
-			GOBO_INDEX_DIR);
+			mergedirs_program ? mergedirs_program : "");
 	if (res < 0) {
-		fprintf(stderr, "Not enough memory\n");
+		perror("asprintf");
 		goto out_free;
 	}
-
-	res = mount("overlay", GOBO_INDEX_DIR, "overlay",
-			MS_MGC_VAL | MS_RDONLY, lower);
-	if (res != 0) {
-		fprintf(stderr, "Failed to mount overlayfs\n");
-		debug_printf("%s\n", lower);
-	}
+	res = mount_overlay_dirs(mergedirs, GOBO_INDEX_DIR);
 out_free:
 	if (programdir) { free(programdir); }
 	if (mergedirs_program) { free(mergedirs_program); }
 	if (mergedirs_user) { free(mergedirs_user); }
+	if (mergedirs) { free(mergedirs); }
 	if (fname) { free(fname); }
-	if (lower) { free(lower); }
 	return res;
 }
 
 /**
  * update_env_var_list:
  */
-static void
+static int
 update_env_var_list(const char *var, const char *item)
 {
 	const char *env;
@@ -490,12 +593,14 @@ update_env_var_list(const char *var, const char *item)
 	} else {
 		ret = asprintf(&value, "%s:%s", item, env);
 		if (ret <= 0) {
-			fprintf(stderr, "Out of memory!\n");
+			return ERR_OUTMEMORY;
 		} else {
 			setenv(var, value, 1);
 			free(value);
 		}
 	}
+
+	return 0;
 }
 
 void
@@ -506,13 +611,15 @@ show_usage_and_exit(char *exec, int err)
 	"dependencies extracted from the program's Resources/Dependencies and/or\n"
 	"from the given dependencies file(s).\n"
 	"\n"
-	"Syntax: %s [options] <command>\n"
+	"Syntax: %s [options] <command> [arguments]\n"
 	"\n"
 	"Available options are:\n"
 	"  -d, --dependencies=FILE   Path to GoboLinux Dependencies file to use\n"
 	"  -h, --help                This help\n"
 	"  -q, --quiet               Don't warn on bogus dependencies file(s)\n"
 	"  -v, --verbose             Run in verbose mode\n"
+	"  -c, --check               Check if Runner can be used in this system\n"
+	"  -f, --fallback            Run the command without the sandbox in case this is not available\n"
 	"\n", exec);
 	exit(err);
 }
@@ -520,18 +627,19 @@ show_usage_and_exit(char *exec, int err)
 /**
  * parse_arguments:
  */
-char **
+int
 parse_arguments(int argc, char *argv[])
 {
 	struct option long_options[] = {
 		{"dependencies",  required_argument, 0,  'd'},
 		{"help",          no_argument,       0,  'h'},
 		{"quiet",         no_argument,       0,  'q'},
+		{"check",         no_argument,       0,  'c'},
+		{"fallback",      no_argument,       0,  'f'},
 		{"verbose",       no_argument,       0,  'v'},
 		{0,               0,                 0,   0 }
 	};
-	const char *short_options = "+d:hqv";
-	char **child_argv;
+	const char *short_options = "+d:hcqvf";
 	bool valid = true;
 	int next = optind;
 	int num_deps = 0;
@@ -547,19 +655,21 @@ parse_arguments(int argc, char *argv[])
 			break;
 		else if (c == 'd')
 			num_deps++;
-		else if (!(c == 'h' || c == 'q' || c == 'v'))
+		else if (!(c == 'h' || c == 'q' || c == 'c' || c == 'f' || c == 'v'))
 			valid = false;
 	}
 
 	/* Default values */
-	args.quiet = false;
+	args.check = false;
 	args.verbose = false;
+	args.quiet = false;
+	args.fallback = false;
 	args.executable = NULL;
+	args.arguments = NULL;
+
 	args.dependencies = (const char **) calloc(num_deps+1, sizeof(char *));
-	if (! args.dependencies) {
-		perror("calloc");
-		return NULL;
-	}
+	if (! args.dependencies)
+		return ERR_OUTMEMORY;
 
 	optind = 1;
 	while (valid) {
@@ -579,6 +689,12 @@ parse_arguments(int argc, char *argv[])
 			case 'v':
 				args.verbose = true;
 				break;
+			case 'f':
+				args.fallback = true;
+				break;
+			case 'c':
+				args.check = true;
+				break;
 			case '?':
 			default:
 				valid = false;
@@ -588,29 +704,44 @@ parse_arguments(int argc, char *argv[])
 			next = optind;
 	}
 
-	if (args.quiet && args.verbose) {
-		fprintf(stderr, "Error: --quiet and --verbose are mutually exclusive\n");
-		return NULL;
-	}
-
 	optind = next;
 	if (optind < argc) {
 		int i, num = argc - optind + 1;
-		child_argv = calloc(num, sizeof(char *));
-		if (child_argv == NULL) {
-			fprintf(stderr, "Out of memory!\n");
-			return NULL;
-		}
+		args.arguments = calloc(num, sizeof(char *));
+		if (args.arguments == NULL)
+			return ERR_OUTMEMORY;
 		for (i = optind; i < argc; i++)
-			child_argv[i-optind] = argv[i];
+			args.arguments[i-optind] = argv[i];
 		args.executable = argv[optind];
-		return child_argv;
-	} else {
-		fprintf(stderr, "Error: no executable was specified.\n\n");
-		show_usage_and_exit(argv[0], 1);
 	}
-	/* Should be never reached */
-	return NULL;
+
+	return 0;
+}
+
+/**
+ * Checks if the sandbox execution model can be constructed
+ */
+bool check_availability()
+{
+	uid_t uid = getuid(), euid = geteuid();
+	struct utsname uts_data;
+	bool is_available=true;	
+
+	// Check uid
+	if ((uid >0) && (uid == euid)) {
+		debug_printf("This program needs its suid bit to be set.\n");
+		is_available = false;
+	}
+
+	// Check kernel version
+	uname(&uts_data);
+	if (compare_kernel_versions("4.0", uts_data.release) > 0) {
+		debug_printf("Running on Linux %s. At least Linux 4.0 is needed.\n",
+			uts_data.release);;
+		is_available = false;
+	}
+
+	return is_available;
 }
 
 /**
@@ -620,48 +751,58 @@ int
 main(int argc, char *argv[])
 {
 	int ret = 1;
-	struct utsname uts_data;
-	char **child_argv = NULL;
-	uid_t uid = getuid(), euid = geteuid();
+	int available = 1;
 
-	if ((uid > 0) && (uid == euid)) {
-		fprintf(stderr, "This program needs its suid bit to be set\n");
-		goto fallback;
+	CHECK(parse_arguments(argc, argv), NULL);
+
+	if (args.quiet && args.verbose) {
+		error_printf(main, "--quiet and --verbose are mutually exclusive");
+		exit(ERR_BAD_ARGS);
 	}
 
-	child_argv = parse_arguments(argc, argv);
-	if (! child_argv)
-		return 1;
+	// Check if sandbox is available it this system
+	available = check_availability(&args);
 
-	uname(&uts_data);
-	if (compare_kernel_versions("4.0", uts_data.release) > 0) {
-		fprintf(stderr, "Running on Linux %s. At least Linux 4.0 is needed.\n",
-				uts_data.release);
-		goto fallback;
+	// Check mode?
+	if (args.check == 1) {
+		exit(!available);
 	}
 
-	ret = create_mount_namespace();
-	if (ret > 0)
-		goto fallback;
+	// Do we have an executable?
+	if (args.executable == NULL) {
+		error_printf(main, "no executable was specified");
+		exit(ERR_NOEXECUTABLE);
+	}
 
-	ret = mount_overlay();
-	if (ret != 0)
-		goto fallback;
+	// Can we run a sandbox?
+	if (!available) {
+		if (!args.fallback) {
+			error_printf(main, "Sandbox is not available, use -f for fallback mode");
+			exit(ERR_NOSANDBOX);
+		}
+	} else {
+		ret = create_mount_namespace();
+		if (ret > 0) 
+				exit(ERR_MNT_NAMESPACE);
 
-fallback:
+		ret = mount_overlay(&args);
+		if (ret != 0)
+				exit(ERR_MNT_OVERLAY);
+	}
+
 	/* Now we have everything we need CAP_SYS_ADMIN for, so drop setuid */
-	setuid(getuid());
+	CHECK(setuid(getuid()), true);
 
 	setenv("GOBOLINUX_RUNNER", "1", 1);
 
 	/* add generic library path */
-	update_env_var_list("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib");
-	update_env_var_list("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib64");
+	CHECK(update_env_var_list("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib"), false);
+	CHECK(update_env_var_list("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib64"), false);
 
 	/* add generic binary directory to PATH */
-	update_env_var_list("PATH", GOBO_INDEX_DIR "/bin");
+	CHECK(update_env_var_list("PATH", GOBO_INDEX_DIR "/bin"), false);
 
-	ret = execvp(args.executable, child_argv);
+	ret = execvp(args.executable, args.arguments);
 	perror(args.executable);
 	return ret;
 }
