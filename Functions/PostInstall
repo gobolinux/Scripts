@@ -10,6 +10,7 @@ function Cleanup_LeftOvers() {
       Quiet pushd "$sandbox_rw"
       rmdir --ignore-fail-on-non-empty ./dev
       rmdir --ignore-fail-on-non-empty ./proc
+      rmdir --ignore-fail-on-non-empty ./run
       Quiet popd
    fi
 }
