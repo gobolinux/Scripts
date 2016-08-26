@@ -1,0 +1,20 @@
+#!/bin/bash (source)
+
+export logMode="Terse"
+export logLevel=${logLevelTerse}
+
+eval "exec $questionFD>&-"
+eval "exec $verboseFD>&-"
+eval "exec $normalFD>&-"
+eval "exec $terseFD>&-"
+eval "exec $errorFD>&-"
+eval "exec $debugFD>&-"
+eval "exec $logFD>&-"
+
+eval "exec $questionFD<&2"
+eval "exec $verboseFD>/dev/null"
+eval "exec $normalFD>/dev/null"
+eval "exec $terseFD<&2"
+eval "exec $errorFD<&2"
+eval "exec $debugFD>/dev/null"
+eval "exec $logFD>${logfile}"
