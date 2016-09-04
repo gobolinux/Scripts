@@ -88,7 +88,11 @@ if __name__ == '__main__':
         exit(1)
     mode = sys.argv[1]
     prog = sys.argv[2]
-    alientype, alienpkg = split(prog)
+    try:
+        alientype, alienpkg = split(prog)
+    except ValueError:
+        print "Error: missing program name"
+        exit(1)
     args = ['Alien-' + alientype, mode, alienpkg] + sys.argv[3:]
     exit(subprocess.call(args))
-    
+

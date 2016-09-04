@@ -1,0 +1,19 @@
+#!/bin/bash (source)
+
+export logMode="Debug"
+export logLevel=${logLevelDebug}
+eval "exec $questionFD>&-"
+eval "exec $verboseFD>&-"
+eval "exec $normalFD>&-"
+eval "exec $terseFD>&-"
+eval "exec $errorFD>&-"
+eval "exec $debugFD>&-"
+eval "exec $logFD>&-"
+
+eval "exec $questionFD<&2"
+eval "exec $verboseFD<&2"
+eval "exec $normalFD<&2"
+eval "exec $terseFD<&2"
+eval "exec $errorFD<&2"
+eval "exec $debugFD<&2"
+eval "exec $logFD>${logfile}"
