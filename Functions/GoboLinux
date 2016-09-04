@@ -63,7 +63,7 @@ function Gen_Env_Cache() {
 
 # Creates links from one directory into another.
 function Link_Directory() {
-   Parameters "$@" from to relative overwrite
+   Parameters "$@" from to relative overwrite nofollow
    local rfrom here j
 
    rfrom=`readlink -f "$from"`
@@ -76,7 +76,7 @@ function Link_Directory() {
 
       if [ -n "$(type -p LinkOrExpandAll)" ]
       then
-         LinkOrExpandAll "$rfrom" "$overwrite" "$relative"
+         LinkOrExpandAll "$rfrom" "$overwrite" "$relative" "$nofollow"
       else
          Log_Error "LinkOrExpandAll not found.  Fallback to python code."
          Boolean "relative" && relative="True" || relative="False"         

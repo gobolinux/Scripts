@@ -26,6 +26,7 @@ Add_Option_Entry "t" "tasks" "Link tasks into ${goboExecutables}." "yes" "yes no
 Add_Option_Entry "x" "libexec" "Link libexec into ${goboIndex}." "yes" "yes no safe"
 Add_Option_Entry "u" "unmanaged" "Defines what to do with unmanaged files in package." "ask" "ask install skip"
 Add_Option_Boolean "E" "no-environment" "Do not link entries from ${goboEnvironment}."
+Add_Option_Boolean "F" "no-follow" "Do not follow symbolic links."
 Add_Option_Boolean "R" "no-requirements" "Do not process Resources/Requirements."
 Add_Option_Boolean "A" "no-variable" "Do not move variable files into ${goboVariable}."
 Add_Option_Boolean "M" "no-doc" "Do not link manuals and info files."
@@ -58,6 +59,7 @@ then
 fi
 Boolean "relative" && symlinkrelative="--relative" || symlinkrelative=""
 [ "${conflict}" == "overwrite" ] && symlinkoverwrite="--overwrite" || symlinkoverwrite=""
+Boolean "no-follow" && symlinknofollow="--no-follow" || symlinknofollow=""
 
 ################################################################################
 
@@ -168,7 +170,7 @@ fi
 if [ "$linksettings" != "no" ]
 then
    Log_Normal "Symlinking global settings..."
-   Link_Directory "$packageDir/Settings" "$goboSettings" "${symlinkrelative}" "${symlinkoverwrite}"
+   Link_Directory "$packageDir/Settings" "$goboSettings" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
 fi
 
 ################################################################################
@@ -176,7 +178,7 @@ fi
 if [ "$linktasks" != "no" ]
 then
    Log_Normal "Symlinking tasks..."
-   Link_Directory "$current/Resources/Tasks" "$goboTasks" "${symlinkrelative}" "${symlinkoverwrite}"
+   Link_Directory "$current/Resources/Tasks" "$goboTasks" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
 fi
 
 ################################################################################
@@ -204,7 +206,7 @@ fi
 if [ "$linklibraries" != "no" ] 
 then
    Log_Normal "Symlinking libraries..."
-   Link_Directory "$current/lib" "$goboLibraries"  "${symlinkrelative}" "${symlinkoverwrite}" && {
+   Link_Directory "$current/lib" "$goboLibraries"  "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}" && {
       Is_Real_Nonempty_Directory "${current}/lib/gtk-2.0" && Rebuild_GDK_Pixbuf_Loaders
       Log_Normal "Updating library database (ldconfig)..."
       [ -x "$goboPrograms/Glibc/Current/sbin/ldconfig" ] && Quiet "$goboPrograms/Glibc/Current/sbin"/ldconfig || Quiet ldconfig
@@ -226,7 +228,7 @@ fi
 if [ "$linkheaders" != "no" ]
 then
    Log_Normal "Symlinking headers..."
-   Link_Directory "$current/include" "$goboHeaders" "${symlinkrelative}" "${symlinkoverwrite}"
+   Link_Directory "$current/include" "$goboHeaders" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
 fi
 
 ################################################################################
@@ -235,7 +237,7 @@ if ! Boolean "no-doc"
 then
    Log_Normal "Symlinking info..."
    Quiet rm -- "$current/info/dir"
-   Link_Directory "$current/info" "$goboManuals/info" "${symlinkrelative}" "${symlinkoverwrite}"
+   Link_Directory "$current/info" "$goboManuals/info" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
    Log_Normal "Updating info dir..."
    for f in `ls -1 "${current}/info/" 2> /dev/null | grep "[^0-9]$" | sed 's%.*/%%g'`
    do
@@ -248,25 +250,25 @@ then
    # SymlinkManuals
    if Dir_Set Manuals
    then
-      Link_Directory "$current/man/man0" "$goboManuals/man0" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/man/man1" "$goboManuals/man1" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/man/man2" "$goboManuals/man2" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/man/man3" "$goboManuals/man3" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/man/man4" "$goboManuals/man4" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/man/man5" "$goboManuals/man5" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/man/man6" "$goboManuals/man6" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/man/man7" "$goboManuals/man7" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/man/man8" "$goboManuals/man8" "${symlinkrelative}" "${symlinkoverwrite}"
+      Link_Directory "$current/man/man0" "$goboManuals/man0" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/man/man1" "$goboManuals/man1" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/man/man2" "$goboManuals/man2" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/man/man3" "$goboManuals/man3" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/man/man4" "$goboManuals/man4" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/man/man5" "$goboManuals/man5" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/man/man6" "$goboManuals/man6" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/man/man7" "$goboManuals/man7" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/man/man8" "$goboManuals/man8" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
    else
-      Link_Directory "$current/share/man/man0" "$goboManuals/man0" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/share/man/man1" "$goboManuals/man1" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/share/man/man2" "$goboManuals/man2" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/share/man/man3" "$goboManuals/man3" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/share/man/man4" "$goboManuals/man4" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/share/man/man5" "$goboManuals/man5" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/share/man/man6" "$goboManuals/man6" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/share/man/man7" "$goboManuals/man7" "${symlinkrelative}" "${symlinkoverwrite}"
-      Link_Directory "$current/share/man/man8" "$goboManuals/man8" "${symlinkrelative}" "${symlinkoverwrite}"
+      Link_Directory "$current/share/man/man0" "$goboManuals/man0" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/share/man/man1" "$goboManuals/man1" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/share/man/man2" "$goboManuals/man2" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/share/man/man3" "$goboManuals/man3" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/share/man/man4" "$goboManuals/man4" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/share/man/man5" "$goboManuals/man5" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/share/man/man6" "$goboManuals/man6" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/share/man/man7" "$goboManuals/man7" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+      Link_Directory "$current/share/man/man8" "$goboManuals/man8" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
    fi   
    cd "$current"
 fi
@@ -276,8 +278,8 @@ fi
 if [ "$linkexecutables" != "no" ]
 then
    Log_Normal "Symlinking executables..."
-   Link_Directory "$current/bin" "$goboExecutables" "${symlinkrelative}" "${symlinkoverwrite}"
-   Link_Directory "$current/sbin" "$goboExecutables" "${symlinkrelative}" "${symlinkoverwrite}"
+   Link_Directory "$current/bin" "$goboExecutables" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+   Link_Directory "$current/sbin" "$goboExecutables" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
 fi
 
 if [ "$linkwrappers" != "no" ]
@@ -287,7 +289,7 @@ then
    if [ -d "$wrapdir" ]
    then
       chmod +x "$wrapdir"/*
-      Link_Directory "$wrapdir" "$goboExecutables" "${symlinkrelative}" "${symlinkoverwrite}"
+      Link_Directory "$wrapdir" "$goboExecutables" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
    fi
 fi
 
@@ -296,7 +298,7 @@ fi
 if [ "$linklibexec" != "no" ]
 then
    Log_Normal "Symlinking libexec.."
-   Link_Directory "$current/libexec" "$goboIndex/libexec" "${symlinkrelative}" "${symlinkoverwrite}"
+   Link_Directory "$current/libexec" "$goboIndex/libexec" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
 fi
 
 ################################################################################
@@ -307,7 +309,7 @@ then
    if [ "$goboIndex" ]
    then
       Log_Normal "Symlinking shared..."
-      Link_Directory "$current/share" "$goboShared" "${symlinkrelative}" "${symlinkoverwrite}"
+      Link_Directory "$current/share" "$goboShared" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
    else
       Log_Normal "Symlinking shared..."
       cd "$current"
@@ -331,7 +333,7 @@ then
                Quiet ln -snf "$goboShared" share
             fi
          fi
-         Link_Directory "$current/Shared" "$goboShared" "${symlinkrelative}" "${symlinkoverwrite}"
+         Link_Directory "$current/Shared" "$goboShared" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
       fi
       if ! Is_Real_Directory "Shared" && Is_Link "share"
       then
