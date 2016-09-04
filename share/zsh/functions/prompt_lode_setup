@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-prompt_lode_help () {
+prompt_lode_help() {
   cat <<EOF
 This prompt is color-scheme-able.  You can invoke it thus:
 
@@ -8,23 +8,47 @@ This prompt is color-scheme-able.  You can invoke it thus:
 
 where the color is for the right-hand prompt.
 
-This prompt was stolen from Colin Walters <lode@debian.org>,
+This prompt was written by Hisham Muhammad <hisham@gobolinux>,
+based on 'walters', stolen from Colin Walters <walters@debian.org>,
 who gives credit to Michel Daenzer <daenzer@debian.org>.
 EOF
 }
 
-prompt_lode_setup () {
-if [[ "$TERM" != "dumb" ]]; then
+prompt_lode_precmd() {
    local set_title=""
    local reset_term=$'\017'
    if [[ "$DISPLAY" != "" ]] ; then
       set_title=$'\033]0;%3~\033\\'
    fi
-   export PROMPT="%{$reset_term$set_title$fg[${1:-cyan}]%}%n%B@%b%{$fg[${1:-cyan}]%}%m %B%5~]%b%{$reset_color%}"
-else
-   export PROMPT="%n%B@%b%m %B%~]%b"
-fi
+   vcs=""
+   vcs_info
+   if [[ -n "$vcs_info_msg_0_" ]]
+   then
+      vcs="%{$lode_vcs%}$vcs_info_msg_0_%{$lode_fg%} "
+   fi
+   export PROMPT="%{$reset_term$set_title$lode_fg%}%n%B@%b%{$lode_fg%}%m $vcs%B%5~]%b%{$reset_color%}"
+}
 
+prompt_lode_setup () {
+   if [[ "$TERM" == "dumb" ]]; then
+      export PROMPT="%n%B@%b%m %B%~]%b"
+      return
+   fi
+
+   autoload -Uz add-zsh-hook
+   autoload -Uz vcs_info
+   
+   lode_fg=$fg[${1:-cyan}]
+   lode_vcs="%F{${2:-yellow}}"
+   
+   zstyle ':vcs_info:*' enable git svn hg
+   zstyle ':vcs_info:*' get-revision true
+   zstyle ':vcs_info:*' check-for-changes true
+   zstyle ':vcs_info:*' stagedstr '%F{green}+'
+   zstyle ':vcs_info:*' unstagedstr '%F{red}*'
+   zstyle ':vcs_info:*' formats '%b%c%u'
+
+   add-zsh-hook precmd prompt_lode_precmd
 }
 
 prompt_lode_setup "$@"
