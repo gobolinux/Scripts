@@ -37,9 +37,12 @@ url.close()
    '
 }
 
+source GoboPath
+
 install() {
    module="$1"
-   echo "force install $1" | perl -MCPAN -e "shell"
+   #echo "force install $1" | perl -MCPAN -e "shell"
+   cpan -j "$goboSystem/Aliens/CPAN/.cpan/CPAN//MyConfig.pm" "$1"
 }
 
 command="$1"
@@ -70,7 +73,7 @@ case "$command" in
       exit 0
       ;;
    --have-manager)
-      getversion CPANPLUS > /dev/null 2>&1 || exit 1
+      getversion CPAN > /dev/null 2>&1 || exit 1
       ;;
    --get-manager-rule)
       echo "Perl >= 5.10.1"
