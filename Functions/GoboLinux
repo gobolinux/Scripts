@@ -71,7 +71,13 @@ function Link_Directory() {
    if ! Is_Empty_Directory "$rfrom"
    then
       here=`readlink -f "$to"`
-      [ -d "$here" ] || mkdir "$here"
+      if [ -z "$here" ]
+      then
+         # Likely, we are bootstrapping GoboLinux and some path component under
+         # e.g., /System/Index/share has not been created yet.
+         here=`readlink -m "$to"`
+      fi
+      [ -d "$here" ] || mkdir -p "$here"
       Quiet pushd "$here"
 
       if [ -n "$(type -p LinkOrExpandAll)" ]
