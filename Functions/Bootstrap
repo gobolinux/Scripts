@@ -24,7 +24,8 @@ function Create_Filesystem_Tree() {
    variabledir="$filesdir/Variable"
    create_dir $root/System/Settings
    create_dir $root/System/Tasks
-   create_dir $root/System/Aliens/{CPAN,PIP}
+   create_dir $root/System/Aliens/CPAN
+   create_dir $root/System/Aliens/PIP
    create_dir $root/System/Environment
    create_dir $root/$variabledir/log
    create_dir $root/$variabledir/tmp 0 a+wt
