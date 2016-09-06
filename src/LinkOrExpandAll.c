@@ -19,6 +19,7 @@
 #include <dirent.h>
 #include <libgen.h>
 #include <assert.h>
+#include <errno.h>
 
 #ifndef OK
 #define OK 0
@@ -41,7 +42,10 @@ inline static void os_write(int fd, ...) {
    for(;;) {
       char* s = va_arg(ap, char*);
       if (!s) break;
-      write(fd, s, strlen(s));
+      if (write(fd, s, strlen(s)) < 0) {
+         perror("write");
+         break;
+      }
    }
 }
 
@@ -117,7 +121,7 @@ inline static void string_set(char* buffer, int len, ...) {
       char* s = va_arg(ap, char*);
       if (!s) break;
       int l = strlen(s);
-      snprintf(at, rest, s);
+      snprintf(at, rest, "%s", s);
       at += l;
       rest -= l;
    }
@@ -199,9 +203,11 @@ static void Link_Or_Expand(char* new);
 static char* points_to(char* p) {
    char points[PATH_MAX+1];
    if (access(p, R_OK) == OK) {
-      realpath(p, points);
+      if (realpath(p, points) == NULL)
+         return NULL;
    } else if (os_path_islink(p)) {
-      realpath(p, points);
+      if (realpath(p, points) == NULL)
+         return NULL;
       if (*points != '/') {
          char* dname = dirname(p);
          string_set(points, PATH_MAX, dname, '/', points);
@@ -215,7 +221,7 @@ static char* points_to(char* p) {
 
 static void link_inside(char* realnew, char* bn) {
    Log_Verbose("Linking files from '%s' in directory '%s'", realnew, bn);
-   chdir(bn);
+   assert(chdir(bn) == 0);
    os_dir dir = { .name = realnew };
    char* entry;
    while ((entry = os_listdir(&dir))) {
@@ -224,7 +230,7 @@ static void link_inside(char* realnew, char* bn) {
       Link_Or_Expand(buffer);
       free(entry);
    }
-   chdir("..");
+   assert(chdir("..") == 0);
 }
 
 static bool belongs_to_same_app(char* realold, char* realnew) {
@@ -276,9 +282,11 @@ static void create_single_link(char* src, char* dest) {
       assert(relativeGoboPrograms);
       if (!string_replace1(relativesrc, src, realpathGoboPrograms, relativeGoboPrograms, PATH_MAX))
          string_replace1(relativesrc, src, goboProgramsSansPrefix, relativeGoboPrograms, PATH_MAX);
-      symlink(relativesrc, dotdest);
+      if (symlink(relativesrc, dotdest) < 0)
+         Log_Error("Symlink %s -> %s: %s", relativesrc, dotdest, strerror(errno));
    } else {
-      symlink(src, dotdest);
+      if (symlink(src, dotdest) < 0)
+         Log_Error("Symlink %s -> %s: %s", src, dotdest, strerror(errno));
    }
 }
 
@@ -318,7 +326,10 @@ static void Link_Or_Expand(char* new) {
       }
       realold[0] = '\0';
    } else {
-      realpath(bn, realold);
+      if (realpath(bn, realold) == NULL) {
+         Log_Error("Realpath %s: %s", bn, strerror(errno));
+         goto leave;
+      }
    }
 
    // 1: new is a broken link
@@ -326,7 +337,12 @@ static void Link_Or_Expand(char* new) {
       // link it anyway, as it can become a valid link inside the chroot
       Log_Verbose("Creating (broken) link: %s", bn);
       char buf[PATH_MAX];
-      readlink(new, buf, sizeof(buf));
+      size_t n = readlink(new, buf, sizeof(buf));
+      if (n < 0) {
+         Log_Error("Readlink %s: %s", new, strerror(errno));
+         goto leave;
+      }
+      buf[n] = '\0';
       create_single_link(buf, bn);
       goto leave;
    }
@@ -372,7 +388,7 @@ static void Link_Or_Expand(char* new) {
       Log_Normal("Creating expanded directory '%s'...", bn);
       unlink(bn);
       mkdir(bn, 0777);
-      chdir(bn);
+      assert(chdir(bn) == 0);
       Log_Verbose("Linking files from '%s' in directory '%s'...", realold, bn);
       os_dir dir = { .name = realold };
       char* i;
@@ -384,7 +400,7 @@ static void Link_Or_Expand(char* new) {
          free(oldbn);
          free(i);
       }
-      chdir("..");
+      assert(chdir("..") == 0);
       link_inside(realnew, bn);
       goto leave;
    }
@@ -428,7 +444,10 @@ int main(int argc, char** argv) {
       exit(1);
    }
    goboPrefix = getenv("goboPrefix");
-   realpath(goboPrograms, realpathGoboPrograms);
+   if (realpath(goboPrograms, realpathGoboPrograms) == NULL) {
+      Log_Error("Realpath %s: %s", goboPrograms, strerror(errno));
+      exit(1);
+   }
    lenGoboPrograms = strlen(realpathGoboPrograms);
    // if goboPrograms ends with a '/'
    if (realpathGoboPrograms[lenGoboPrograms - 1] == '/')
