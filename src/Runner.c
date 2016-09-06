@@ -421,7 +421,7 @@ make_path(const char *namestart, const char *subdir, char *out, bool *found)
 
 	/* non-empty strings returned by prepare_merge_string() always terminate with ":" */
 	nameend = strchr(namestart, ':');
-	sprintf(out, "%.*s/%s", nameend-namestart, namestart, subdir);
+	sprintf(out, "%.*s/%s", (int)(nameend-namestart), namestart, subdir);
 	if (stat(out, &statbuf) != 0) {
 		*out = '\0';
 		return 0;
