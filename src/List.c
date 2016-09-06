@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <libgen.h>
 #include <limits.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -265,10 +266,18 @@ get_file_color(char *full_pathname, char *extension, char *color, int len, mode_
    else if (S_ISLNK(st_mode)) {
       char tmp_buffer[PATH_MAX], symlink_path[PATH_MAX];
       struct stat target_status;
-      
-      memset(tmp_buffer, 0, sizeof(tmp_buffer));
-      readlink(full_pathname, tmp_buffer, sizeof(tmp_buffer));
-      realpath(full_pathname, symlink_path);
+      ssize_t n;
+
+      n = readlink(full_pathname, tmp_buffer, sizeof(tmp_buffer));
+      if (n < 0) {
+         perror("readlink");
+         return;
+      }
+      full_pathname[n] = '\0';
+      if (realpath(full_pathname, symlink_path) == NULL) {
+         perror("realpath");
+         return;
+      }
 
       if (lstat(symlink_path, &target_status) < 0)
          snprintf(needle, len, "or");
@@ -291,7 +300,7 @@ get_file_color(char *full_pathname, char *extension, char *color, int len, mode_
       if (st_mode & S_IXUSR || st_mode & S_IXGRP || st_mode & S_IXOTH)
          snprintf(needle, len, "ex");
       else
-         snprintf(needle, len, extension);
+         snprintf(needle, len, "%s", extension);
    }
    
    else {
@@ -515,9 +524,16 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
          }
 
          if ((S_ISLNK(status.st_mode) && !opt_nolink)) {
-            memset(tmp_buffer, 0, sizeof(tmp_buffer));
-            readlink(full_pathname, tmp_buffer, sizeof(tmp_buffer));
-            realpath(full_pathname, symlink_path);
+            size_t n = readlink(full_pathname, tmp_buffer, sizeof(tmp_buffer));
+            if (n < 0) {
+               perror("readlink");
+               continue;
+            }
+            full_pathname[n] = '\0';
+            if (realpath(full_pathname, symlink_path) == NULL) {
+               perror("realpath");
+               continue;
+            }
             lstat(symlink_path, &target_status);
 
             get_file_extension(symlink_path, extension, sizeof(extension));
@@ -537,7 +553,7 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
          }
 
          if (S_ISCHR(status.st_mode) || S_ISBLK(status.st_mode)) {
-            fprintf(stdout, "%s%02d/%02d %02d:%02d %s%s %4lld:%3lld \033[%sm%s\n",
+            fprintf(stdout, "%s%02d/%02d %02d:%02d %s%s %" PRIu64 ":%3" PRIu64 "\033[%sm%s\n",
                COLOR_WHITE_CODE,
                time_info->tm_mday,
                time_info->tm_mon + 1,
@@ -650,10 +666,13 @@ list_entries(const char *path, long long *total, long *counter, long *hiddenfile
    int i, n, ret, len;
    char complete_path[PATH_MAX];
    struct dirent **namelist;
-    struct file_info *file_info;
+   struct file_info *file_info;
    
    /* scandir doesn't propagate the complete pathname */
-   realpath(path, complete_path);
+   if (realpath(path, complete_path) == NULL) {
+      perror("realpath");
+      return -1;
+   }
    current_dir = complete_path;
    
    if (opt_time) {
@@ -902,13 +921,13 @@ main(int argc, char **argv)
          default:
             printf("invalid option %d\n", c);
             usage(argv[0]);
-            return 1;
+            exit(1);
       }
     }
 
    if (opt_help) {
       usage(argv[0]);
-      return 0;
+      exit(0);
    }
     
    /* read $LS_COLORS from the environment */
@@ -924,12 +943,15 @@ main(int argc, char **argv)
       char curr_dir[PATH_MAX];
       
       got_statfs = 1;
-      getcwd(curr_dir, sizeof(curr_dir)); 
+      if (getcwd(curr_dir, sizeof(curr_dir)) != curr_dir) {
+         perror("getcwd");
+         exit(1);
+      }
       list_entries(curr_dir, &total, &counter, &hiddenfiles);
 
       if ((statfs(curr_dir, &status)) < 0) {
          fprintf(stderr, "statfs %s: %s\n", curr_dir, strerror(errno));
-         got_statfs = 0;
+         exit(1);
       }
 
    } else {
@@ -979,6 +1001,6 @@ main(int argc, char **argv)
    if (got_statfs)
       summarize(status, total, counter, hiddenfiles, 1);
    free(colors);
-    exit(EXIT_SUCCESS);
+   exit(EXIT_SUCCESS);
 }
 
