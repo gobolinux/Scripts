@@ -116,7 +116,8 @@ function Process_Requirements_File() {
          if [ "$gid" ]
          then
             Log_Normal "Adding group $group..."
-            $sudo_exec groupadd --gid $gid $group
+            [ -z "$goboPrefix" ] && optroot= || optroot="--root $goboPrefix"
+            $sudo_exec groupadd --gid $gid $optroot $group
             grep -q "^$group:" $goboSettings/group || Log_Error "Error adding group $group."
          fi
       done
@@ -145,7 +146,8 @@ function Process_Requirements_File() {
          grep -q "^$user:" "${goboSettings}/group" && maingroup="${user}"
          Log_Normal "Adding user $user..."
          [ -d "$homedir" ] && createhomedir= || createhomedir="-m"
-         useraddmsg=$($sudo_exec useradd --uid $uid -c "Added by $package $version" $createhomedir -d "$homedir" -s "$goboExecutables/nologin" ${maingroup:+-g "${maingroup}"} $user 2>&1)
+         [ -z "$goboPrefix" ] && optroot= || optroot="--root $goboPrefix"
+         useraddmsg=$($sudo_exec useradd --uid $uid -c "Added by $package $version" $createhomedir -d "$homedir" -s "$goboExecutables/nologin" $optroot ${maingroup:+-g "${maingroup}"} $user 2>&1)
          [ "$groups" ] && $sudo_exec usermod -a -G "$groups" "$user"
          grep -q "^$user:" $goboSettings/passwd || {
 	    Log_Error "Error adding user $user"
