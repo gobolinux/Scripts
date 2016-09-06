@@ -273,7 +273,7 @@ get_file_color(char *full_pathname, char *extension, char *color, int len, mode_
          perror("readlink");
          return;
       }
-      full_pathname[n] = '\0';
+      tmp_buffer[n] = '\0';
       if (realpath(full_pathname, symlink_path) == NULL) {
          perror("realpath");
          return;
@@ -529,7 +529,7 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
                perror("readlink");
                continue;
             }
-            full_pathname[n] = '\0';
+            tmp_buffer[n] = '\0';
             if (realpath(full_pathname, symlink_path) == NULL) {
                perror("realpath");
                continue;
