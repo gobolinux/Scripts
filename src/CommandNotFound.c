@@ -69,8 +69,10 @@ int binsearch(FILE * fp, char * target, int lo, int hi) {
 	// We're probably in the middle of a line, so discard it, then use
 	// the next, *unless* we're right at the start.
 	if (0 != mid) 
-		fgets(entry, BUFLEN, fp);
-	fgets(entry, BUFLEN, fp);
+		if (fgets(entry, BUFLEN, fp) != entry)
+			return 1;;
+	if (fgets(entry, BUFLEN, fp) != entry)
+		return 1;
 	executable = strtok(entry, " ");
 	int cmpval = strcmp(executable, target);
 	if (0 > cmpval)
@@ -161,7 +163,8 @@ void suggest_similar_uninstalled(char *target, char already[16][32], FILE *fp,
 	fseek(fp, 0, SEEK_SET);
 	//puts("a");
 	while (!feof(fp)) {
-		fgets(entry, BUFLEN, fp);
+		if (fgets(entry, BUFLEN, fp) != entry)
+			break;
 		executable = strtok(entry, " ");
 		d = damlev(target, executable);
 		if (d <= threshold) {
@@ -280,9 +283,9 @@ int main(int argc, char **argv) {
 	if (binsearch(fp, argv[1], 0, st.st_size)) {
 		// Not found, but check whether this was a versioned name,
 		// and try the bare executable if it was.
-		hyphenpos = (int) strrchr(argv[1], '-');
+		hyphenpos = (size_t) strrchr(argv[1], '-');
 		if (hyphenpos) {
-			hyphenpos-= (int) argv[1];
+			hyphenpos -= (size_t) argv[1];
 			strncpy(shortexec, argv[1], (size_t)hyphenpos);
 			shortexec[hyphenpos] = '\0';
 			if (binsearch(fp, shortexec, 0, st.st_size)) {
