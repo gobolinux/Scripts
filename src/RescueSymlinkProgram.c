@@ -1,4 +1,4 @@
-
+#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -49,8 +49,7 @@ void LinkIfExists(char* dir) {
          char* base = BaseName(item);
          unlink(base);
          errno = 0;
-         symlink(item, base);
-         if (errno) {
+         if (symlink(item, base) < 0) {
             fprintf(stderr, "RescueSymlinkProgram: ");
             perror(base);
          }
@@ -96,7 +95,7 @@ int main(int argc, char** argv) {
 
    path = StrCat(goboindex, "/bin");
    if (IsDir(path)) {
-      chdir(path);
+      assert(chdir(path) == 0);
       fprintf(stderr, "RescueSymlinkProgram: %s\n", path);
       LinkIfExists("/bin");
       LinkIfExists("/sbin");
@@ -106,7 +105,7 @@ int main(int argc, char** argv) {
 
    path = StrCat(goboindex, "/lib");
    if (IsDir(path)) {
-      chdir(path);
+      assert(chdir(path) == 0);
       fprintf(stderr, "RescueSymlinkProgram: %s\n", path);
       LinkIfExists("/lib");
    }
@@ -114,7 +113,7 @@ int main(int argc, char** argv) {
    
    path = StrCat(goboindex, "/libexec");
    if (IsDir(path)) {
-      chdir(path);
+      assert(chdir(path) == 0);
       fprintf(stderr, "RescueSymlinkProgram: %s\n", path);
       LinkIfExists("/libexec");
    }
@@ -122,7 +121,7 @@ int main(int argc, char** argv) {
 
    path = StrCat(goboindex, "/include");
    if (IsDir(path)) {
-      chdir(path);
+      assert(chdir(path) == 0);
       fprintf(stderr, "RescueSymlinkProgram: %s\n", path);
       LinkIfExists("/include");
    }
@@ -130,7 +129,7 @@ int main(int argc, char** argv) {
 
    path = StrCat(goboindex, "/../Settings");
    if (IsDir(path)) {
-      chdir(path);
+      assert(chdir(path) == 0);
       fprintf(stderr, "RescueSymlinkProgram: %s\n", path);
       /* The bash version added an extra readlink here to get rid
          of the .. in paths. We can live without this, can we? ;) */
