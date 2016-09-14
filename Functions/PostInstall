@@ -22,7 +22,7 @@ function Run_PostInstall() {
    unset chroot_cmd
    if [ "$chroot_dir" != "" ]
    then
-	  local chroot_cmd="chroot $chroot_dir"
+      local chroot_cmd="chroot $chroot_dir"
    fi
    local program_dir=`Get_Dir runtime "$app_name" "$app_ver"`
    local program_set=`Get_Dir runtimeSettings "$app_name" "$app_ver"`
