@@ -142,3 +142,6 @@ unset envcachefile
 # CommandNotFound code is in a separate file so it can be updated outside of
 # an UpdateSettings run.
 source "${goboPrefix}/Programs/Scripts/Current/Functions/CommandNotFound"
+
+source "${goboPrefix}/Programs/Scripts/Current/share/zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+ZSH_HIGHLIGHT_STYLES[globbing]='fg=cyan'
