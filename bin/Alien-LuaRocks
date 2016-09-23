@@ -44,7 +44,7 @@ getinstallversion() {
 install() {
    prog="$1"
    ver="$2"
-   luarocks install "$prog" "$ver"
+   luarocks install "$prog" $ver
 }
 
 command="$1"
