@@ -2,6 +2,7 @@ alias l='List'
 alias g='GrepQuick'
 alias f='FindQuick'
 alias e='Edit'
+alias run='Runner'
 
 alias make='ColorMake'
 
