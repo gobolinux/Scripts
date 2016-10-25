@@ -12,28 +12,25 @@ Parse_Options "$@"
 
 ### Operation #################################################################
 
-function count_cpus() {
-   grep -i "model name" /proc/cpuinfo | wc -l
-}
-
-function parse_cpu() {
-   grep -i "$1" /proc/cpuinfo | head -n $2 | tail -n 1 | cut -d: -f2 | tr "\n" "\0"
-}
-
-function parse_mem() {
-   grep -i "$1" /proc/meminfo | cut -d: -f2 | tr " kB\n" "\0"
-}
-
 IN="\033[36;22m"
 OUT="\033[34;1m"
 
-echo -e "${IN}System........:${OUT}" `uname -mrs`
+count=$(grep -F "processor" /proc/cpuinfo | wc -l)
+
+cpuname=$(grep -F "model name" /proc/cpuinfo | head -n 1)
+cpuname="${cpuname#*: }"
+
+shopt -s extglob
+mem=$(head -n 1 /proc/meminfo)
+mem="${mem/*:*( )/}"
+
+echo -e "${IN}Kernel........:${OUT}" `uname -mrs`
 echo -e "${IN}Compilation...:${OUT}" `uname -v`
-for i in $(seq $(count_cpus))
-do
-   echo -e "${IN}Processor.....:${OUT}" ` parse_cpu "model name" $i`
-   echo -e "${IN}    Clock.....:${OUT}" `parse_cpu "cpu MHz" $i`  "MHz"
-   echo -e "${IN}    Bogomips..:${OUT}" `parse_cpu "bogomips" $i`
-done
-echo -e "${IN}Memory........:${OUT}" `parse_mem "MemTotal"`"k"
+if [[ $count = 1 ]]
+then
+   echo -e "${IN}Processor.....:${OUT}" $cpuname
+else
+   echo -e "${IN}Processors....:${OUT}" $count x $cpuname
+fi
+echo -e "${IN}Memory........:${OUT}" "$mem"
 echo -en "\033[0m"
