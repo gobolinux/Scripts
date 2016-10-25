@@ -122,7 +122,7 @@ int parse_arguments(int argc, char *argv[])
 int main(int argc, char **argv)
 {
 
-	CHECK(parse_arguments(argc, argv), NULL);
+	CHECK(parse_arguments(argc, argv), false);
 
 	if (args.executable == NULL) {
 		error_printf(main, "no executable was specified");
