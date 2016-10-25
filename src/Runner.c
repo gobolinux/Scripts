@@ -37,12 +37,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mount.h>
+#include <sys/statfs.h>
 
 #include "LinuxList.h"
 #include "FindDependencies.h"
 
 #define GOBO_INDEX_DIR    "/System/Index"
 #define GOBO_PROGRAMS_DIR "/Programs"
+#define OVERLAYFS_MAGIC   0x794c7630
 
 #define debug_printf(msg...) if (args.verbose) fprintf(stderr, msg)
 #define error_printf(fun, msg) fprintf(stderr, "Error:%s: %s at %s:%d\n", #fun, msg, __FILE__, __LINE__)
@@ -728,6 +730,7 @@ bool check_availability()
 {
 	uid_t uid = getuid(), euid = geteuid();
 	struct utsname uts_data;
+	struct statfs statbuf;
 	bool is_available=true;	
 
 	// Check uid
@@ -741,6 +744,12 @@ bool check_availability()
 	if (compare_kernel_versions("4.0", uts_data.release) > 0) {
 		debug_printf("Running on Linux %s. At least Linux 4.0 is needed.\n",
 			uts_data.release);;
+		is_available = false;
+	}
+
+	// Check if maximum filesystem stacking count will be reached
+	if (statfs("/", &statbuf) == 0 && statbuf.f_type == OVERLAYFS_MAGIC) {
+		debug_printf("Rootfs is an overlayfs, max filesystem stacking count will be reached\n");
 		is_available = false;
 	}
 

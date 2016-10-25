@@ -12,7 +12,7 @@ ifeq ($(IS_CYGWIN),yes)
    RM_EXE=-rm -f *.exe
 endif
 
-dynamic_exec = SuperUserName IsExecutable usleep LinkOrExpandAll List CommandNotFound GetSupportedFilesystems
+dynamic_exec = BackgroundExec SuperUserName IsExecutable usleep LinkOrExpandAll List CommandNotFound GetSupportedFilesystems
 static_exec = RescueSymlinkProgram
 other_exec = FindDependencies Runner
 
