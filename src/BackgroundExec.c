@@ -22,7 +22,8 @@
     char err_msg[ERR_LEN] = "Unexpected error"; \
     if (retval) { \
         if (use_perror) { \
-            strncpy(err_msg, strerror(errno), ERR_LEN); \
+            strncpy(err_msg, strerror(errno), ERR_LEN - 1); \
+            err_msg[ERR_LEN - 1] = '\0'; \
         } \
         else { \
             switch(retval) { \
