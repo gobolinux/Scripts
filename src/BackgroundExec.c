@@ -115,7 +115,6 @@ int parse_arguments(int argc, char *argv[])
 
 int main(int argc, char **argv)
 {
-
 	CHECK(parse_arguments(argc, argv));
 
 	if (args.executable == NULL) {
