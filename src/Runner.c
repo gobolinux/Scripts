@@ -437,53 +437,42 @@ make_path(const char *namestart, const char *subdir, char *out, bool *found)
 static int
 mount_overlay_dirs(const char *mergedirs, const char *mountpoint)
 {
-	const char *dir[] = {"bin", "include", "lib", "libexec", "share", NULL};
-	const char *link_src[] = {"sbin", "lib64", NULL};
-	const char *link_target[] = {"bin", "lib", NULL};
+	const char *sources[] = {"bin", "include", "lib",  "libexec", "share", NULL};
+	const char *aliases[] = {"sbin", NULL,     "lib64", NULL,      NULL,   NULL};
+	const char *targets[] = {"bin", "include", "lib",  "libexec", "share", NULL};
 	const char *dirptr;
 
 	char *lower, mp[strlen(mountpoint)+strlen("libexec")+2];
-	int i, res, lower_idx = 0, dircount = 0;
+	int i, j, res, lower_idx = 0, dircount = 0;
 	size_t lower_size = 0;
 
 	for (i=0; i<strlen(mergedirs); ++i)
 		if (mergedirs[i] == ':')
 			dircount++;
 
-	lower_size = strlen("lowerdir=") + strlen(mergedirs) + dircount *(strlen("libexec")+1) + 1;
+	lower_size = strlen("lowerdir=");
+	lower_size += (strlen(mergedirs) + dircount * (strlen("libexec")+1) + 1) * 2;
 	lower_size += strlen(mountpoint) + strlen("libexec") + 2;
 	lower = (char *) malloc(lower_size * sizeof(char));
 	if (! lower) {
 		perror("calloc");
 		return -ENOMEM;
 	}
-	/* Mount directories from dir[] as overlays on /System/Index/@dir */
-	for (i=0; dir[i]; ++i) {
+	/* Mount directories from sources[] as overlays on /System/Index/targets[] */
+	for (i=0; sources[i]; ++i) {
 		bool have_entries = false;
 		sprintf(lower, "lowerdir=");
-		for (lower_idx=strlen(lower), dirptr=mergedirs; dirptr; dirptr=strchr(dirptr, ':')) {
-			if (dirptr != mergedirs) { dirptr++; }
-			if (strlen(dirptr)) { lower_idx += make_path(dirptr, dir[i], &lower[lower_idx], &have_entries); }
+		for (lower_idx=strlen(lower), j=0; j<2; ++j) {
+			const char *source = j == 0 ? sources[i] : aliases[i];
+			for (dirptr=mergedirs; source && dirptr; dirptr=strchr(dirptr, ':')) {
+				if (dirptr != mergedirs) { dirptr++; }
+				if (strlen(dirptr)) { lower_idx += make_path(dirptr, source, &lower[lower_idx], &have_entries); }
+			}
 		}
 		if (have_entries) {
-			sprintf(mp, "%s/%s", mountpoint, dir[i]);
+			sprintf(mp, "%s/%s", mountpoint, targets[i]);
 			sprintf(&lower[lower_idx], "%s", mp);
-			res = mount("overlay", mp, "overlay", MS_MGC_VAL | MS_RDONLY, lower);
-			if (res != 0)
-				goto out_free;
-		}
-	}
-	/* Mount symlinks from link_src[] as overlays on /System/Index/@link_target */
-	for (i=0; link_src[i]; ++i) {
-		bool have_entries = false;
-		sprintf(lower, "lowerdir=");
-		for (lower_idx=strlen(lower), dirptr=mergedirs; dirptr; dirptr=strchr(dirptr, ':')) {
-			if (dirptr != mergedirs) { dirptr++; }
-			if (strlen(dirptr)) { lower_idx += make_path(dirptr, link_src[i], &lower[lower_idx], &have_entries); }
-		}
-		if (have_entries) {
-			sprintf(mp, "%s/%s", mountpoint, link_target[i]);
-			sprintf(&lower[lower_idx], "%s", mp);
+			debug_printf("mount -t overlay none -o %s %s\n", lower, mp);
 			res = mount("overlay", mp, "overlay", MS_MGC_VAL | MS_RDONLY, lower);
 			if (res != 0)
 				goto out_free;
