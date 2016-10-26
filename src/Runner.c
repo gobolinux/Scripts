@@ -55,12 +55,12 @@
     char err_msg[ERR_LEN] = "Unexpected error"; \
     if (retval) { \
         if (use_perror) { \
-            strncpy(err_msg, strerror(errno), ERR_LEN); \
+            strncpy(err_msg, strerror(errno), ERR_LEN-1); \
         } \
         else { \
             switch(retval) { \
                 case ERR_OUTMEMORY: \
-                    strncpy(err_msg, "Not enough memory", ERR_LEN); \
+                    strncpy(err_msg, "Not enough memory", ERR_LEN-1); \
                     break; \
             } \
         } \
@@ -754,7 +754,7 @@ main(int argc, char *argv[])
 	int ret = 1;
 	int available = 1;
 
-	CHECK(parse_arguments(argc, argv), NULL);
+	CHECK(parse_arguments(argc, argv), false);
 
 	if (args.quiet && args.verbose) {
 		error_printf(main, "--quiet and --verbose are mutually exclusive");
