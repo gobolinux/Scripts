@@ -28,7 +28,6 @@
 
 #define WARN(opt,fmt...) do { if (!(opt)->quiet) fprintf(stderr, fmt); } while(0)
 
-static char * const currentString = "Current";
 static inline struct utsname *RunningKernelInfo();
 
 const char *GetOperatorString(operator_t op)
@@ -173,10 +172,7 @@ int VersionCmp(char *_candidate, char *_specified)
 
 bool MatchRule(char *candidate, struct version *v)
 {
-	struct utsname *uts = RunningKernelInfo();
 	if (*candidate == '.' || !strcmp(candidate, "Variable") || !strcmp(candidate, "Settings") || !strcmp(candidate, "Current"))
-		return false;
-	if (uts && strstr(candidate, "x86_64") && strcmp("x86_64", uts->machine))
 		return false;
 	if (!v->version || strlen(v->version) == 0) 
 		return true;
@@ -365,7 +361,9 @@ bool SupportedArchitecture(const char *depname, const char *version, struct sear
 		line[n-1] = '\0';
 	close(fd);
 
-	if (strcmp(line, uts->machine)) {
+	if (options->wantedArch && !strcmp(line, options->wantedArch))
+		return true;
+	else if (strcmp(line, uts->machine)) {
 		WARN(options, "WARNING: architecture %s differs from %s, ignoring %s version %s\n",
 				line, uts->machine, depname, version);
 		return false;

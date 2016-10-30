@@ -84,6 +84,7 @@ struct runner_args {
 	const char *executable;    /* Executable to run */
 	const char **dependencies; /* NULL-terminated */
 	char **arguments;          /* Arguments to pass to executable */
+	char *architecture;        /* Architecture of dependencies to consider */
 };
 static struct runner_args args;
 
@@ -381,6 +382,7 @@ prepare_merge_string(const char *dependencies)
 	options.repository = LOCAL_PROGRAMS;
 	options.depsfile = dependencies;
 	options.quiet = args.quiet;
+	options.wantedArch = args.architecture;
 	options.goboPrograms = GOBO_PROGRAMS_DIR;
 	options.noOperator = EQUAL;
 
@@ -600,6 +602,9 @@ update_env_var_list(const char *var, const char *item)
 void
 show_usage_and_exit(char *exec, int err)
 {
+	struct utsname uts_data;
+	uname(&uts_data);
+
 	printf(
 	"Executes a command with a read-only view of /System/Index overlaid with\n"
 	"dependencies extracted from the program's Resources/Dependencies and/or\n"
@@ -608,13 +613,14 @@ show_usage_and_exit(char *exec, int err)
 	"Syntax: %s [options] <command> [arguments]\n"
 	"\n"
 	"Available options are:\n"
+	"  -a, --arch=ARCH           Look for dependencies whose architecture match ARCH (default: %s)\n"
 	"  -d, --dependencies=FILE   Path to GoboLinux Dependencies file to use\n"
 	"  -h, --help                This help\n"
 	"  -q, --quiet               Don't warn on bogus dependencies file(s)\n"
 	"  -v, --verbose             Run in verbose mode\n"
 	"  -c, --check               Check if Runner can be used in this system\n"
 	"  -f, --fallback            Run the command without the sandbox in case this is not available\n"
-	"\n", exec);
+	"\n", exec, uts_data.machine);
 	exit(err);
 }
 
@@ -625,6 +631,7 @@ int
 parse_arguments(int argc, char *argv[])
 {
 	struct option long_options[] = {
+		{"arch",          required_argument, 0,  'a'},
 		{"dependencies",  required_argument, 0,  'd'},
 		{"help",          no_argument,       0,  'h'},
 		{"quiet",         no_argument,       0,  'q'},
@@ -633,7 +640,7 @@ parse_arguments(int argc, char *argv[])
 		{"verbose",       no_argument,       0,  'v'},
 		{0,               0,                 0,   0 }
 	};
-	const char *short_options = "+d:hcqvf";
+	const char *short_options = "+d:a:hcqvf";
 	bool valid = true;
 	int next = optind;
 	int num_deps = 0;
@@ -649,7 +656,7 @@ parse_arguments(int argc, char *argv[])
 			break;
 		else if (c == 'd')
 			num_deps++;
-		else if (!(c == 'h' || c == 'q' || c == 'c' || c == 'f' || c == 'v'))
+		else if (!(c == 'a' || c == 'h' || c == 'q' || c == 'c' || c == 'f' || c == 'v'))
 			valid = false;
 	}
 
@@ -660,6 +667,7 @@ parse_arguments(int argc, char *argv[])
 	args.fallback = false;
 	args.executable = NULL;
 	args.arguments = NULL;
+	args.architecture = NULL;
 
 	args.dependencies = (const char **) calloc(num_deps+1, sizeof(char *));
 	if (! args.dependencies)
@@ -671,6 +679,9 @@ parse_arguments(int argc, char *argv[])
 		if (c == -1)
 			break;
 		switch (c) {
+			case 'a':
+				args.architecture = optarg;
+				break;
 			case 'd':
 				args.dependencies[dep_nr++] = optarg;
 				break;
