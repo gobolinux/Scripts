@@ -364,13 +364,13 @@ error_out:
 }
 
 static char *
-prepare_merge_string(const char *dependencies)
+prepare_merge_string(const char *callerprogram, const char *dependencies)
 {
 	struct search_options options;
 	struct list_data *entry;
 	struct list_head *deps;
 	char *mergedirs = NULL;
-	int mergedirs_len = 0;
+	int mergedirs_len = callerprogram ? strlen(callerprogram) + 1: 0;
 	struct stat statbuf;
 
 	if (stat(dependencies, &statbuf) == 0 && statbuf.st_size == 0) {
@@ -409,6 +409,10 @@ prepare_merge_string(const char *dependencies)
 			strcat(mergedirs, entry->path);
 			strcat(mergedirs, ":");
 		}
+	}
+	if (callerprogram) {
+		strcat(mergedirs, callerprogram);
+		strcat(mergedirs, ":");
 	}
 out_free:
 	if (deps)
@@ -516,7 +520,7 @@ mount_overlay()
 			perror(fname);
 			goto out_free;
 		}
-		tmpstr = prepare_merge_string(fname);
+		tmpstr = prepare_merge_string(NULL, fname);
 		merge_len += tmpstr ? strlen(tmpstr) : 0;
 		free(fname);
 		fname = NULL;
@@ -550,7 +554,7 @@ mount_overlay()
 			perror(fname);
 			goto out_free;
 		}
-		mergedirs_program = prepare_merge_string(fname);
+		mergedirs_program = prepare_merge_string(programdir, fname);
 		merge_len += mergedirs_program ? strlen(mergedirs_program) : 0;
 		free(fname);
 		fname = NULL;
