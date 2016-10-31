@@ -493,6 +493,31 @@ out_free:
 	return res;
 }
 
+static char *
+parse_architecture_file(const char *archfile)
+{
+	struct stat statbuf;
+	char line[64];
+	size_t n;
+
+	int res = stat(archfile, &statbuf);
+	if (res < 0 && errno == EACCES) {
+		perror(archfile);
+		return NULL;
+	}
+
+	FILE *fp = fopen(archfile, "r");
+	if (fp) {
+		memset(line, 0, sizeof(line));
+		n = fread(line, sizeof(char), sizeof(line)-1, fp);
+		if (n > 0 && line[n-1] == '\n')
+			line[n-1] = '\0';
+		fclose(fp);
+		return strdup(line);
+	}
+	return NULL;
+}
+
 /**
  * mount_overlay:
  */
@@ -500,7 +525,7 @@ static int
 mount_overlay()
 {
 	int i, res = -1;
-	char *fname = NULL, *tmpstr;
+	char *archfile = NULL, *fname = NULL, *tmpstr;
 	char *programdir = NULL;
 	int merge_len = 0;
 	char *mergedirs_user = NULL;
@@ -554,6 +579,15 @@ mount_overlay()
 			perror(fname);
 			goto out_free;
 		}
+		if (args.architecture == NULL) {
+			/* Try to determine architecture based on the Resources/Architecture metadata file */
+			if (asprintf(&archfile, "%s/Resources/Architecture", programdir) <= 0) {
+				fprintf(stderr, "Not enough memory\n");
+				goto out_free;
+			}
+			/* TODO: args.architecture is never freed */
+			args.architecture = parse_architecture_file(archfile);
+		}
 		mergedirs_program = prepare_merge_string(programdir, fname);
 		merge_len += mergedirs_program ? strlen(mergedirs_program) : 0;
 		free(fname);
@@ -573,6 +607,7 @@ out_free:
 	if (mergedirs_program) { free(mergedirs_program); }
 	if (mergedirs_user) { free(mergedirs_user); }
 	if (mergedirs) { free(mergedirs); }
+	if (archfile) { free(archfile); }
 	if (fname) { free(fname); }
 	return res;
 }
@@ -617,7 +652,8 @@ show_usage_and_exit(char *exec, int err)
 	"Syntax: %s [options] <command> [arguments]\n"
 	"\n"
 	"Available options are:\n"
-	"  -a, --arch=ARCH           Look for dependencies whose architecture match ARCH (default: %s)\n"
+	"  -a, --arch=ARCH           Look for dependencies whose architecture is ARCH (default: taken from\n"
+	"                            Resources/Architecture, otherwise assumed to be %s)\n"
 	"  -d, --dependencies=FILE   Path to GoboLinux Dependencies file to use\n"
 	"  -h, --help                This help\n"
 	"  -q, --quiet               Don't warn on bogus dependencies file(s)\n"
