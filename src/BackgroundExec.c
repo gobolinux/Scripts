@@ -17,24 +17,18 @@
 #define error_printf(fun, msg) fprintf(stderr, "Error:%s: %s at %s:%d\n", #fun, msg, __FILE__, __LINE__)
 
 #define ERR_LEN 255
-#define CHECK(x, use_perror) do { \
-    int retval = (x); \
-    char err_msg[ERR_LEN] = "Unexpected error"; \
-    if (retval) { \
-        if (use_perror) { \
-            strncpy(err_msg, strerror(errno), ERR_LEN - 1); \
-            err_msg[ERR_LEN - 1] = '\0'; \
-        } \
-        else { \
-            switch(retval) { \
-                case ERR_OUTMEMORY: \
-                    strncpy(err_msg, "Not enough memory", ERR_LEN); \
-                    break; \
-            } \
-        } \
-        error_printf(x, err_msg); \
-        exit(retval); \
-    } \
+#define CHECK(x) do { \
+	int retval = (x); \
+	char err_msg[ERR_LEN] = "Unexpected error"; \
+	if (retval) { \
+		switch(retval) { \
+			case ERR_OUTMEMORY: \
+				snprintf(err_msg, ERR_LEN-1, "Not enough memory"); \
+				break; \
+		} \
+		error_printf(x, err_msg); \
+		exit(retval); \
+	} \
 } while (0)
 
 #define ERR_OUTMEMORY         1      /* Out of memory */
@@ -121,8 +115,7 @@ int parse_arguments(int argc, char *argv[])
 
 int main(int argc, char **argv)
 {
-
-	CHECK(parse_arguments(argc, argv), false);
+	CHECK(parse_arguments(argc, argv));
 
 	if (args.executable == NULL) {
 		error_printf(main, "no executable was specified");

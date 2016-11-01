@@ -10,6 +10,7 @@
 #include <limits.h>
 #include <inttypes.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
@@ -274,11 +275,7 @@ get_file_color(char *full_pathname, char *extension, char *color, int len, mode_
          return;
       }
       tmp_buffer[n] = '\0';
-      if (realpath(full_pathname, symlink_path) == NULL) {
-         perror("realpath");
-         return;
-      }
-
+      realpath(full_pathname, symlink_path);
       if (lstat(symlink_path, &target_status) < 0)
          snprintf(needle, len, "or");
       else
@@ -530,10 +527,7 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
                continue;
             }
             tmp_buffer[n] = '\0';
-            if (realpath(full_pathname, symlink_path) == NULL) {
-               perror("realpath");
-               continue;
-            }
+            realpath(full_pathname, symlink_path);
             lstat(symlink_path, &target_status);
 
             get_file_extension(symlink_path, extension, sizeof(extension));
@@ -670,7 +664,7 @@ list_entries(const char *path, long long *total, long *counter, long *hiddenfile
    
    /* scandir doesn't propagate the complete pathname */
    if (realpath(path, complete_path) == NULL) {
-      perror("realpath");
+      perror(path);
       return -1;
    }
    current_dir = complete_path;
