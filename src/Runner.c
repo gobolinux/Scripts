@@ -363,6 +363,22 @@ error_out:
 	return 1;
 }
 
+static bool
+program_blacklisted(const char *programname)
+{
+	/*
+	 * Don't let GoboLinux tools be overlay-mounted on /System/Index.
+	 * The reason is that many of our scripts expect to find contents
+	 * under $(readlink -f $argv[0])/../Functions, and we don't have
+	 * a Functions directory under /System/Index.
+	 */
+	if (strstr(programname, "/Scripts/") ||
+		strstr(programname, "/Compile/") ||
+		strstr(programname, "/DevelScripts/"))
+		return true;
+	return false;
+}
+
 static char *
 prepare_merge_string(const char *callerprogram, const char *dependencies)
 {
@@ -430,7 +446,7 @@ make_path(const char *namestart, const char *subdir, char *out, bool *found)
 	/* non-empty strings returned by prepare_merge_string() always terminate with ":" */
 	nameend = strchr(namestart, ':');
 	sprintf(out, "%.*s/%s", (int)(nameend-namestart), namestart, subdir);
-	if (stat(out, &statbuf) != 0) {
+	if (stat(out, &statbuf) != 0 || program_blacklisted(out)) {
 		*out = '\0';
 		return 0;
 	}
@@ -524,14 +540,11 @@ parse_architecture_file(const char *archfile)
 static int
 mount_overlay()
 {
-	int i, res = -1;
-	char *archfile = NULL, *fname = NULL, *tmpstr;
-	char *programdir = NULL;
-	int merge_len = 0;
-	char *mergedirs_user = NULL;
-	char *mergedirs_program = NULL;
-	char *mergedirs = NULL;
 	struct stat statbuf;
+	int i, res = -1, merge_len = 0;
+	char *programdir = NULL, *callerprogram;
+	char *archfile = NULL, *fname = NULL, *tmpstr;
+	char *mergedirs_user = NULL, *mergedirs_program = NULL, *mergedirs = NULL;
 
 	for (i=0; args.dependencies[i]; ++i) {
 		/* take user-provided dependencies file */
@@ -588,7 +601,8 @@ mount_overlay()
 			/* TODO: args.architecture is never freed */
 			args.architecture = parse_architecture_file(archfile);
 		}
-		mergedirs_program = prepare_merge_string(programdir, fname);
+		callerprogram = program_blacklisted(programdir) ? NULL : programdir;
+		mergedirs_program = prepare_merge_string(callerprogram, fname);
 		merge_len += mergedirs_program ? strlen(mergedirs_program) : 0;
 		free(fname);
 		fname = NULL;
