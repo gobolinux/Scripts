@@ -28,6 +28,10 @@
 
 #define WARN(opt,fmt...) do { if (!(opt)->quiet) fprintf(stderr, fmt); } while(0)
 
+static void PrintRestrictions(struct parse_data *data, struct search_options *options) __attribute__((unused));
+static void PrintVersion(struct version *version) __attribute__((unused));
+static void PrintRange(struct range *range) __attribute__((unused));
+
 static inline struct utsname *RunningKernelInfo();
 
 static const char *GetOperatorString(operator_t op)
