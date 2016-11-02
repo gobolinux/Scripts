@@ -449,7 +449,7 @@ mount_overlay_dirs(const char *mergedirs, const char *mountpoint)
 	const char *dirptr;
 
 	char *lower, mp[strlen(mountpoint)+strlen("libexec")+2];
-	int i, j, res, lower_idx = 0, dircount = 0;
+	int i, j, res = 0, lower_idx = 0, dircount = 0;
 	size_t lower_size = 0;
 
 	for (i=0; i<strlen(mergedirs); ++i)
