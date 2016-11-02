@@ -251,7 +251,7 @@ static char **GetVersionsFromAlien(struct parse_data *data, struct search_option
   strncpy(alien, data->depname, sp-data->depname);
   alien[sp - data->depname] = 0;
 
-  snprintf(aliencmd, sizeof(aliencmd)-1, "Alien-%s --getversion %s", alien, sp+1);
+  snprintf(aliencmd, sizeof(aliencmd)-1, "Alien-'%s' --getversion '%s'", alien, sp+1);
   fp = popen(aliencmd, "r");
   if (!fp) {
     WARN(options, "WARNING: %s: %s\n", aliencmd, strerror(errno));
@@ -486,13 +486,13 @@ static bool GetBestVersion(struct parse_data *data, struct search_options *optio
 	if (options->repository == LOCAL_PROGRAMS) {
 		versions = GetVersionsFromReadDir(data, options);
 	} else if (options->repository == LOCAL_DIRECTORY) {
-		snprintf(cmdline, sizeof(cmdline), "bash -c \"ls %s/%s--*--*.tar.bz2 2> /dev/null\"", options->searchdir, data->depname);
+		snprintf(cmdline, sizeof(cmdline), "bash -c \"ls '%s/%s'--*--*.tar.bz2 2> /dev/null\"", options->searchdir, data->depname);
 		versions = GetVersionsFromStore(data, options, cmdline);
 	} else if (options->repository == PACKAGE_STORE) {
-		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=official_package --full-list %s", data->depname);
+		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=official_package --full-list '%s'", data->depname);
 		versions = GetVersionsFromStore(data, options, cmdline);
 	} else if (options->repository == RECIPE_STORE) {
-		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=recipe --full-list %s", data->depname);
+		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=recipe --full-list '%s'", data->depname);
 		versions = GetVersionsFromStore(data, options, cmdline);
 	}
 
