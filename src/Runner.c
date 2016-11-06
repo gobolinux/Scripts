@@ -28,10 +28,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <dirent.h>
 #include <getopt.h>
 #include <limits.h>
 #include <errno.h>
 #include <ctype.h>
+#include <fcntl.h>
 #include <linux/version.h>
 #include <sys/utsname.h>
 #include <sys/types.h>
@@ -86,6 +88,7 @@ struct runner_args {
 	bool verbose;              /* Run in verbose mode? */
 	bool check;                /* Run in check mode? */
 	bool fallback;             /* Run in fallback mode if sandbox is not available */
+	bool removedeps;           /* Remove conflicting dependencies from /System/Index? */
 	const char *executable;    /* Executable to run */
 	const char **dependencies; /* NULL-terminated */
 	char **arguments;          /* Arguments to pass to executable */
@@ -465,6 +468,126 @@ make_path(const char *namestart, const char *subdir, char *out, bool *found)
 }
 
 static int
+test_and_remove(char *srcdir, char *indexdir)
+{
+	int indexfd, ret = 0;
+	struct stat statbuf;
+	struct dirent *entry;
+	DIR *dp = opendir(srcdir);
+	if (!dp)
+		return -errno;
+
+	indexfd = open(indexdir, O_DIRECTORY|O_PATH);
+	if (indexfd < 0) {
+		ret = -errno;
+		closedir(dp);
+		return ret;
+	}
+
+	while ((entry = readdir(dp))) {
+		if (fstatat(indexfd, entry->d_name, &statbuf, AT_SYMLINK_NOFOLLOW) < 0)
+			continue;
+
+		if (S_ISDIR(statbuf.st_mode) && (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")))
+			continue;
+
+		else if (S_ISDIR(statbuf.st_mode)) {
+			/* recurse */
+			char *new_srcdir, *new_indexdir;
+			ret = asprintf(&new_srcdir, "%s/%s", srcdir, entry->d_name);
+			if (ret < 0) {
+				perror("asprintf");
+				goto out;
+			}
+			ret = asprintf(&new_indexdir, "%s/%s", indexdir, entry->d_name);
+			if (ret < 0) {
+				perror("asprintf");
+				free(new_srcdir);
+				goto out;
+			}
+			test_and_remove(new_srcdir, new_indexdir);
+			free(new_indexdir);
+			free(new_srcdir);
+		}
+
+		else if (S_ISLNK(statbuf.st_mode)) {
+			/* test and remove */
+			char *target = calloc(PATH_MAX, sizeof(char));
+			if (! target) {
+				perror("calloc");
+				ret = -ENOMEM;
+				goto out;
+			}
+			if (readlinkat(indexfd, entry->d_name, target, PATH_MAX-1) < 0) {
+				ret = -errno;
+				perror("readlinkat");
+				free(target);
+				goto out;
+			}
+			if (strstr(target, srcdir)) {
+				/* symlink points to conflicting dependency, so remove it */
+				debug_printf("%s: removing %s/%s -> %s\n", __func__, indexdir, entry->d_name, target);
+				unlinkat(indexfd, entry->d_name, 0);
+			}
+			free(target);
+		}
+	}
+	ret = 0;
+out:
+	close(indexfd);
+	closedir(dp);
+	return ret;
+}
+
+static void
+remove_conflicting_deps(char *good_dep)
+{
+	char *version, srcdir[PATH_MAX], indexdir[PATH_MAX];
+	struct stat statbuf;
+	struct dirent *entry;
+	DIR *dp;
+	int i;
+
+	version = strrchr(good_dep, '/');
+	if (! version)
+		return;
+
+	*version = '\0';
+	dp = opendir(good_dep);
+	if (! dp) {
+		perror(good_dep);
+		*version = '/';
+		return;
+	}
+
+	while ((entry = readdir(dp))) {
+		const char *blacklist[] = { ".", "..", "Current", "Settings", "Variable", version+1, NULL };
+		const char *sources[] = {"bin", "sbin", "include", "lib",  "lib64", "libexec", "share", NULL};
+		const char *targets[] = {"bin", "bin",  "include", "lib",  "lib",   "libexec", "share", NULL};
+		bool skip = false;
+
+		for (i=0; blacklist[i]; ++i)
+			if (! strcmp(blacklist[i], entry->d_name)) {
+				skip = true;
+				break;
+			}
+		if (skip)
+			continue;
+
+		for (i=0; sources[i]; ++i) {
+			snprintf(srcdir, sizeof(srcdir)-1, "%s/%s/%s", good_dep, entry->d_name, sources[i]);
+			snprintf(indexdir, sizeof(indexdir)-1, "%s/%s", GOBO_INDEX_DIR, targets[i]);
+			if (stat(srcdir, &statbuf) != 0)
+				continue;
+			test_and_remove(srcdir, indexdir);
+		}
+	}
+
+	closedir(dp);
+	*version = '/';
+}
+
+static int
 mount_overlay_dirs(const char *mergedirs, const char *mountpoint)
 {
 	const char *sources[] = {"bin", "include", "lib",  "libexec", "share", NULL};
@@ -512,6 +635,25 @@ mount_overlay_dirs(const char *mergedirs, const char *mountpoint)
 			if (res != 0)
 				goto out_free;
 		}
+	}
+	/* Do not keep other conflicting versions of dependencies on /System/Index */
+	if (args.removedeps) {
+		char *mergecopy = strdup(mergedirs);
+		if (! mergecopy) {
+			perror("strdup");
+			goto out_free;
+		}
+		char *start = mergecopy, *end;
+		while (start && strlen(start) > 0) {
+			end = strstr(start, ":");
+			if (end) { *end = '\0'; }
+
+			remove_conflicting_deps(start);
+
+			start = end ? end+1 : NULL;
+			end = start ? strstr(start, ":") : NULL;
+		}
+		free(mergecopy);
 	}
 out_free:
 	if (res != 0) {
@@ -732,34 +874,25 @@ out_error:
 	return ret;
 }
 
-int
-cleanup_directory_entry(const char *path, const struct stat *statbuf, int typeflag, struct FTW *ftwbuf)
-{
-	switch (typeflag) {
-		case FTW_F:
-		case FTW_SLN:
-			unlink(path);
-			break;
-		case FTW_D:
-		case FTW_DP:
-			rmdir(path);
-			break;
-	}
-	return 0;
-}
-
 void
 cleanup_directory(char *dirname)
 {
-	struct rlimit limit;
-	int ret;
+	int cleanup_entry(const char *path, const struct stat *statbuf, int typeflag, struct FTW *ftwbuf)
+	{
+		if (typeflag == FTW_F || typeflag == FTW_SLN)
+			unlink(path);
+		else if (typeflag == FTW_D || typeflag == FTW_DP)
+			rmdir(path);
+		return 0;
+	}
 
-	ret = getrlimit(RLIMIT_NOFILE, &limit);
+	struct rlimit limit;
+	int ret = getrlimit(RLIMIT_NOFILE, &limit);
 	if (ret < 0) {
 		perror("getrusage");
 		limit.rlim_cur = 1024;
 	}
-	ret = nftw(dirname, cleanup_directory_entry, limit.rlim_cur, FTW_DEPTH);
+	ret = nftw(dirname, cleanup_entry, limit.rlim_cur, FTW_DEPTH);
 	if (ret < 0)
 		perror("nftw");
 	rmdir(dirname);
@@ -787,6 +920,7 @@ show_usage_and_exit(char *exec, int err)
 	"  -v, --verbose             Run in verbose mode\n"
 	"  -c, --check               Check if Runner can be used in this system\n"
 	"  -f, --fallback            Run the command without the sandbox in case this is not available\n"
+	"  -R, --no-removedeps       Do not remove conflicting versions of dependencies from /System/Index view\n"
 	"\n", exec, uts_data.machine);
 	exit(err);
 }
@@ -804,10 +938,11 @@ parse_arguments(int argc, char *argv[])
 		{"quiet",         no_argument,       0,  'q'},
 		{"check",         no_argument,       0,  'c'},
 		{"fallback",      no_argument,       0,  'f'},
+		{"no-removedeps", no_argument,       0,  'R'},
 		{"verbose",       no_argument,       0,  'v'},
 		{0,               0,                 0,   0 }
 	};
-	const char *short_options = "+d:a:hcqvf";
+	const char *short_options = "+d:a:hcqvfR";
 	bool valid = true;
 	int next = optind;
 	int num_deps = 0;
@@ -823,7 +958,7 @@ parse_arguments(int argc, char *argv[])
 			break;
 		else if (c == 'd')
 			num_deps++;
-		else if (!(c == 'a' || c == 'h' || c == 'q' || c == 'c' || c == 'f' || c == 'v'))
+		else if (!(c == 'a' || c == 'h' || c == 'q' || c == 'c' || c == 'f' || c == 'v' || c == 'R'))
 			valid = false;
 	}
 
@@ -832,6 +967,7 @@ parse_arguments(int argc, char *argv[])
 	args.verbose = false;
 	args.quiet = false;
 	args.fallback = false;
+	args.removedeps = true;
 	args.executable = NULL;
 	args.arguments = NULL;
 	args.architecture = NULL;
@@ -857,6 +993,9 @@ parse_arguments(int argc, char *argv[])
 				break;
 			case 'q':
 				args.quiet = true;
+				break;
+			case 'R':
+				args.removedeps = false;
 				break;
 			case 'v':
 				args.verbose = true;
