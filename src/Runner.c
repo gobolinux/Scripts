@@ -1037,7 +1037,12 @@ bool check_availability()
 	uid_t uid = getuid(), euid = geteuid();
 	struct utsname uts_data;
 	struct statfs statbuf;
-	bool is_available=true;	
+	char hostname[512];
+	bool is_available = true;
+
+	/* Not currently available on the LiveCD */
+	if (gethostname(hostname, sizeof(hostname)-1) == 0 && !strcmp(hostname, "LiveCD"))
+		return false;
 
 	/* Check uid */
 	if ((uid >0) && (uid == euid)) {
