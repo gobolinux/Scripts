@@ -28,16 +28,22 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <dirent.h>
 #include <getopt.h>
 #include <limits.h>
 #include <errno.h>
 #include <ctype.h>
+#include <fcntl.h>
 #include <linux/version.h>
 #include <sys/utsname.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mount.h>
 #include <sys/statfs.h>
+#include <sys/wait.h>
+#include <sys/time.h>      /* getrlimit() */
+#include <sys/resource.h>  /* getrlimit() */
+#include <ftw.h>
 
 #include "LinuxList.h"
 #include "FindDependencies.h"
@@ -74,17 +80,22 @@
 #define ERR_NOSANDBOX         3      /* No sandbox available */
 #define ERR_MNT_NAMESPACE     4      /* Error creating mount namespace */
 #define ERR_MNT_OVERLAY       5      /* Error mounting overlay fs */
-#define ERR_BAD_ARGS          6      /* Bad arguments */
+#define ERR_MNT_WRITEDIR      6      /* Error creating write directory */
+#define ERR_BAD_ARGS          7      /* Bad arguments */
 
 struct runner_args {
 	bool quiet;                /* Run in quiet mode? */
 	bool verbose;              /* Run in verbose mode? */
 	bool check;                /* Run in check mode? */
 	bool fallback;             /* Run in fallback mode if sandbox is not available */
+	bool removedeps;           /* Remove conflicting dependencies from /System/Index? */
 	const char *executable;    /* Executable to run */
 	const char **dependencies; /* NULL-terminated */
 	char **arguments;          /* Arguments to pass to executable */
 	char *architecture;        /* Architecture of dependencies to consider */
+
+	char *upperlayer;          /* Overlayfs' upper layer */
+	char *writelayer;          /* Overlayfs' write layer */
 };
 static struct runner_args args;
 
@@ -327,7 +338,7 @@ create_mount_namespace()
 	res = unshare(CLONE_NEWNS);
 	if (res != 0) {
 		fprintf(stderr, "Failed to create namespace: %s\n", strerror(errno));
-		return 1;
+		return -1;
 	}
 
 	mount_count = 0;
@@ -360,7 +371,23 @@ create_mount_namespace()
 error_out:
 	while (mount_count-- > 0)
 		umount(GOBO_INDEX_DIR);
-	return 1;
+	return -1;
+}
+
+static bool
+program_blacklisted(const char *programname)
+{
+	/*
+	 * Don't let GoboLinux tools be overlay-mounted on /System/Index.
+	 * The reason is that many of our scripts expect to find contents
+	 * under $(readlink -f $argv[0])/../Functions, and we don't have
+	 * a Functions directory under /System/Index.
+	 */
+	if (strstr(programname, "/Scripts/") ||
+		strstr(programname, "/Compile/") ||
+		strstr(programname, "/DevelScripts/"))
+		return true;
+	return false;
 }
 
 static char *
@@ -430,7 +457,7 @@ make_path(const char *namestart, const char *subdir, char *out, bool *found)
 	/* non-empty strings returned by prepare_merge_string() always terminate with ":" */
 	nameend = strchr(namestart, ':');
 	sprintf(out, "%.*s/%s", (int)(nameend-namestart), namestart, subdir);
-	if (stat(out, &statbuf) != 0) {
+	if (stat(out, &statbuf) != 0 || program_blacklisted(out)) {
 		*out = '\0';
 		return 0;
 	}
@@ -441,6 +468,126 @@ make_path(const char *namestart, const char *subdir, char *out, bool *found)
 }
 
 static int
+test_and_remove(char *srcdir, char *indexdir)
+{
+	int indexfd, ret = 0;
+	struct stat statbuf;
+	struct dirent *entry;
+	DIR *dp = opendir(srcdir);
+	if (!dp)
+		return -errno;
+
+	indexfd = open(indexdir, O_DIRECTORY|O_PATH);
+	if (indexfd < 0) {
+		ret = -errno;
+		closedir(dp);
+		return ret;
+	}
+
+	while ((entry = readdir(dp))) {
+		if (fstatat(indexfd, entry->d_name, &statbuf, AT_SYMLINK_NOFOLLOW) < 0)
+			continue;
+
+		if (S_ISDIR(statbuf.st_mode) && (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")))
+			continue;
+
+		else if (S_ISDIR(statbuf.st_mode)) {
+			/* recurse */
+			char *new_srcdir, *new_indexdir;
+			ret = asprintf(&new_srcdir, "%s/%s", srcdir, entry->d_name);
+			if (ret < 0) {
+				perror("asprintf");
+				goto out;
+			}
+			ret = asprintf(&new_indexdir, "%s/%s", indexdir, entry->d_name);
+			if (ret < 0) {
+				perror("asprintf");
+				free(new_srcdir);
+				goto out;
+			}
+			test_and_remove(new_srcdir, new_indexdir);
+			free(new_indexdir);
+			free(new_srcdir);
+		}
+
+		else if (S_ISLNK(statbuf.st_mode)) {
+			/* test and remove */
+			char *target = calloc(PATH_MAX, sizeof(char));
+			if (! target) {
+				perror("calloc");
+				ret = -ENOMEM;
+				goto out;
+			}
+			if (readlinkat(indexfd, entry->d_name, target, PATH_MAX-1) < 0) {
+				ret = -errno;
+				perror("readlinkat");
+				free(target);
+				goto out;
+			}
+			if (strstr(target, srcdir)) {
+				/* symlink points to conflicting dependency, so remove it */
+				debug_printf("%s: removing %s/%s -> %s\n", __func__, indexdir, entry->d_name, target);
+				unlinkat(indexfd, entry->d_name, 0);
+			}
+			free(target);
+		}
+	}
+	ret = 0;
+out:
+	close(indexfd);
+	closedir(dp);
+	return ret;
+}
+
+static void
+remove_conflicting_deps(char *good_dep)
+{
+	char *version, srcdir[PATH_MAX], indexdir[PATH_MAX];
+	struct stat statbuf;
+	struct dirent *entry;
+	DIR *dp;
+	int i;
+
+	version = strrchr(good_dep, '/');
+	if (! version)
+		return;
+
+	*version = '\0';
+	dp = opendir(good_dep);
+	if (! dp) {
+		perror(good_dep);
+		*version = '/';
+		return;
+	}
+
+	while ((entry = readdir(dp))) {
+		const char *blacklist[] = { ".", "..", "Current", "Settings", "Variable", version+1, NULL };
+		const char *sources[] = {"bin", "sbin", "include", "lib",  "lib64", "libexec", "share", NULL};
+		const char *targets[] = {"bin", "bin",  "include", "lib",  "lib",   "libexec", "share", NULL};
+		bool skip = false;
+
+		for (i=0; blacklist[i]; ++i)
+			if (! strcmp(blacklist[i], entry->d_name)) {
+				skip = true;
+				break;
+			}
+		if (skip)
+			continue;
+
+		for (i=0; sources[i]; ++i) {
+			snprintf(srcdir, sizeof(srcdir)-1, "%s/%s/%s", good_dep, entry->d_name, sources[i]);
+			snprintf(indexdir, sizeof(indexdir)-1, "%s/%s", GOBO_INDEX_DIR, targets[i]);
+			if (stat(srcdir, &statbuf) != 0)
+				continue;
+			test_and_remove(srcdir, indexdir);
+		}
+	}
+
+	closedir(dp);
+	*version = '/';
+}
+
+static int
 mount_overlay_dirs(const char *mergedirs, const char *mountpoint)
 {
 	const char *sources[] = {"bin", "include", "lib",  "libexec", "share", NULL};
@@ -448,48 +595,72 @@ mount_overlay_dirs(const char *mergedirs, const char *mountpoint)
 	const char *targets[] = {"bin", "include", "lib",  "libexec", "share", NULL};
 	const char *dirptr;
 
-	char *lower, mp[strlen(mountpoint)+strlen("libexec")+2];
-	int i, j, res, lower_idx = 0, dircount = 0;
-	size_t lower_size = 0;
+	char *unionfs, mp[strlen(mountpoint)+strlen("libexec")+2];
+	int i, j, res = 0, unionfs_idx = 0, dircount = 0;
+	size_t unionfs_size = 0;
 
 	for (i=0; i<strlen(mergedirs); ++i)
 		if (mergedirs[i] == ':')
 			dircount++;
 
-	lower_size = strlen("lowerdir=");
-	lower_size += (strlen(mergedirs) + dircount * (strlen("libexec")+1) + 1) * 2;
-	lower_size += strlen(mountpoint) + strlen("libexec") + 2;
-	lower = (char *) malloc(lower_size * sizeof(char));
-	if (! lower) {
+	unionfs_size = strlen("lowerdir=");
+	unionfs_size += (strlen(mergedirs) + dircount * (strlen("libexec")+1) + 1) * 2;
+	unionfs_size += strlen(mountpoint) + strlen("libexec") + 2;
+	unionfs_size += strlen("workdir=");
+	unionfs_size += strlen(args.writelayer) + strlen("libexec") + 2;
+	unionfs_size += strlen("upperdir=");
+	unionfs_size += strlen(args.upperlayer) + strlen("libexec") + 2;
+	unionfs = (char *) malloc(unionfs_size * sizeof(char));
+	if (! unionfs) {
 		perror("calloc");
 		return -ENOMEM;
 	}
 	/* Mount directories from sources[] as overlays on /System/Index/targets[] */
 	for (i=0; sources[i]; ++i) {
 		bool have_entries = false;
-		sprintf(lower, "lowerdir=");
-		for (lower_idx=strlen(lower), j=0; j<2; ++j) {
+		sprintf(unionfs, "lowerdir=");
+		for (unionfs_idx=strlen(unionfs), j=0; j<2; ++j) {
 			const char *source = j == 0 ? sources[i] : aliases[i];
 			for (dirptr=mergedirs; source && dirptr; dirptr=strchr(dirptr, ':')) {
 				if (dirptr != mergedirs) { dirptr++; }
-				if (strlen(dirptr)) { lower_idx += make_path(dirptr, source, &lower[lower_idx], &have_entries); }
+				if (strlen(dirptr)) { unionfs_idx += make_path(dirptr, source, &unionfs[unionfs_idx], &have_entries); }
 			}
 		}
 		if (have_entries) {
 			sprintf(mp, "%s/%s", mountpoint, targets[i]);
-			sprintf(&lower[lower_idx], "%s", mp);
-			debug_printf("mount -t overlay none -o %s %s\n", lower, mp);
-			res = mount("overlay", mp, "overlay", MS_MGC_VAL | MS_RDONLY, lower);
+			sprintf(&unionfs[unionfs_idx], "%s,upperdir=%s/%s,workdir=%s/%s",
+				mp, args.upperlayer, sources[i], args.writelayer, sources[i]);
+			debug_printf("mount -t overlay none -o %s %s\n", unionfs, mp);
+			res = mount("overlay", mp, "overlay", 0, unionfs);
 			if (res != 0)
 				goto out_free;
 		}
 	}
+	/* Do not keep other conflicting versions of dependencies on /System/Index */
+	if (args.removedeps) {
+		char *mergecopy = strdup(mergedirs);
+		if (! mergecopy) {
+			perror("strdup");
+			goto out_free;
+		}
+		char *start = mergecopy, *end;
+		while (start && strlen(start) > 0) {
+			end = strstr(start, ":");
+			if (end) { *end = '\0'; }
+
+			remove_conflicting_deps(start);
+
+			start = end ? end+1 : NULL;
+			end = start ? strstr(start, ":") : NULL;
+		}
+		free(mergecopy);
+	}
 out_free:
 	if (res != 0) {
 		fprintf(stderr, "Failed to mount overlayfs\n");
-		debug_printf("%s\n", lower);
+		debug_printf("%s\n", unionfs);
 	}
-	free(lower);
+	free(unionfs);
 	return res;
 }
 
@@ -524,14 +695,11 @@ parse_architecture_file(const char *archfile)
 static int
 mount_overlay()
 {
-	int i, res = -1;
-	char *archfile = NULL, *fname = NULL, *tmpstr;
-	char *programdir = NULL;
-	int merge_len = 0;
-	char *mergedirs_user = NULL;
-	char *mergedirs_program = NULL;
-	char *mergedirs = NULL;
 	struct stat statbuf;
+	int i, res = -1, merge_len = 0;
+	char *programdir = NULL, *callerprogram;
+	char *archfile = NULL, *fname = NULL, *tmpstr;
+	char *mergedirs_user = NULL, *mergedirs_program = NULL, *mergedirs = NULL;
 
 	for (i=0; args.dependencies[i]; ++i) {
 		/* take user-provided dependencies file */
@@ -588,7 +756,8 @@ mount_overlay()
 			/* TODO: args.architecture is never freed */
 			args.architecture = parse_architecture_file(archfile);
 		}
-		mergedirs_program = prepare_merge_string(programdir, fname);
+		callerprogram = program_blacklisted(programdir) ? NULL : programdir;
+		mergedirs_program = prepare_merge_string(callerprogram, fname);
 		merge_len += mergedirs_program ? strlen(mergedirs_program) : 0;
 		free(fname);
 		fname = NULL;
@@ -638,6 +807,97 @@ update_env_var_list(const char *var, const char *item)
 	return 0;
 }
 
+int
+create_write_layer(void)
+{
+	const char *sources[] = {"bin", "include", "lib",  "libexec", "share", NULL};
+	const char *home;
+	char path[PATH_MAX];
+	int ret, i;
+
+	home = getenv("HOME");
+	if (home == NULL)
+		home = "/tmp";
+
+	/* mkdir -p ~/.local/Runner */
+	memset(path, 0, sizeof(path));
+	snprintf(path, sizeof(path)-1, "%s/.local", home);
+	mkdir(path, 0755);
+	chown(path, getuid(), getgid());
+	strcat(path, "/Runner");
+	mkdir(path, 0755);
+	chown(path, getuid(), getgid());
+
+	/* Write layer */
+	ret = asprintf(&args.writelayer, "%s/.local/Runner/write_layer-XXXXXX", home);
+	if (ret < 0) {
+		ret = -ENOMEM;
+		perror("asprintf");
+		goto out_error;
+	}
+	if (mkdtemp(args.writelayer) == NULL) {
+		ret = -errno;
+		perror("mkdtemp");
+		goto out_error;
+	}
+	chown(args.writelayer, getuid(), getgid());
+	for (i=0; sources[i]; ++i) {
+		snprintf(path, sizeof(path)-1, "%s/%s", args.writelayer, sources[i]);
+		mkdir(path, 0755);
+		chown(path, getuid(), getgid());
+	}
+
+	/* Upper layer. Overlayfs requires it to activate the write branch */
+	ret = asprintf(&args.upperlayer, "%s/.local/Runner/upper_layer-XXXXXX", home);
+	if (ret < 0) {
+		ret = -ENOMEM;
+		perror("asprintf");
+		goto out_error;
+	}
+	if (mkdtemp(args.upperlayer) == NULL) {
+		ret = -errno;
+		perror("mkdtemp");
+		goto out_error;
+	}
+	chown(args.upperlayer, getuid(), getgid());
+	for (i=0; sources[i]; ++i) {
+		snprintf(path, sizeof(path)-1, "%s/%s", args.upperlayer, sources[i]);
+		mkdir(path, 0755);
+		chown(path, getuid(), getgid());
+	}
+
+	return 0;
+
+out_error:
+	free(args.upperlayer);
+	free(args.writelayer);
+	return ret;
+}
+
+void
+cleanup_directory(char *dirname)
+{
+	int cleanup_entry(const char *path, const struct stat *statbuf, int typeflag, struct FTW *ftwbuf)
+	{
+		if (typeflag == FTW_F || typeflag == FTW_SLN)
+			unlink(path);
+		else if (typeflag == FTW_D || typeflag == FTW_DP)
+			rmdir(path);
+		return 0;
+	}
+
+	struct rlimit limit;
+	int ret = getrlimit(RLIMIT_NOFILE, &limit);
+	if (ret < 0) {
+		perror("getrusage");
+		limit.rlim_cur = 1024;
+	}
+	ret = nftw(dirname, cleanup_entry, limit.rlim_cur, FTW_DEPTH);
+	if (ret < 0)
+		perror("nftw");
+	rmdir(dirname);
+}
+
 void
 show_usage_and_exit(char *exec, int err)
 {
@@ -660,6 +920,7 @@ show_usage_and_exit(char *exec, int err)
 	"  -v, --verbose             Run in verbose mode\n"
 	"  -c, --check               Check if Runner can be used in this system\n"
 	"  -f, --fallback            Run the command without the sandbox in case this is not available\n"
+	"  -R, --no-removedeps       Do not remove conflicting versions of dependencies from /System/Index view\n"
 	"\n", exec, uts_data.machine);
 	exit(err);
 }
@@ -677,10 +938,11 @@ parse_arguments(int argc, char *argv[])
 		{"quiet",         no_argument,       0,  'q'},
 		{"check",         no_argument,       0,  'c'},
 		{"fallback",      no_argument,       0,  'f'},
+		{"no-removedeps", no_argument,       0,  'R'},
 		{"verbose",       no_argument,       0,  'v'},
 		{0,               0,                 0,   0 }
 	};
-	const char *short_options = "+d:a:hcqvf";
+	const char *short_options = "+d:a:hcqvfR";
 	bool valid = true;
 	int next = optind;
 	int num_deps = 0;
@@ -696,7 +958,7 @@ parse_arguments(int argc, char *argv[])
 			break;
 		else if (c == 'd')
 			num_deps++;
-		else if (!(c == 'a' || c == 'h' || c == 'q' || c == 'c' || c == 'f' || c == 'v'))
+		else if (!(c == 'a' || c == 'h' || c == 'q' || c == 'c' || c == 'f' || c == 'v' || c == 'R'))
 			valid = false;
 	}
 
@@ -705,6 +967,7 @@ parse_arguments(int argc, char *argv[])
 	args.verbose = false;
 	args.quiet = false;
 	args.fallback = false;
+	args.removedeps = true;
 	args.executable = NULL;
 	args.arguments = NULL;
 	args.architecture = NULL;
@@ -730,6 +993,9 @@ parse_arguments(int argc, char *argv[])
 				break;
 			case 'q':
 				args.quiet = true;
+				break;
+			case 'R':
+				args.removedeps = false;
 				break;
 			case 'v':
 				args.verbose = true;
@@ -771,15 +1037,20 @@ bool check_availability()
 	uid_t uid = getuid(), euid = geteuid();
 	struct utsname uts_data;
 	struct statfs statbuf;
-	bool is_available=true;	
+	char hostname[512];
+	bool is_available = true;
 
-	// Check uid
+	/* Not currently available on the LiveCD */
+	if (gethostname(hostname, sizeof(hostname)-1) == 0 && !strcmp(hostname, "LiveCD"))
+		return false;
+
+	/* Check uid */
 	if ((uid >0) && (uid == euid)) {
 		debug_printf("This program needs its suid bit to be set.\n");
 		is_available = false;
 	}
 
-	// Check kernel version
+	/* Check kernel version */
 	uname(&uts_data);
 	if (compare_kernel_versions("4.0", uts_data.release) > 0) {
 		debug_printf("Running on Linux %s. At least Linux 4.0 is needed.\n",
@@ -787,7 +1058,7 @@ bool check_availability()
 		is_available = false;
 	}
 
-	// Check if maximum filesystem stacking count will be reached
+	/* Check if maximum filesystem stacking count will be reached */
 	if (statfs("/", &statbuf) == 0 && statbuf.f_type == OVERLAYFS_MAGIC) {
 		debug_printf("Rootfs is an overlayfs, max filesystem stacking count will be reached\n");
 		is_available = false;
@@ -802,8 +1073,8 @@ bool check_availability()
 int
 main(int argc, char *argv[])
 {
-	int ret = 1;
-	int available = 1;
+	int status, ret = 1, available = 1;
+	pid_t pid;
 
 	CHECK(parse_arguments(argc, argv), false);
 
@@ -812,21 +1083,21 @@ main(int argc, char *argv[])
 		exit(ERR_BAD_ARGS);
 	}
 
-	// Check if sandbox is available it this system
+	/* Check if sandbox is available it this system */
 	available = check_availability(&args);
 
-	// Check mode?
+	/* Check mode? */
 	if (args.check == 1) {
 		exit(!available);
 	}
 
-	// Do we have an executable?
+	/* Do we have an executable? */
 	if (args.executable == NULL) {
 		error_printf(main, "no executable was specified");
 		exit(ERR_NOEXECUTABLE);
 	}
 
-	// Can we run a sandbox?
+	/* Can we run a sandbox? */
 	if (!available) {
 		if (!args.fallback) {
 			error_printf(main, "Sandbox is not available, use -f for fallback mode");
@@ -834,12 +1105,16 @@ main(int argc, char *argv[])
 		}
 	} else {
 		ret = create_mount_namespace();
-		if (ret > 0) 
-				exit(ERR_MNT_NAMESPACE);
+		if (ret < 0)
+			exit(ERR_MNT_NAMESPACE);
+
+		ret = create_write_layer();
+		if (ret < 0)
+			exit(ERR_MNT_WRITEDIR);
 
 		ret = mount_overlay(&args);
-		if (ret != 0)
-				exit(ERR_MNT_OVERLAY);
+		if (ret < 0)
+			exit(ERR_MNT_OVERLAY);
 	}
 
 	/* Now we have everything we need CAP_SYS_ADMIN for, so drop setuid */
@@ -847,14 +1122,32 @@ main(int argc, char *argv[])
 
 	setenv("GOBOLINUX_RUNNER", "1", 1);
 
-	/* add generic library path */
+	/* Add generic library path */
 	CHECK(update_env_var_list("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib"), false);
 	CHECK(update_env_var_list("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib64"), false);
 
-	/* add generic binary directory to PATH */
+	/* Add generic binary directory to PATH */
 	CHECK(update_env_var_list("PATH", GOBO_INDEX_DIR "/bin"), false);
 
-	ret = execvp(args.executable, args.arguments);
-	perror(args.executable);
+	pid = fork();
+	if (pid == 0) {
+		/* Launch the program provided by the user */
+		ret = execvp(args.executable, args.arguments);
+		perror(args.executable);
+	} else if (pid > 0) {
+		/*
+		 * Wait for child and clean up files and directories left on its write
+		 * and upper unionfs layers. Note that this effectively causes all
+		 * operations made under /System/Index to be discarded. Runner is not
+		 * meant to be used for regular system management anyway.
+		 */
+		waitpid(pid, &status, 0);
+		ret = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
+		cleanup_directory(args.upperlayer);
+		cleanup_directory(args.writelayer);
+	} else if (pid < 0) {
+		ret = -errno;
+		perror("fork");
+	}
 	return ret;
 }

@@ -28,9 +28,13 @@
 
 #define WARN(opt,fmt...) do { if (!(opt)->quiet) fprintf(stderr, fmt); } while(0)
 
+static void PrintRestrictions(struct parse_data *data, struct search_options *options) __attribute__((unused));
+static void PrintVersion(struct version *version) __attribute__((unused));
+static void PrintRange(struct range *range) __attribute__((unused));
+
 static inline struct utsname *RunningKernelInfo();
 
-const char *GetOperatorString(operator_t op)
+static const char *GetOperatorString(operator_t op)
 {
 	switch (op) {
 		case GREATER_THAN: return ">";
@@ -43,7 +47,7 @@ const char *GetOperatorString(operator_t op)
 	}
 }
 
-const char *GetRangeOperatorString(operator_t op)
+static const char *GetRangeOperatorString(operator_t op)
 {
 	switch (op) {
 		case GREATER_THAN: return "]";
@@ -57,12 +61,12 @@ const char *GetRangeOperatorString(operator_t op)
 	}
 }
 
-void PrintVersion(struct version *version) 
+static void PrintVersion(struct version *version)
 {
 	fprintf(stderr, "%s %s\n",GetOperatorString(version->op),version->version);
 }
 
-void PrintRange(struct range *range)
+static void PrintRange(struct range *range)
 {
 	fprintf(stderr, "%s%s %s%s\n", 
 			GetRangeOperatorString(range->low.op),
@@ -70,7 +74,7 @@ void PrintRange(struct range *range)
 			GetRangeOperatorString(range->high.op));
 }
 
-char *GetFirstAlpha(char *version)
+static char *GetFirstAlpha(char *version)
 {
 	char *ptr;
 	for (ptr = version; *ptr; ptr++)
@@ -79,12 +83,12 @@ char *GetFirstAlpha(char *version)
 	return NULL;
 }
 
-bool HasAlpha(char *version)
+static bool HasAlpha(char *version)
 {
 	return GetFirstAlpha(version) ? true : false;
 }
 
-int VersionCmp(char *_candidate, char *_specified)
+static int VersionCmp(char *_candidate, char *_specified)
 {
 	char candidatestring[strlen(_candidate)+1];
 	char specifiedstring[strlen(_specified)+1];
@@ -170,7 +174,7 @@ int VersionCmp(char *_candidate, char *_specified)
 	return ret;
 }
 
-bool MatchRule(char *candidate, struct version *v)
+static bool MatchRule(char *candidate, struct version *v)
 {
 	if (*candidate == '.' || !strcmp(candidate, "Variable") || !strcmp(candidate, "Settings") || !strcmp(candidate, "Current"))
 		return false;
@@ -196,12 +200,12 @@ bool MatchRule(char *candidate, struct version *v)
 	}
 }
 
-bool VersionMatchRange(char *bufversion, struct range *range) 
+static bool VersionMatchRange(char *bufversion, struct range *range) 
 {
 	return (MatchRule(bufversion, &range->low) && MatchRule(bufversion, &range->high));
 }
 
-bool VersionMatchRangeList(char *bufversion, struct list_head *rangelist)
+static bool VersionMatchRangeList(char *bufversion, struct list_head *rangelist)
 {
 	struct range *rangeentry;
 	list_for_each_entry(rangeentry, rangelist, list) {
@@ -211,7 +215,7 @@ bool VersionMatchRangeList(char *bufversion, struct list_head *rangelist)
 	return false;
 }
 
-struct range *VersionInRangeList(struct version *version, struct list_head *rangelist)
+static struct range *VersionInRangeList(struct version *version, struct list_head *rangelist)
 {
 	struct range *rangeentry;
 	list_for_each_entry(rangeentry, rangelist, list) {
@@ -221,7 +225,7 @@ struct range *VersionInRangeList(struct version *version, struct list_head *rang
 	return NULL;
 }
 
-bool RuleBestThanLatest(char *candidate, char *latest)
+static bool RuleBestThanLatest(char *candidate, char *latest)
 {
 	if (latest[0] == '\0')
 		return true;
@@ -229,7 +233,9 @@ bool RuleBestThanLatest(char *candidate, char *latest)
 	return strcmp(candidate, latest) >= 0 ? true : false;
 }
 
-char **GetVersionsFromAlien(struct parse_data *data, struct search_options *options)
+
+
+static char **GetVersionsFromAlien(struct parse_data *data, struct search_options *options)
 {
   char *sp, **versions;
   char alien[LINE_MAX];
@@ -245,7 +251,7 @@ char **GetVersionsFromAlien(struct parse_data *data, struct search_options *opti
   strncpy(alien, data->depname, sp-data->depname);
   alien[sp - data->depname] = 0;
 
-  snprintf(aliencmd, sizeof(aliencmd)-1, "Alien-%s --getversion %s", alien, sp+1);
+  snprintf(aliencmd, sizeof(aliencmd)-1, "Alien-'%s' --getversion '%s'", alien, sp+1);
   fp = popen(aliencmd, "r");
   if (!fp) {
     WARN(options, "WARNING: %s: %s\n", aliencmd, strerror(errno));
@@ -287,7 +293,7 @@ char **GetVersionsFromAlien(struct parse_data *data, struct search_options *opti
   return versions;
 }
 
-bool GetCurrentVersion(struct parse_data *data, struct search_options *options)
+static bool GetCurrentVersion(struct parse_data *data, struct search_options *options)
 {
 	ssize_t ret;
 	char buf[PATH_MAX], path[PATH_MAX];
@@ -337,7 +343,7 @@ static inline struct utsname *RunningKernelInfo()
 	return uts;
 }
 
-bool SupportedArchitecture(const char *depname, const char *version, struct search_options *options)
+static bool SupportedArchitecture(const char *depname, const char *version, struct search_options *options)
 {
 	char arch[PATH_MAX], line[256];
 	struct utsname *uts;
@@ -371,7 +377,7 @@ bool SupportedArchitecture(const char *depname, const char *version, struct sear
 	return true;
 }
 
-char **GetVersionsFromReadDir(struct parse_data *data, struct search_options *options)
+static char **GetVersionsFromReadDir(struct parse_data *data, struct search_options *options)
 {
 	DIR *dp;
 	int num = 0;
@@ -411,7 +417,7 @@ char **GetVersionsFromReadDir(struct parse_data *data, struct search_options *op
 	return versions;
 }
 
-char **GetVersionsFromStore(struct parse_data *data, struct search_options *options, char *cmdline)
+static char **GetVersionsFromStore(struct parse_data *data, struct search_options *options, char *cmdline)
 {
 	char buf[LINE_MAX], url[LINE_MAX];
 	char **versions = NULL;
@@ -471,7 +477,7 @@ char **GetVersionsFromStore(struct parse_data *data, struct search_options *opti
 	return versions;
 }
 
-bool GetBestVersion(struct parse_data *data, struct search_options *options)
+static bool GetBestVersion(struct parse_data *data, struct search_options *options)
 {
 	int i, latestindex = -1;
 	char *entry, **versions = NULL;
@@ -480,13 +486,13 @@ bool GetBestVersion(struct parse_data *data, struct search_options *options)
 	if (options->repository == LOCAL_PROGRAMS) {
 		versions = GetVersionsFromReadDir(data, options);
 	} else if (options->repository == LOCAL_DIRECTORY) {
-		snprintf(cmdline, sizeof(cmdline), "bash -c \"ls %s/%s--*--*.tar.bz2 2> /dev/null\"", options->searchdir, data->depname);
+		snprintf(cmdline, sizeof(cmdline), "bash -c \"ls '%s/%s'--*--*.tar.bz2 2> /dev/null\"", options->searchdir, data->depname);
 		versions = GetVersionsFromStore(data, options, cmdline);
 	} else if (options->repository == PACKAGE_STORE) {
-		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=official_package --full-list %s", data->depname);
+		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=official_package --full-list '%s'", data->depname);
 		versions = GetVersionsFromStore(data, options, cmdline);
 	} else if (options->repository == RECIPE_STORE) {
-		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=recipe --full-list %s", data->depname);
+		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=recipe --full-list '%s'", data->depname);
 		versions = GetVersionsFromStore(data, options, cmdline);
 	}
 
@@ -518,7 +524,7 @@ bool GetBestVersion(struct parse_data *data, struct search_options *options)
 	return latest[0] ? true : false;
 }
 
-void ListAppend(struct list_head *head, struct parse_data *data, struct search_options *options)
+static void ListAppend(struct list_head *head, struct parse_data *data, struct search_options *options)
 {
 	struct list_data *ldata = (struct list_data *) malloc(sizeof(struct list_data));
 	if (options->repository == LOCAL_PROGRAMS) {
@@ -537,7 +543,7 @@ void ListAppend(struct list_head *head, struct parse_data *data, struct search_o
 	list_add_tail(&ldata->list, head);
 }
 
-bool AlreadyInList(struct list_head *head, struct parse_data *data, struct search_options *options)
+static bool AlreadyInList(struct list_head *head, struct parse_data *data, struct search_options *options)
 {
 	struct list_data *ldata;
 	char bufname[NAME_MAX+3];
@@ -553,7 +559,7 @@ bool AlreadyInList(struct list_head *head, struct parse_data *data, struct searc
 	return false;
 }
 
-char *ReadLine(char *buf, int size, FILE *fp)
+static char *ReadLine(char *buf, int size, FILE *fp)
 {
 	int next;
 	char *ptr, *ret = fgets(buf, size, fp);
@@ -576,7 +582,7 @@ char *ReadLine(char *buf, int size, FILE *fp)
 	return ret;
 }
 
-bool EmptyLine(char *buf)
+static bool EmptyLine(char *buf)
 {
 	char *start;
 
@@ -593,7 +599,7 @@ bool EmptyLine(char *buf)
 	return false;
 }
 
-void PrintRestrictions(struct parse_data *data, struct search_options *options)
+static void PrintRestrictions(struct parse_data *data, struct search_options *options)
 {
 	struct range *rentry;
 
@@ -619,7 +625,7 @@ void PrintRestrictions(struct parse_data *data, struct search_options *options)
 	}
 }
 
-bool ParseName(struct parse_data *data, struct search_options *options)
+static bool ParseName(struct parse_data *data, struct search_options *options)
 {
 	data->depname = strtok_r(data->workbuf, " \t", &data->saveptr);
 	if (options->dependency && strcmp(data->depname, options->dependency))
@@ -627,7 +633,7 @@ bool ParseName(struct parse_data *data, struct search_options *options)
 	return data->depname ? true : false;
 }
 
-bool MakeVersion(char *buf, struct version *v, struct search_options *options)
+static bool MakeVersion(char *buf, struct version *v, struct search_options *options)
 {
 	// Remove white space
 	while(!strncmp(buf," ",1))
@@ -669,7 +675,7 @@ bool MakeVersion(char *buf, struct version *v, struct search_options *options)
 	return true;
 }
 
-bool ParseVersions(struct parse_data *data, struct search_options *options)
+static bool ParseVersions(struct parse_data *data, struct search_options *options)
 {
 	struct version *version = NULL;
 	char *ptr;
@@ -713,7 +719,7 @@ bool ParseVersions(struct parse_data *data, struct search_options *options)
 	return true;
 }
 
-struct range *CreateRangeFromVersion(struct version *version)
+static struct range *CreateRangeFromVersion(struct version *version)
 {
 	struct range *range;
 
@@ -755,7 +761,7 @@ struct range *CreateRangeFromVersion(struct version *version)
 	return range;
 }
 
-bool LimitRange(struct parse_data *data, struct range *range, struct version *version)
+static bool LimitRange(struct parse_data *data, struct range *range, struct version *version)
 {
 	struct range *highrange = NULL;
 
@@ -800,7 +806,7 @@ bool LimitRange(struct parse_data *data, struct range *range, struct version *ve
 	return true;
 }
 
-bool ParseRanges(struct parse_data *data, struct search_options *options)
+static bool ParseRanges(struct parse_data *data, struct search_options *options)
 {
 	struct range *matchrange, *rangeentry, *rangestore;
 	struct version *verentry;
@@ -900,6 +906,7 @@ void FreeDependencies(struct list_head **deps)
 	}
 }
 
+#ifdef BUILD_MAIN
 void usage(char *appname, int retval)
 {
 	fprintf(stderr, "Usage: %s [options] <Dependencies file>\n"
@@ -915,7 +922,6 @@ void usage(char *appname, int retval)
 	exit(retval);
 }
 
-#ifdef BUILD_MAIN
 int main(int argc, char **argv)
 {
 	int c, index;
