@@ -78,12 +78,6 @@ compinit -i
 # This must be done before loading a zkbd
 zmodload zsh/complist &> /dev/null
 
-if [ "$KONSOLE_DCOP" ]
-then export TERM='konsole'
-elif [ "$DISPLAY" ]
-then export TERM='xterm-color'
-fi
-
 if [[ -e ${goboShared}/zsh/zkbd-$TERM-$VENDOR-$OSTYPE ]]
 then
    . ${goboShared}/zsh/zkbd-$TERM-$VENDOR-$OSTYPE
