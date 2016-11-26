@@ -41,7 +41,7 @@ $(man_files): share/man/man1/%.1: bin/%
 	help2man --name=" " --source="GoboLinux" --no-info $< --output $@
 
 $(exec_files): bin/%: src/%
-	cp -f $< $@
+	cp -af $< $@
 	chmod a+x $@
 
 src/%: src/%.c
