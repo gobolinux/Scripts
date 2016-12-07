@@ -66,7 +66,7 @@ int parse_arguments(int argc, char *argv[])
 		{"verbose",  no_argument, 0,  'v'},
 		{0,          0,           0,   0 }
 	};
-	const char *short_options = "hv";
+	const char *short_options = "+hv";
 	bool valid = true;
 	int next = optind;
 
