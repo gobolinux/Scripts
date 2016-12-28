@@ -52,7 +52,8 @@
 #define GOBO_PROGRAMS_DIR "/Programs"
 #define OVERLAYFS_MAGIC   0x794c7630
 
-#define debug_printf(msg...) if (args.verbose) fprintf(stderr, msg)
+#define debug_printf(msg...)   if (args.debug) fprintf(stderr, msg)
+#define verbose_printf(msg...) if (args.verbose) fprintf(stderr, msg)
 #define error_printf(fun, msg) fprintf(stderr, "Error:%s: %s at %s:%d\n", #fun, msg, __FILE__, __LINE__)
 
 #define ERR_LEN 255
@@ -85,6 +86,7 @@
 
 struct runner_args {
 	bool quiet;                /* Run in quiet mode? */
+	bool debug;                /* Print debug messages? */
 	bool verbose;              /* Run in verbose mode? */
 	bool check;                /* Run in check mode? */
 	bool fallback;             /* Run in fallback mode if sandbox is not available */
@@ -296,7 +298,7 @@ get_program_dir(const char *executable)
 	}
 
 	if (strlen(path) < strlen(GOBO_PROGRAMS_DIR)) {
-		debug_printf("'%s' ('%s') is not in a $goboPrograms subdirectory\n",
+		verbose_printf("'%s' ('%s') is not in a $goboPrograms subdirectory\n",
 			executable, path);
 		free(path);
 		return NULL;
@@ -308,7 +310,7 @@ get_program_dir(const char *executable)
 			count++;
 	if (count != 1) {
 		// Too many '/' components!
-		debug_printf("'%s' ('%s') has too many '/' components\n",
+		verbose_printf("'%s' ('%s') has too many '/' components\n",
 			executable, path);
 		free(path);
 		return NULL;
@@ -334,7 +336,7 @@ create_mount_namespace()
 	int mount_count;
 	int res;
 
-	debug_printf("creating new namespace\n");
+	verbose_printf("creating new namespace\n");
 	res = unshare(CLONE_NEWNS);
 	if (res != 0) {
 		fprintf(stderr, "Failed to create namespace: %s\n", strerror(errno));
@@ -432,7 +434,7 @@ prepare_merge_string(const char *callerprogram, const char *dependencies)
 	}
 	list_for_each_entry(entry, deps, list) {
 		if (stat(entry->path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
-			debug_printf("adding dependency at %s\n", entry->path);
+			verbose_printf("adding dependency at %s\n", entry->path);
 			strcat(mergedirs, entry->path);
 			strcat(mergedirs, ":");
 		}
@@ -526,7 +528,7 @@ test_and_remove(char *srcdir, char *indexdir)
 			}
 			if (strstr(target, srcdir)) {
 				/* symlink points to conflicting dependency, so remove it */
-				debug_printf("%s: removing %s/%s -> %s\n", __func__, indexdir, entry->d_name, target);
+				verbose_printf("%s: removing %s/%s -> %s\n", __func__, indexdir, entry->d_name, target);
 				unlinkat(indexfd, entry->d_name, 0);
 			}
 			free(target);
@@ -658,7 +660,7 @@ mount_overlay_dirs(const char *mergedirs, const char *mountpoint)
 out_free:
 	if (res != 0) {
 		fprintf(stderr, "Failed to mount overlayfs\n");
-		debug_printf("%s\n", unionfs);
+		verbose_printf("%s\n", unionfs);
 	}
 	free(unionfs);
 	return res;
@@ -917,7 +919,7 @@ show_usage_and_exit(char *exec, int err)
 	"  -d, --dependencies=FILE   Path to GoboLinux Dependencies file to use\n"
 	"  -h, --help                This help\n"
 	"  -q, --quiet               Don't warn on bogus dependencies file(s)\n"
-	"  -v, --verbose             Run in verbose mode\n"
+	"  -v, --verbose             Run in verbose mode (type twice to enable debug messages)\n"
 	"  -c, --check               Check if Runner can be used in this system\n"
 	"  -f, --fallback            Run the command without the sandbox in case this is not available\n"
 	"  -R, --no-removedeps       Do not remove conflicting versions of dependencies from /System/Index view\n"
@@ -964,6 +966,7 @@ parse_arguments(int argc, char *argv[])
 
 	/* Default values */
 	args.check = false;
+	args.debug = false;
 	args.verbose = false;
 	args.quiet = false;
 	args.fallback = false;
@@ -998,6 +1001,8 @@ parse_arguments(int argc, char *argv[])
 				args.removedeps = false;
 				break;
 			case 'v':
+				if (args.verbose)
+					args.debug = true;
 				args.verbose = true;
 				break;
 			case 'f':
@@ -1046,21 +1051,21 @@ bool check_availability()
 
 	/* Check uid */
 	if ((uid >0) && (uid == euid)) {
-		debug_printf("This program needs its suid bit to be set.\n");
+		verbose_printf("This program needs its suid bit to be set.\n");
 		is_available = false;
 	}
 
 	/* Check kernel version */
 	uname(&uts_data);
 	if (compare_kernel_versions("4.0", uts_data.release) > 0) {
-		debug_printf("Running on Linux %s. At least Linux 4.0 is needed.\n",
+		verbose_printf("Running on Linux %s. At least Linux 4.0 is needed.\n",
 			uts_data.release);;
 		is_available = false;
 	}
 
 	/* Check if maximum filesystem stacking count will be reached */
 	if (statfs("/", &statbuf) == 0 && statbuf.f_type == OVERLAYFS_MAGIC) {
-		debug_printf("Rootfs is an overlayfs, max filesystem stacking count will be reached\n");
+		verbose_printf("Rootfs is an overlayfs, max filesystem stacking count will be reached\n");
 		is_available = false;
 	}
 
