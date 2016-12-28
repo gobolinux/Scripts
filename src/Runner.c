@@ -379,6 +379,23 @@ error_out:
 	return -1;
 }
 
+static void
+destroy_namespace()
+{
+	const char *targets[] = {"bin", "include", "lib",  "libexec", "share", NULL};
+	char mp[strlen(GOBO_INDEX_DIR)+strlen("libexec")+2];
+	int i, max_mount_count = 3;
+
+	for (i=0; targets[i]; ++i) {
+		sprintf(mp, "%s/%s", GOBO_INDEX_DIR, targets[i]);
+		umount(mp);
+	}
+
+	while (max_mount_count-- > 0)
+		if (umount(GOBO_INDEX_DIR) < 0)
+			break;
+}
+
 static bool
 program_blacklisted(const char *programname)
 {
@@ -1151,6 +1168,7 @@ main(int argc, char *argv[])
 		 */
 		waitpid(pid, &status, 0);
 		ret = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
+		destroy_namespace();
 		cleanup_directory(args.upperlayer);
 		cleanup_directory(args.writelayer);
 	} else if (pid < 0) {
