@@ -1,6 +1,9 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*-
+/*
+ * Runner: GoboLinux filesystem virtualization tool
  *
- * Copyright (C) 2015 Lucas C. Villa Real <lucasvr@gobolinux.org>
+ * Copyright (C) 2015-2017 Lucas C. Villa Real <lucasvr@gobolinux.org>
+ *
+ * compare_kernel_versions() and create_mount_namespace() by:
  * Copyright (C) 2014 Matthias Klumpp <matthias@tenstral.net>
  * Copyright (C) 2012 Alexander Larsson <alexl@redhat.com>
  *
@@ -1156,3 +1159,5 @@ main(int argc, char *argv[])
 	}
 	return ret;
 }
+
+/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*-
