@@ -1160,4 +1160,4 @@ main(int argc, char *argv[])
 	return ret;
 }
 
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*-
+/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
