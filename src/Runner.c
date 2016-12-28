@@ -1117,20 +1117,20 @@ main(int argc, char *argv[])
 			exit(ERR_MNT_OVERLAY);
 	}
 
-	/* Now we have everything we need CAP_SYS_ADMIN for, so drop setuid */
-	CHECK(setuid(getuid()), true);
-
-	setenv("GOBOLINUX_RUNNER", "1", 1);
-
-	/* Add generic library path */
-	CHECK(update_env_var_list("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib"), false);
-	CHECK(update_env_var_list("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib64"), false);
-
-	/* Add generic binary directory to PATH */
-	CHECK(update_env_var_list("PATH", GOBO_INDEX_DIR "/bin"), false);
-
 	pid = fork();
 	if (pid == 0) {
+		/* Now we have everything we need CAP_SYS_ADMIN for, so drop setuid */
+		CHECK(setuid(getuid()), true);
+
+		setenv("GOBOLINUX_RUNNER", "1", 1);
+
+		/* Add generic library path */
+		CHECK(update_env_var_list("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib"), false);
+		CHECK(update_env_var_list("LD_LIBRARY_PATH", GOBO_INDEX_DIR "/lib64"), false);
+
+		/* Add generic binary directory to PATH */
+		CHECK(update_env_var_list("PATH", GOBO_INDEX_DIR "/bin"), false);
+
 		/* Launch the program provided by the user */
 		ret = execvp(args.executable, args.arguments);
 		perror(args.executable);
