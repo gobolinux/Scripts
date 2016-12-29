@@ -548,7 +548,7 @@ test_and_remove(char *srcdir, char *indexdir)
 			}
 			if (strstr(target, srcdir)) {
 				/* symlink points to conflicting dependency, so remove it */
-				verbose_printf("%s: removing %s/%s -> %s\n", __func__, indexdir, entry->d_name, target);
+				debug_printf("%s: removing %s/%s -> %s\n", __func__, indexdir, entry->d_name, target);
 				unlinkat(indexfd, entry->d_name, 0);
 			}
 			free(target);
