@@ -372,7 +372,7 @@ static bool SupportedArchitecture(const char *depname, const char *version, stru
 	close(fd);
 
 	if (options->wantedArch)
-		return strcmp(line, options->wantedArch) == 0;
+		return strcmp(line, options->wantedArch) == 0 || strcmp(line, "noarch") == 0;
 	else if (strcmp(line, uts->machine)) {
 		WARN(options, "WARNING: architecture %s differs from %s, ignoring %s version %s\n",
 				line, uts->machine, depname, version);
