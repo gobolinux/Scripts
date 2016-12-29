@@ -113,10 +113,6 @@ static int VersionCmp(char *_candidate, char *_specified)
 		} while (*ptr == ' ');
 	}
 
-	// search for x86_64 packages borrowed from other distros
-	if (strstr(candidate, "x86_64") && strstr(specified, "x86_64"))
-		return strcmp(candidate, specified);
-
 	// for text-based versions just propagate retval from strcmp().
 	if (isalpha(candidate[0]) && isalpha(specified[0]))
 		return strcmp(candidate, specified);
@@ -174,9 +170,17 @@ static int VersionCmp(char *_candidate, char *_specified)
 	return ret;
 }
 
+static bool IsVersionDirectory(char *candidate)
+{
+	return (! (*candidate == '.' ||
+			!strcmp(candidate, "Variable") ||
+			!strcmp(candidate, "Settings") ||
+			!strcmp(candidate, "Current")));
+}
+
 static bool MatchRule(char *candidate, struct version *v)
 {
-	if (*candidate == '.' || !strcmp(candidate, "Variable") || !strcmp(candidate, "Settings") || !strcmp(candidate, "Current"))
+	if (! IsVersionDirectory(candidate))
 		return false;
 	if (!v->version || strlen(v->version) == 0) 
 		return true;
@@ -367,8 +371,8 @@ static bool SupportedArchitecture(const char *depname, const char *version, stru
 		line[n-1] = '\0';
 	close(fd);
 
-	if (options->wantedArch && !strcmp(line, options->wantedArch))
-		return true;
+	if (options->wantedArch)
+		return strcmp(line, options->wantedArch) == 0;
 	else if (strcmp(line, uts->machine)) {
 		WARN(options, "WARNING: architecture %s differs from %s, ignoring %s version %s\n",
 				line, uts->machine, depname, version);
@@ -409,7 +413,9 @@ static char **GetVersionsFromReadDir(struct parse_data *data, struct search_opti
 	num = 0;
 	rewinddir(dp);
 	while ((entry = readdir(dp))) {
-		if (entry->d_name[0] != '.' && SupportedArchitecture(data->depname, entry->d_name, options))
+		if (! IsVersionDirectory(entry->d_name))
+			continue;
+		if (SupportedArchitecture(data->depname, entry->d_name, options))
 			versions[num++] = strdup(entry->d_name);
 	}
 	closedir(dp);
@@ -999,3 +1005,5 @@ int main(int argc, char **argv)
 	return 0;
 }
 #endif /* BUILD_MAIN */
+
+/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */

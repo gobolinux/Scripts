@@ -723,6 +723,35 @@ mount_overlay()
 	char *archfile = NULL, *fname = NULL, *tmpstr;
 	char *mergedirs_user = NULL, *mergedirs_program = NULL, *mergedirs = NULL;
 
+	programdir = get_program_dir(args.executable);
+	if (programdir) {
+		/* check if the software's Resources/Dependencies file exists */
+		if (asprintf(&fname, "%s/Resources/Dependencies", programdir) <= 0) {
+			fprintf(stderr, "Not enough memory\n");
+			goto out_free;
+		}
+		res = stat(fname, &statbuf);
+		if (res < 0 && errno == EACCES) {
+			perror(fname);
+			goto out_free;
+		}
+		if (args.architecture == NULL) {
+			/* Try to determine architecture based on the Resources/Architecture metadata file */
+			if (asprintf(&archfile, "%s/Resources/Architecture", programdir) <= 0) {
+				fprintf(stderr, "Not enough memory\n");
+				goto out_free;
+			}
+			/* TODO: args.architecture is never freed */
+			args.architecture = parse_architecture_file(archfile);
+		}
+		printf("programdir=%s, arch=%s\n", programdir, args.architecture);
+		callerprogram = program_blacklisted(programdir) ? NULL : programdir;
+		mergedirs_program = prepare_merge_string(callerprogram, fname);
+		merge_len += mergedirs_program ? strlen(mergedirs_program) : 0;
+		free(fname);
+		fname = NULL;
+	}
+
 	for (i=0; args.dependencies[i]; ++i) {
 		/* take user-provided dependencies file */
 		fname = strdup(args.dependencies[i]);
@@ -755,34 +784,6 @@ mount_overlay()
 			mergedirs_user = newstr;
 			res = 0;
 		}
-	}
-
-	programdir = get_program_dir(args.executable);
-	if (programdir) {
-		/* check if the software's Resources/Dependencies file exists */
-		if (asprintf(&fname, "%s/Resources/Dependencies", programdir) <= 0) {
-			fprintf(stderr, "Not enough memory\n");
-			goto out_free;
-		}
-		res = stat(fname, &statbuf);
-		if (res < 0 && errno == EACCES) {
-			perror(fname);
-			goto out_free;
-		}
-		if (args.architecture == NULL) {
-			/* Try to determine architecture based on the Resources/Architecture metadata file */
-			if (asprintf(&archfile, "%s/Resources/Architecture", programdir) <= 0) {
-				fprintf(stderr, "Not enough memory\n");
-				goto out_free;
-			}
-			/* TODO: args.architecture is never freed */
-			args.architecture = parse_architecture_file(archfile);
-		}
-		callerprogram = program_blacklisted(programdir) ? NULL : programdir;
-		mergedirs_program = prepare_merge_string(callerprogram, fname);
-		merge_len += mergedirs_program ? strlen(mergedirs_program) : 0;
-		free(fname);
-		fname = NULL;
 	}
 
 	res = asprintf(&mergedirs, "%s%s",
