@@ -744,7 +744,6 @@ mount_overlay()
 			/* TODO: args.architecture is never freed */
 			args.architecture = parse_architecture_file(archfile);
 		}
-		printf("programdir=%s, arch=%s\n", programdir, args.architecture);
 		callerprogram = program_blacklisted(programdir) ? NULL : programdir;
 		mergedirs_program = prepare_merge_string(callerprogram, fname);
 		merge_len += mergedirs_program ? strlen(mergedirs_program) : 0;
