@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 	CHECK(parse_arguments(argc, argv));
 
 	if (args.executable == NULL) {
-		error_printf(main, "no executable was specified");
+		fprintf(stderr, "%s: no executable was specified. See --help.\n", argv[0]);
 		exit(ERR_NOEXECUTABLE);
 	}
 
