@@ -7,7 +7,8 @@
 # Copyright 2015 Lucas C. Villa Real based on LuaRocks interface by Michael Homer.
 # Released under the GNU GPL 2 or later.
 
-source GoboPath
+. ScriptFunctions
+Import Alien
 
 getversion() {
    local prog=$(echo "$1" | sed 's,\(.*\),\L\1,g')
@@ -66,8 +67,18 @@ install() {
    then
       mkdir -p "$target" || { echo "Failed to create $target."; exit 1; }
    fi
-   # TODO: we may need to include --upgrade (needs testing)
-   pip install --target=$target --src=$srcdir "$prog" $ver
+   pip install --upgrade --prefix=$target --src=$srcdir "$prog" $ver
+   
+   Symlink_Aliens "$goboExecutables" "$goboSystem"/Aliens/PIP/bin
+}
+
+remove() {
+   local prog="$1"
+   local ver="$2"
+
+   pip uninstall "$prog" $ver
+   
+   Cleanup_Aliens
 }
 
 command="$1"
@@ -100,5 +111,8 @@ case "$command" in
       ;;
    --install)
       install "$2" "$3"
+      ;;
+   --remove)
+      remove "$2" "$3"
       ;;
 esac # is ridiculous

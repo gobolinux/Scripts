@@ -2,6 +2,9 @@
 # Shell script implementing the Aliens interface for CPAN.
 # Copyright 2009 Hisham Muhammad based on RubyGems interface by Michael Homer. Released under the GNU GPL 2 or later.
 
+. ScriptFunctions
+Import Alien
+
 getversion() {
    # Based on pmvers 1.10
    # Released under the GNU GPL 2 or any later version.
@@ -43,6 +46,7 @@ install() {
    module="$1"
    #echo "force install $1" | perl -MCPAN -e "shell"
    cpan -j "$goboSystem/Aliens/CPAN/.cpan/CPAN//MyConfig.pm" "$1"
+   Symlink_Aliens "$goboExecutables" "$goboSystem"/Aliens/CPAN/bin
 }
 
 command="$1"

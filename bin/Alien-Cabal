@@ -4,6 +4,9 @@
 
 # $2 is name of package
 
+. ScriptFunctions
+Import Alien
+
 alien_cabal--have-manager() {
     which cabal >/dev/null 2>&1 || exit 1
 }
@@ -54,6 +57,8 @@ alien_cabal--getinstallversion() {
             fi
           )
     cabal install --dry-run "$1 $pred" | sed -n -e "/^${1}-/s/^${1}-//p"
+    
+    Symlink_Aliens "$goboExecutables" "$goboSystem"/Aliens/Cabal/*/bin
 }
 
 alien_cabal--install() {
