@@ -1,6 +1,6 @@
 
 PYTHON_VERSION=2.7
-PYTHON_LIBS=FindPackage GetAvailable GuessLatest CheckDependencies DescribeProgram UseFlags Corrections Alien
+PYTHON_LIBS=FindPackage GetAvailable GuessLatest CheckDependencies DescribeProgram UseFlags Corrections
 PYTHON_SITE=lib/python$(PYTHON_VERSION)/site-packages
 PROGRAM=Scripts
 VERSION=git-$(shell date +%Y%m%d)
