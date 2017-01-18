@@ -1,0 +1,27 @@
+#!/bin/sh
+
+Symlink_Aliens() {
+   targetdir="$1"
+   shift
+   find "$@" -mindepth 1 | while read entry
+   do
+      local bname="${entry##*/}"
+      local targetfile="$targetdir/$bname"
+      if [[ -L "$targetfile" ]]
+      then
+         local rtarget=$(realpath -e "$targetfile")
+         # Only overwrite /System/Aliens symlinks
+         if [[ "$rtarget" =~ ^"$goboSystem/Aliens" ]]
+         then
+            rm -f "$targetfile"
+         else
+            continue
+         fi
+      fi
+      ln -ns "$entry" "$targetfile"
+   done
+}
+
+Cleanup_Aliens() {
+   find "$goboExecutables" | RemoveBroken
+}
