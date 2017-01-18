@@ -20,6 +20,7 @@ function try_dir() {
    local dir="$1"
    local pattern="$2"
    shift 2
+   Log_Verbose "Searching in $dir"
    if [ -d "$dir" ]
    then
       Quiet pushd "$dir"
@@ -54,12 +55,12 @@ fi
 
 lowercase="$(Arg 1 | tr 'A-Z' 'a-z')"
 
-for d in "$versionDir/doc" "$versionDir/share/doc" $([ -d "$versiondir/share" ] && find "$versionDir/share/" -type d -name "doc")
+for d in "$versionDir/doc" "$versionDir/share/doc"
 do
    try_dir "$d" "index.html" xdg-open
 done
 
-for d in $([ -d "$versiondir/share" ] && find "$versionDir/share/" -type d -name "doc")
+for d in $([ -d "$versionDir/share" ] && find "$versionDir/share/" -type d -name "doc")
 do
    try_dir "$d" "index.html" xdg-open
 done
