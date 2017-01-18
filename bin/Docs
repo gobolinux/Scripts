@@ -6,6 +6,7 @@ Import OptionParser
 helpOnNoArguments=yes
 scriptDescription="Show the documentation for a program."
 scriptCredits="Copyright (C) Hisham Muhammad, 2017 - Released under the GNU GPL."
+Add_Option_Boolean "w" "web" "Do not try local docs. Open website directly."
 scriptUsage="[<options>] <program_name> [<program_version>]"
 scriptExample="WeirdSuperLib 2.4"
 
@@ -32,6 +33,25 @@ function try_dir() {
    fi
 }
 
+function try_homepage() {
+   if [ -e "$versionDir/Resources/Description" ]
+   then
+      homepage="$(cat "$versionDir/Resources/Description" | tr '\n' ' ' | tr '\[' '\n' | grep "Homepage\]" )"
+      if [ "$homepage" ]
+      then
+         url="${homepage#Homepage\] }"
+         Log_Normal "Opening homepage. Starting: xdg-open $url"
+         exec xdg-open "$url"
+      fi
+   fi
+}
+
+if Boolean "web"
+then
+   try_homepage
+   Die "Could not determine website for $package $version."
+fi
+
 lowercase="$(Arg 1 | tr 'A-Z' 'a-z')"
 
 for d in "$versionDir/doc" "$versionDir/share/doc" $([ -d "$versiondir/share" ] && find "$versionDir/share/" -type d -name "doc")
@@ -54,15 +74,6 @@ done
 
 try_dir "$versionDir/share/gtk-doc" index.html xdg-open
 
-if [ -e "$versionDir/Resources/Description" ]
-then
-   homepage="$(grep "\[Homepage\]" "$versionDir/Resources/Description")"
-   if [ "$homepage" ]
-   then
-      url="${homepage#\[Homepage\] }"
-      Log_Normal "Opening homepage. Starting: xdg-open $url"
-      exec xdg-open "$url"
-   fi
-fi
+try_homepage
 
 Die "Could not find documentation for $package $version."
