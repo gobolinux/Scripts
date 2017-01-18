@@ -1,0 +1,68 @@
+#!/bin/bash
+
+source ScriptFunctions
+Import OptionParser
+
+helpOnNoArguments=yes
+scriptDescription="Show the documentation for a program."
+scriptCredits="Copyright (C) Hisham Muhammad, 2017 - Released under the GNU GPL."
+scriptUsage="[<options>] <program_name> [<program_version>]"
+scriptExample="WeirdSuperLib 2.4"
+
+Parse_Options "$@"
+
+[ "$(Arg 1)" ] || Die "Argument missing: specify the program name or directory."
+
+Import PackageAndVersionFromArguments
+
+function try_dir() {
+   local dir="$1"
+   local pattern="$2"
+   shift 2
+   if [ -d "$dir" ]
+   then
+      Quiet pushd "$dir"
+      found=$(find . -name "$pattern" | sort | head -n 1)
+      if [ "$found" ]
+      then
+         Log_Normal "Found local doc. Starting: $@ $found"
+         exec "$@" "$found"
+      fi
+      Quiet popd
+   fi
+}
+
+lowercase="$(Arg 1 | tr 'A-Z' 'a-z')"
+
+for d in "$versionDir/doc" "$versionDir/share/doc" $([ -d "$versiondir/share" ] && find "$versionDir/share/" -type d -name "doc")
+do
+   try_dir "$d" "index.html" xdg-open
+done
+
+for d in $([ -d "$versiondir/share" ] && find "$versionDir/share/" -type d -name "doc")
+do
+   try_dir "$d" "index.html" xdg-open
+done
+
+try_dir "$versionDir/share/info" "$lowercase.info" pinfo
+
+manpage="$lowercase\.[0-9]"
+for d in "$versionDir/man" "$versionDir/share/man"
+do
+   try_dir "$d" "$manpage" pinfo -m
+done
+
+try_dir "$versionDir/share/gtk-doc" index.html xdg-open
+
+if [ -e "$versionDir/Resources/Description" ]
+then
+   homepage="$(grep "\[Homepage\]" "$versionDir/Resources/Description")"
+   if [ "$homepage" ]
+   then
+      url="${homepage#\[Homepage\] }"
+      Log_Normal "Opening homepage. Starting: xdg-open $url"
+      exec xdg-open "$url"
+   fi
+fi
+
+Die "Could not find documentation for $package $version."
