@@ -16,6 +16,8 @@ Parse_Options "$@"
 
 Import PackageAndVersionFromArguments
 
+browser="BackgroundExec xdg-open"
+
 function try_dir() {
    local dir="$1"
    local pattern="$2"
@@ -41,8 +43,8 @@ function try_homepage() {
       if [ "$homepage" ]
       then
          url="${homepage#Homepage\] }"
-         Log_Normal "Opening homepage. Starting: xdg-open $url"
-         exec xdg-open "$url"
+         Log_Normal "Opening homepage. Starting: $browser $url"
+         exec $browser "$url"
       fi
    fi
 }
@@ -57,12 +59,12 @@ lowercase="$(Arg 1 | tr 'A-Z' 'a-z')"
 
 for d in "$versionDir/doc" "$versionDir/share/doc"
 do
-   try_dir "$d" "index.html" xdg-open
+   try_dir "$d" "index.html" $browser
 done
 
 for d in $([ -d "$versionDir/share" ] && find "$versionDir/share/" -type d -name "doc")
 do
-   try_dir "$d" "index.html" xdg-open
+   try_dir "$d" "index.html" $browser
 done
 
 try_dir "$versionDir/share/info" "$lowercase.info" pinfo
@@ -73,7 +75,7 @@ do
    try_dir "$d" "$manpage" pinfo -m
 done
 
-try_dir "$versionDir/share/gtk-doc" index.html xdg-open
+try_dir "$versionDir/share/gtk-doc" index.html $browser
 
 try_homepage
 
