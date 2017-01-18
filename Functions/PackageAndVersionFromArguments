@@ -1,0 +1,41 @@
+#!/bin/bash (source)
+
+# Source this in a script that takes a program name and version
+# as $(Arg 1) and $(Arg 2). This snippet will produce variables
+# $package, $version, $currentVersion, $packageDir and $versionDir.
+
+Import File
+
+package="`basename "$(Arg 1)" /`"
+package=`GuessProgramCase "$package" "$(Arg 2)"`
+
+packageDir="$goboPrograms/$package"
+
+current="$packageDir/Current"
+version="$(basename "$(readlink -f "${current}")" /)"
+currentVersion="$version"
+
+if ! Is_Directory "$packageDir"
+then
+   Log_Error "Directory $packageDir does not exist."
+   Corrections --log-name SymlinkProgram --dir "$goboPrograms" "$package"
+   Die
+fi
+
+if [ "$(Arg 2)" ]
+then
+   vdir="$goboPrograms/$package/$(Arg 2)"
+   if ! Is_Directory "$vdir"
+   then
+      Die "There is no version $(Arg 2) for package $(Arg 1). Available versions are:\n$(All_Versions $package)"
+   fi
+   version="$(Arg 2)"
+fi
+
+if ! Exists "$current"
+then
+   youngestdir=`ls --sort=time "$packageDir" | grep -v -e "Settings" -e "Variable" -e "Current" | head -n 1`
+   version="$youngestdir"
+fi
+
+versionDir="$packageDir/$version"

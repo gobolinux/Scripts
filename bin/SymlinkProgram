@@ -75,7 +75,7 @@ function system_is_ok() {
 
 if ! system_is_ok
 then
-   Log_Terse "System does not seems to be ok."
+   Log_Terse "System does not seem to be ok."
    if [ "$(Arg 2)" ]
    then
       p_path="$goboPrograms/`basename "$(Arg 1)"`/$(Arg 2)"
@@ -88,39 +88,9 @@ then
    exit 0
 fi
 
+Import PackageAndVersionFromArguments
 
-package="`basename "$(Arg 1)" /`"
-package=`GuessProgramCase "$package" "$(Arg 2)"`
-
-packageDir="$goboPrograms/$package"
-
-current="$packageDir/Current"
-version="$(basename "$(readlink -f "${current}")" /)"
-
-if ! Is_Directory "$packageDir"
-then
-   Log_Error "Directory $packageDir does not exist."
-   Corrections --log-name SymlinkProgram --dir "$goboPrograms" "$package"
-   Die
-fi
-
-if [ "$(Arg 2)" ]
-then
-   vdir="$goboPrograms/$package/$(Arg 2)"
-   if ! Is_Directory "$vdir"
-   then
-      Die "There is no version $(Arg 2) for package $(Arg 1). Available versions are:\n$(All_Versions $package)"
-   fi
-   [ "$version" != "$(Arg 2)" ] && ln -sfn `basename "$vdir"` "$current"
-   version="$(Arg 2)"
-fi
-
-if ! Exists "$current"
-then
-   youngestdir=`ls --sort=time "$packageDir" | grep -v -e "Settings" -e "Variable" -e "Current" | head -n 1`
-   ln -sf "$youngestdir" "$current"
-   version="$youngestdir"
-fi
+[ "$version" != "$currentVersion" ] && ln -sfn "$version" "$packageDir/Current"
 
 if [ "xyes" = "x$autoVersionExecutables" ]
 then
