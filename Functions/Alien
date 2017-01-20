@@ -1,5 +1,17 @@
 #!/bin/sh
 
+In_Version_Range() {
+   lower="$1"
+   ver="$2"
+   upper="$3"
+   [ "$ver" ] || return 1
+   [ "$ver" != "$lower" -a "$(GuessLatest "$ver" "$lower")" = "$lower" ] && return 1
+   [ "$upper" ] || return 0
+   [ "$(GuessLatest "$ver" "$upper")" = "$upper" ] || return 1
+   [ "$ver" = "$upper" -a "$ver" != "$lower" ] && return 1
+   return 0
+}
+
 Symlink_Aliens() {
    targetdir="$1"
    shift

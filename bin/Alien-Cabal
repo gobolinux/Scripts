@@ -15,20 +15,10 @@ alien_cabal--get-manager-rule() {
     echo "Cabal-Install"
 }
 
-alien_cabal__in_version_range() {
-   # $1=inclusive lower ver, $2=ver to check, $3=exclusive upper ver ($2==$3 iff $1==$3)
-   [ "$2" ] || return 1
-   [ "$2" != "$1" -a "$(GuessLatest "$2" "$1")" = "$1" ] && return 1
-   [ "$3" ] || return 0
-   [ "$(GuessLatest "$2" "$3")" = "$3" ] || return 1
-   [ "$2" = "$3" -a "$2" != "$1" ] && return 1
-   return 0
-}
-
 alien_cabal--met() {
     # $1=package, $2=lower version inclusive, [$3=upper version exclusive]
     ver=$(alien_cabal--getversion $1)
-    alien_cabal__in_version_range "$2" "$ver" "$3"
+    In_Version_Range "$2" "$ver" "$3"
 }
 alien_cabal--greater-than() { alien_cabal--met "$@"; }
 alien_cabal--within-range() { alien_cabal--met "$@"; }
