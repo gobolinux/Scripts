@@ -706,7 +706,7 @@ parse_architecture_file(const char *archfile)
 		if (n > 0 && line[n-1] == '\n')
 			line[n-1] = '\0';
 		fclose(fp);
-		return strdup(line);
+		return strstr(line, "i386") ? strdup("i686") : strdup(line);
 	}
 	return NULL;
 }
