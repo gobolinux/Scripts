@@ -15,7 +15,7 @@ In_Version_Range() {
 Symlink_Aliens() {
    targetdir="$1"
    shift
-   find "$@" -mindepth 1 | while read entry
+   find "$@" -mindepth 1 2> /dev/null | while read entry
    do
       local bname="${entry##*/}"
       local targetfile="$targetdir/$bname"
