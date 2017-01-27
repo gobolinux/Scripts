@@ -507,7 +507,7 @@ function Pre_Installation_Preparation() {
       for f in ${programfiles[@]}
       do
          systempath="$(Programs_To_System_Path "${f}")"
-	 [ ! -L "${systempath}" ] && continue
+         [ ! -L "${systempath}" ] && continue
          [ "$(dirname "$(readlink -f "${systempath}")")" != "$(dirname "$progprefix/${f}")" ] && continue
          [ -n "${systempath}" ] && {
             Progress_Move
