@@ -371,6 +371,9 @@ static bool SupportedArchitecture(const char *depname, const char *version, stru
 		line[n-1] = '\0';
 	close(fd);
 
+	if (strstr(line, "i386"))
+		sprintf(line, "i686");
+
 	if (options->wantedArch)
 		return strcmp(line, options->wantedArch) == 0 || strcmp(line, "noarch") == 0;
 	else if (strcmp(line, uts->machine)) {
