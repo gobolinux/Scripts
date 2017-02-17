@@ -26,7 +26,7 @@ function try_dir() {
    if [ -d "$dir" ]
    then
       Quiet pushd "$dir"
-      found=$(find . -name "$pattern" | sort | head -n 1)
+      found=$(find . -name "$pattern" | head -n 1)
       if [ "$found" ]
       then
          Log_Normal "Found local doc. Starting: $@ $found"
