@@ -12,6 +12,7 @@ function Get_Archive_Format() {
    -e "s/.*\.(tar\.(gz|Z)|tgz)$/targzip/" \
    -e "s/.*\.(cpio\.(gz|Z)|tgz)$/cpiogzip/" \
    -e "s/.*\.tar\.(lzma|7z)$/tarlzma/" \
+   -e "s/.*\.tar\.lz$/tarlz/" \
    -e "s/.*\.tar\.xz$/tarxz/" \
    -e "s/.*\.bz$/bzip/" \
    -e "s/.*\.bz2$/bzip2/" \
@@ -69,6 +70,10 @@ function Unpack_Archive() {
    tarxz)
       ( needs_archiver "tar+xz" xz && needs_archiver "tar+xz" tar ) || return 2
       xz --stdout --decompress --keep "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} --file=- ${files:+"${files[@]}"}
+      ;;
+   tarlz)
+      ( needs_archiver "tar+lzip" lzip && needs_archiver "tar+lzip" tar ) || return 2
+      lzip --decompress --stdout "${path}/${archive}" | tar --extract --verbose ${targetdirectory:+-C "${targetdirectory}"} ${force:+--overwrite} --file=- ${files:+"${files[@]}"}
       ;;
    cpiogzip)
       ( needs_archiver "cpio+gzip" cpio && needs_archiver "cpio+gzip" gzip ) || return 2
