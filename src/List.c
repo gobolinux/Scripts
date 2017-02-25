@@ -594,7 +594,15 @@ time_sort(const struct dirent **a, const struct dirent **b)
    stat(filename_a, &status_a);
    stat(filename_b, &status_b);
 
+#if _POSIX_C_SOURCE >= 200809L
+   if (status_a.st_mtim.tv_sec == status_b.st_mtim.tv_sec) {
+      return status_a.st_mtim.tv_nsec - status_b.st_mtim.tv_nsec;
+   } else {
+      return status_a.st_mtime - status_b.st_mtime;
+   }
+#else
    return status_a.st_mtime - status_b.st_mtime;
+#endif
 }
 
 int
