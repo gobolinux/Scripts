@@ -168,15 +168,15 @@ set_dircolors()
    }
 
    /* 
-	* count number of entries in environment variable
-	* $LS_COLORS; a hardcoded maximum of entries
-	* (COLOR_MAXENTRIES) exists as a safety precaution. 
-	*/
+    * count number of entries in environment variable
+    * $LS_COLORS; a hardcoded maximum of entries
+    * (COLOR_MAXENTRIES) exists as a safety precaution. 
+    */
    color_list_len = 1;
    token = strtok(env_copy, ":");
    while ((token = strtok(NULL, ":")))
-	   if (++color_list_len >= COLOR_MAXENTRIES)
-		   break;
+      if (++color_list_len >= COLOR_MAXENTRIES)
+         break;
 
    colors = (struct color_list *) malloc(sizeof(struct color_list) * color_list_len);
    if (! colors) {
@@ -803,11 +803,11 @@ get_filesystem(struct statfs *status)
     }
     return "filesystem";
 #else /* __FreeBSD__ */
-	/* 
-	 * Those magic numbers don't work on FreeBSD. OTOH, the statfs struct
-	 * on that platform has a convenient filesystem name in cleartext.
-	 */
-	return status->f_fstypename;
+   /* 
+    * Those magic numbers don't work on FreeBSD. OTOH, the statfs struct
+    * on that platform has a convenient filesystem name in cleartext.
+    */
+   return status->f_fstypename;
 #endif
 }
 
