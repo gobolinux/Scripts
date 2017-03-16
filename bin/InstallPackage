@@ -30,6 +30,7 @@ Add_Option_Entry "u" "unmanaged" "Defines what to do with unmanaged files from p
 Add_Option_Boolean "C" "no-sign-check" "Do not check the signature."
 Add_Option_Boolean "U" "no-updatesettings" "Do not update settings for the package"
 Add_Option_Boolean "W" "no-web" "Do not check remote site for packages, and bypass fetching of archives."
+Add_Option_Boolean "" "no-check-certificate" "Do not verify certificate when downloading packages. NOTE: This could be dangerous!"
 
 Parse_Options "$@"
 
@@ -59,6 +60,7 @@ Boolean "no-install" && noinstall="--no-install" && keep="--keep"
 Boolean "no-updatesettings" && noupdatesettings="--no-updatesettings"
 Boolean "use-contrib"&& contrib="contrib_package" && usecontrib="--use-contrib"
 Boolean "no-sign-check" && nosigncheck="--no-sign-check"
+Boolean "no-check-certificate" && nocheckcertificate="--no-check-certificate"
 Is_Writable "${goboPrograms}" || Verify_Superuser
 Is_Writable "${goboInstall}"  || Verify_Superuser
 
@@ -73,9 +75,11 @@ then
    filename=$(basename ${url})
    #rm -f ${goboTemp}/`basename $1`
    Log_Normal "Downloading package to ${goboTemp}/${filename}."
-   if wget --help | grep -q "no-check-certificate"
-   then wget_cmd="wget --no-check-certificate"
-   else wget_cmd="wget"
+   wget_cmd="wget"
+   if Boolean "no-check-certificate"
+   then
+       Log_Normal "NOTE: Ignore certificate when downloading packages"
+       wget_cmd="wget --no-check-certificate"
    fi
    ${wget_cmd} -c "${url}" -O "${goboTemp}/${filename}" || Die "Error downloading package."
 
@@ -87,13 +91,13 @@ then
 
       if mv "${goboTemp}/${filename}" "${defaultLocalPackagesPaths[0]}/${filename}"
       then 
-         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${defaultLocalPackagesPaths[0]}/${filename}"
+         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} ${nocheckcertificate} "${defaultLocalPackagesPaths[0]}/${filename}"
       else
          Log_Error "Could not move package."
-         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${goboTemp}/${filename}"
+         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} ${nocheckcertificate} "${goboTemp}/${filename}"
       fi
    else
-      InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${goboTemp}/${filename}"
+      InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} ${nocheckcertificate} "${goboTemp}/${filename}"
       Log_Normal "Removing downloaded package ${goboTemp}/${filename}."
       rm -f -- "${goboTemp}/${filename}"
    fi
@@ -142,7 +146,7 @@ then
          if [ "${found}" ]
          then 
             Log_Normal "Found package for ${name} ${version}: ${found}"
-            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${found}"
+            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} ${nocheckcertificate} "${found}"
          else
             Die_With $errorNotFound "Package for ${name} ${version} not found."
          fi
@@ -151,7 +155,7 @@ then
          if [ "${found}" ]
          then
             [ ! "$batch" ] && Ask_Continue "Installing ${found}"
-            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} "${found}"
+            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} ${nocheckcertificate} "${found}"
          else
             Log_Error "Package for $name not found."
             GetAvailable -t official_package|cut -d' ' -f2|uniq|Corrections --stdin --log-name InstallPackage "$name"
@@ -348,7 +352,7 @@ then
    if [ -n "$glibcrequiredversion" -a "`GuessLatest $glibcrequiredversion $glibcinstalledversion`" != "$glibcinstalledversion" ]
    then
       Log_Question "Installed package was built using a newer Glibc ($glibcrequiredversion)."
-      Ask "Install an updated Glibc?" && InstallPackage Glibc
+      Ask "Install an updated Glibc?" && InstallPackage ${nocheckcertificate} Glibc
    fi
 fi
 
@@ -405,7 +409,7 @@ then
       set +o pipefail
       for d_url in $selecteddeps
       do
-         InstallPackage --no-dependencies ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} $d_url || {
+         InstallPackage --no-dependencies ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} ${nocheckcertificate} $d_url || {
             ret=$?
             exit $ret
          }
