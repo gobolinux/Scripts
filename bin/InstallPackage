@@ -30,7 +30,7 @@ Add_Option_Entry "u" "unmanaged" "Defines what to do with unmanaged files from p
 Add_Option_Boolean "C" "no-sign-check" "Do not check the signature."
 Add_Option_Boolean "U" "no-updatesettings" "Do not update settings for the package"
 Add_Option_Boolean "W" "no-web" "Do not check remote site for packages, and bypass fetching of archives."
-Add_Option_Boolean "" "no-check-certificate" "Do not verify certificate when downloading packages. NOTE: This could be dangerous!"
+Add_Option_Boolean "" "no-check-certificate" "Do not verify certificate when downloading packages (potentially dangerous!)"
 
 Parse_Options "$@"
 
@@ -78,7 +78,7 @@ then
    wget_cmd="wget"
    if Boolean "no-check-certificate"
    then
-       Log_Normal "NOTE: Ignore certificate when downloading packages"
+       Log_Normal "NOTE: Ignoring certificates when downloading packages"
        wget_cmd="wget --no-check-certificate"
    fi
    ${wget_cmd} -c "${url}" -O "${goboTemp}/${filename}" || Die "Error downloading package."
