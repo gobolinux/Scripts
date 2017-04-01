@@ -310,3 +310,7 @@ function Get_MD5() {
    md5sum "$file" | awk '{print $1}'
 }
 
+function Get_SHA() {
+   Parameters "$@" file
+   sha256sum "$file" | awk '{print $1}'
+}

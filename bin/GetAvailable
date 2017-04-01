@@ -57,15 +57,14 @@ globalSettings = loadConfig()
 downloadedCount = 0
 downloadedLock = thread.allocate_lock()
 
-def downloadFiles(files, force=False, hook=None, message=''):
+def downloadFiles(files, force=False, hook=None, message='', verify=True):
 	global downloadedCount
 	global downloadedLock
 	downloadedCount = 0
 	def doDownload(url, localfile, timeout=10):
 		has_wget = not bash('wget --help &> /dev/null', 'v')
 		if has_wget:
-			has_cert_support = not bash('wget --help | grep -q "no-check-certificate"', 'v')
-			if has_cert_support:
+			if not verify:
 				wget_cmd = 'wget --no-check-certificate'
 			else:
 				wget_cmd = 'wget'
@@ -145,7 +144,7 @@ def downloadFiles(files, force=False, hook=None, message=''):
 	return downloadedCount >= len(threads)
 
 
-def UpdateCache(types, force=True, hook=None):
+def UpdateCache(types, force=True, hook=None, verify=True):
 	files = []
 
 	if 'official_package' in types:
@@ -170,7 +169,8 @@ def UpdateCache(types, force=True, hook=None):
 	if not files:
 		return
 
-	ret = downloadFiles(files, force, hook, 'Downloading updated remote lists')
+	ret = downloadFiles(files, force, hook, 'Downloading updated remote lists',
+			verify=verify)
 	return ret
 
 def addToDict(d, p, v, r, u):
@@ -348,7 +348,9 @@ def getVersionsFromPackagesList(file, url, path_prefix = '', d = None):
 		return d
 
 
-def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables=None, accessWeb=True, doNotUpdate=False, goboPrograms=None):
+def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
+		availables=None, accessWeb=True, doNotUpdate=False, goboPrograms=None,
+		verify=True):
 	if 'recipe' in types:
 		compileRecipeDirs, getRecipeStores = getCompileOptions()
 
@@ -395,7 +397,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None, availables
 			getUnpackedLocalPackagesOrRecipes(os.path.expanduser(directory.strip()), True, availables['local_package']['programs'], default_revision=default_revision)
 
 	if accessWeb and (not doNotUpdate or forceupdate):
-		UpdateCache(types, forceupdate, hook)
+		UpdateCache(types, forceupdate, hook, verify=verify)
 
 	if hook:
 		hook('Loading lists', 0, 4)
@@ -466,7 +468,9 @@ if __name__ == '__main__':
 	import getopt, os
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], 't:Whp:', ['type=', 'types=', 'local-dirs=', 'full-list', 'force-update', 'no-web', 'gobo-programs=', 'help'])
+		opts, args = getopt.getopt(sys.argv[1:], 't:Whp:', [
+			'type=', 'types=', 'local-dirs=', 'full-list', 'force-update',
+			'no-web', 'gobo-programs=', 'help', 'no-check-certificate'])
 	except getopt.GetoptError, detail:
 		print sys.argv[0].split('/')[-1]+': '+str(detail)
 		sys.exit(1)
@@ -478,6 +482,7 @@ if __name__ == '__main__':
 	forceupdate = False
 	noWeb = False
 	goboPrograms = None
+	verify = True
 
 	for o, a in opts:
 		if o in ['--types','--type', '-t']:
@@ -501,6 +506,8 @@ if __name__ == '__main__':
 			noWeb = True
 			if not typesChanged:
 				types = ['local_package']
+		elif o in ['--no-check-certificate']:
+			verify=False
 		elif o in ['--help', '-h']:
 			print """
 GetAvailable
@@ -509,31 +516,33 @@ GetAvailable
 
 Options:
  -t [t1,t2,...]
- --types=[t1,t2,...]  sets what kind of packages can be searched, in the
-                      passed order. Valid types are:
-                       local_package, official_package, contrib_package,
-                       installed, recipe, tracked, all
-                      using only the first character from any of the above
-                      is also valid:
-                       l, o, c, i, r, t, a
-                      Default types are:
-                       local_package, official_package
-                      notice that when "recipe" type is used, Compile.conf is
-                      read to set recipe-store locations and local recipes
-                      locations.
+ --types=[t1,t2,...]     sets what kind of packages can be searched, in the
+                         passed order. Valid types are:
+                          local_package, official_package, contrib_package,
+                          installed, recipe, tracked, all
+                         using only the first character from any of the above
+                         is also valid:
+                          l, o, c, i, r, t, a
+                         Default types are:
+                          local_package, official_package
+                         notice that when "recipe" type is used, Compile.conf is
+                         read to set recipe-store locations and local recipes
+                         locations.
 
- --local-dirs=[d1,..] where to look for local binary packages. By default,
-                      uses the paths defined at GetAvailable.conf
+ --local-dirs=[d1,..]    where to look for local binary packages. By default,
+                         uses the paths defined at GetAvailable.conf
 
- --force-update       downloads required packages list even if there is a
-                      local copy (cached in """+cacheDir+""") newer than one hour.
+ --force-update          downloads required packages list even if there is a
+                         local copy (cached in """+cacheDir+""") newer than one hour.
 
- -W, --no-web         do not try to download anything and don't lists
-                      remote recipes and packages (if not explicitly listed
-                      in '--types='). Overrides '--force-update'
+ -W, --no-web            do not try to download anything and don't lists
+                         remote recipes and packages (if not explicitly listed
+                         in '--types='). Overrides '--force-update'
 
  -p
- --gobo-programs      Override default """+getGoboVariable("goboPrograms")+""" as path of installed packages
+ --gobo-programs         Override default """+getGoboVariable("goboPrograms")+""" as path of installed packages
+ --no-check-certificate  Do not verify certificates when downloading source.
+
 
 Examples of usage:
  GetAvailable --types=recipe
@@ -544,7 +553,8 @@ Examples of usage:
 
 	hook = consoleProgressHook
 
-	availables = GetAvailable(types, localdirs, forceupdate, accessWeb=not noWeb, hook=hook, goboPrograms=goboPrograms)
+	availables = GetAvailable(types, localdirs, forceupdate, accessWeb=not noWeb,
+			hook=hook, goboPrograms=goboPrograms, verify=verify)
 
 	for t in availables.keys():
 		for p in caseinsensitive_sort(availables[t]['programs'].keys()):

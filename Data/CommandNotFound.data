@@ -53,8 +53,7 @@ CheckDependencies Scripts
 CheckoutRecipe DevelScripts
 ChrootCompile ChrootCompile
 ChrootEnvironment BuildLiveCD
-CleanModules Scripts
-ColorMake Compile Scripts
+ColorMake Scripts
 CommandNotFound Scripts
 Compile Compile
 CompressAndBuildISO BuildLiveCD
