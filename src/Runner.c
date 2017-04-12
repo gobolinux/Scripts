@@ -37,6 +37,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <linux/version.h>
 #include <sys/utsname.h>
 #include <sys/types.h>
@@ -1092,6 +1093,14 @@ bool check_availability()
 	return is_available;
 }
 
+void
+cleanup(int signum)
+{
+	destroy_namespace();
+	cleanup_directory(args.upperlayer);
+	cleanup_directory(args.writelayer);
+}
+
 /**
  * main:
  */
@@ -1129,6 +1138,8 @@ main(int argc, char *argv[])
 			exit(ERR_NOSANDBOX);
 		}
 	} else {
+		signal(SIGINT, cleanup);
+
 		ret = create_mount_namespace();
 		if (ret < 0)
 			exit(ERR_MNT_NAMESPACE);
