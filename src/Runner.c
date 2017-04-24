@@ -88,6 +88,7 @@
 #define ERR_MNT_OVERLAY       5      /* Error mounting overlay fs */
 #define ERR_MNT_WRITEDIR      6      /* Error creating write directory */
 #define ERR_BAD_ARGS          7      /* Bad arguments */
+#define ERR_WRAPPER           8      /* Error creating wrapper */
 
 struct runner_args {
 	bool quiet;                /* Run in quiet mode? */
@@ -95,12 +96,14 @@ struct runner_args {
 	bool verbose;              /* Run in verbose mode? */
 	bool check;                /* Run in check mode? */
 	bool fallback;             /* Run in fallback mode if sandbox is not available */
+	bool sourceenv;            /* Source ENV at Resources/Environment? */
 	bool removedeps;           /* Remove conflicting dependencies from /System/Index? */
 	const char *executable;    /* Executable to run */
 	const char **dependencies; /* NULL-terminated */
 	char **arguments;          /* Arguments to pass to executable */
 	char *architecture;        /* Architecture of dependencies to consider */
 
+	char *wrapper;             /* Wrapper file */
 	char *workdir;             /* Base work directory */
 	char *upperlayer;          /* Overlayfs' upper layer */
 	char *writelayer;          /* Overlayfs' write layer */
@@ -689,6 +692,72 @@ out_free:
 	return res;
 }
 
+static int
+create_wrapper(const char *mergedirs)
+{
+	int ret;
+	FILE *fp;
+
+	ret = asprintf(&args.wrapper, "%s/wrapper", args.workdir);
+	if (ret < 0) {
+		perror("asprintf");
+		return -ENOMEM;
+	}
+
+	fp = fopen(args.wrapper, "w");
+	if (! fp) {
+		ret = -errno;
+		fprintf(stderr, "%s: %s\n", args.wrapper, strerror(errno));
+		goto out_error;
+	}
+	fprintf(fp, "#!/bin/bash\n\n");
+
+	/* Source environment variables */
+	if (args.sourceenv) {
+		char *mergecopy = strdup(mergedirs);
+		if (! mergecopy) {
+			perror("strdup");
+			ret = -ENOMEM;
+			goto out_error;
+		}
+		char *start = mergecopy, *end, *env;
+		while (start && strlen(start) > 0) {
+			end = strstr(start, ":");
+			if (end) { *end = '\0'; }
+
+			if (asprintf(&env, "%s/Resources/Environment", start) > 0) {
+				struct stat statbuf;
+				if (stat(env, &statbuf) == 0)
+					fprintf(fp, "source %s\n", env);
+				free(env);
+			} else {
+				perror("asprintf");
+				ret = -ENOMEM;
+				goto out_error;
+			}
+
+			start = end ? end+1 : NULL;
+			end = start ? strstr(start, ":") : NULL;
+		}
+		free(mergecopy);
+	}
+
+	/* Call user program */
+	for (int i=0; args.arguments[i]; ++i)
+		fprintf(fp, "%s%c", args.arguments[i], args.arguments[i+1] ? ' ' : '\n');
+	fclose(fp);
+
+	chown(args.wrapper, getuid(), getgid());
+	chmod(args.wrapper, 0755);
+
+out_error:
+	if (ret < 0) {
+		unlink(args.wrapper);
+		free(args.wrapper);
+	}
+	return ret;
+}
+
 static char *
 parse_architecture_file(const char *archfile)
 {
@@ -717,7 +786,7 @@ parse_architecture_file(const char *archfile)
 /**
  * mount_overlay:
  */
-static int
+static char *
 mount_overlay()
 {
 	struct stat statbuf;
@@ -725,6 +794,7 @@ mount_overlay()
 	char *programdir = NULL, *callerprogram;
 	char *archfile = NULL, *fname = NULL, *tmpstr;
 	char *mergedirs_user = NULL, *mergedirs_program = NULL, *mergedirs = NULL;
+	char **envfiles = NULL;
 
 	programdir = get_program_dir(args.executable);
 	if (programdir) {
@@ -798,13 +868,18 @@ mount_overlay()
 	res = mount_overlay_dirs(mergedirs, GOBO_INDEX_DIR);
 
 out_free:
+	if (envfiles) {
+		for (int i=0; envfiles[i]; ++i)
+			free(envfiles[i]);
+		free(envfiles);
+	}
 	if (programdir) { free(programdir); }
 	if (mergedirs_program) { free(mergedirs_program); }
 	if (mergedirs_user) { free(mergedirs_user); }
-	if (mergedirs) { free(mergedirs); }
+	if (mergedirs && res < 0) { free(mergedirs); mergedirs = NULL; }
 	if (archfile) { free(archfile); }
 	if (fname) { free(fname); }
-	return res;
+	return mergedirs;
 }
 
 /**
@@ -837,7 +912,7 @@ int
 create_write_layer(void)
 {
 	const char *sources[] = {"bin", "include", "lib",  "libexec", "share", NULL};
-	const char *home;
+	const char *home, *exec;
 	char path[PATH_MAX];
 	int ret, i;
 
@@ -855,7 +930,9 @@ create_write_layer(void)
 	chown(path, getuid(), getgid());
 
 	/* Work directory */
-	ret = asprintf(&args.workdir, "%s/.local/Runner/%ld-%s-XXXXXX", home, time(NULL), args.executable);
+	exec = strrchr(args.executable, '/');
+	exec = exec ? exec + 1 : args.executable;
+	ret = asprintf(&args.workdir, "%s/.local/Runner/%ld-%s-XXXXXX", home, time(NULL), exec);
 	if (ret < 0) {
 		ret = -ENOMEM;
 		perror("asprintf");
@@ -863,7 +940,7 @@ create_write_layer(void)
 	}
 	if (mkdtemp(args.workdir) == NULL) {
 		ret = -errno;
-		perror("mkdtemp");
+		fprintf(stderr, "mkdtemp %s: %s\n", args.workdir, strerror(errno));
 		goto out_error;
 	}
 	chown(args.workdir, getuid(), getgid());
@@ -953,6 +1030,7 @@ show_usage_and_exit(char *exec, int err)
 	"  -v, --verbose             Run in verbose mode (type twice to enable debug messages)\n"
 	"  -c, --check               Check if Runner can be used in this system\n"
 	"  -f, --fallback            Run the command without the sandbox in case this is not available\n"
+	"  -E, --no-source-env       Do not import dependencies\' Resources/Environment files\n"
 	"  -R, --no-removedeps       Do not remove conflicting versions of dependencies from /System/Index view\n"
 	"\n", exec, uts_data.machine);
 	exit(err);
@@ -965,17 +1043,18 @@ int
 parse_arguments(int argc, char *argv[])
 {
 	struct option long_options[] = {
-		{"arch",          required_argument, 0,  'a'},
-		{"dependencies",  required_argument, 0,  'd'},
-		{"help",          no_argument,       0,  'h'},
-		{"quiet",         no_argument,       0,  'q'},
-		{"check",         no_argument,       0,  'c'},
-		{"fallback",      no_argument,       0,  'f'},
-		{"no-removedeps", no_argument,       0,  'R'},
-		{"verbose",       no_argument,       0,  'v'},
-		{0,               0,                 0,   0 }
+		{"arch",            required_argument, 0,  'a'},
+		{"dependencies",    required_argument, 0,  'd'},
+		{"help",            no_argument,       0,  'h'},
+		{"quiet",           no_argument,       0,  'q'},
+		{"check",           no_argument,       0,  'c'},
+		{"fallback",        no_argument,       0,  'f'},
+		{"no-source-env",   no_argument,       0,  'E'},
+		{"no-removedeps",   no_argument,       0,  'R'},
+		{"verbose",         no_argument,       0,  'v'},
+		{0,                 0,                 0,   0 }
 	};
-	const char *short_options = "+d:a:hcqvfR";
+	const char *short_options = "+d:a:hcqvfER";
 	bool valid = true;
 	int next = optind;
 	int num_deps = 0;
@@ -1001,6 +1080,7 @@ parse_arguments(int argc, char *argv[])
 	args.verbose = false;
 	args.quiet = false;
 	args.fallback = false;
+	args.sourceenv = true;
 	args.removedeps = true;
 	args.executable = NULL;
 	args.arguments = NULL;
@@ -1027,6 +1107,9 @@ parse_arguments(int argc, char *argv[])
 				break;
 			case 'q':
 				args.quiet = true;
+				break;
+			case 'E':
+				args.sourceenv = false;
 				break;
 			case 'R':
 				args.removedeps = false;
@@ -1159,9 +1242,14 @@ main(int argc, char *argv[])
 		if (ret < 0)
 			exit(ERR_MNT_WRITEDIR);
 
-		ret = mount_overlay(&args);
-		if (ret < 0)
+		char *mergedirs = mount_overlay();
+		if (mergedirs == NULL)
 			exit(ERR_MNT_OVERLAY);
+
+		ret = create_wrapper(mergedirs);
+		free(mergedirs);
+		if (ret < 0)
+			exit(ERR_WRAPPER);
 	}
 
 	pid = fork();
@@ -1179,8 +1267,9 @@ main(int argc, char *argv[])
 		CHECK(update_env_var_list("PATH", GOBO_INDEX_DIR "/bin"), false);
 
 		/* Launch the program provided by the user */
-		ret = execvp(args.executable, args.arguments);
-		perror(args.executable);
+		char *exec_args[] = { args.wrapper, NULL };
+		ret = execvp(args.wrapper, exec_args);
+		perror(args.wrapper);
 	} else if (pid > 0) {
 		/*
 		 * Wait for child and clean up files and directories left on its write
