@@ -692,28 +692,35 @@ out_free:
 	return res;
 }
 
+/**
+ * Returns 0 if the wrapper has been successfully created, a negative value on
+ * error, and 1 if no Resources/Environment files were available to justify the
+ * creation of a wrapper.
+ */
 static int
 create_wrapper(const char *mergedirs)
 {
-	int ret;
-	FILE *fp;
+	int ret = 1;
+	FILE *fp = NULL;
+	bool keep_wrapper = false;
 
-	ret = asprintf(&args.wrapper, "%s/wrapper", args.workdir);
-	if (ret < 0) {
-		perror("asprintf");
-		return -ENOMEM;
-	}
-
-	fp = fopen(args.wrapper, "w");
-	if (! fp) {
-		ret = -errno;
-		fprintf(stderr, "%s: %s\n", args.wrapper, strerror(errno));
-		goto out_error;
-	}
-	fprintf(fp, "#!/bin/bash\n\n");
-
-	/* Source environment variables */
 	if (args.sourceenv) {
+		/* Shebang */
+		ret = asprintf(&args.wrapper, "%s/wrapper", args.workdir);
+		if (ret < 0) {
+			perror("asprintf");
+			return -ENOMEM;
+		}
+
+		fp = fopen(args.wrapper, "w");
+		if (! fp) {
+			ret = -errno;
+			fprintf(stderr, "%s: %s\n", args.wrapper, strerror(errno));
+			goto out_error;
+		}
+		fprintf(fp, "#!/bin/bash\n\n");
+
+		/* Source environment variables */
 		char *mergecopy = strdup(mergedirs);
 		if (! mergecopy) {
 			perror("strdup");
@@ -727,8 +734,10 @@ create_wrapper(const char *mergedirs)
 
 			if (asprintf(&env, "%s/Resources/Environment", start) > 0) {
 				struct stat statbuf;
-				if (stat(env, &statbuf) == 0)
+				if (stat(env, &statbuf) == 0) {
 					fprintf(fp, "source %s\n", env);
+					keep_wrapper = true;
+				}
 				free(env);
 			} else {
 				perror("asprintf");
@@ -740,18 +749,24 @@ create_wrapper(const char *mergedirs)
 			end = start ? strstr(start, ":") : NULL;
 		}
 		free(mergecopy);
+
+		/* Call user program */
+		if (keep_wrapper) {
+			for (int i=0; args.arguments[i]; ++i)
+				fprintf(fp, "%s%c", args.arguments[i], args.arguments[i+1] ? ' ' : '\n');
+			fclose(fp);
+
+			chown(args.wrapper, getuid(), getgid());
+			chmod(args.wrapper, 0755);
+			ret = 0;
+		} else {
+			fclose(fp);
+			ret = 1;
+		}
 	}
 
-	/* Call user program */
-	for (int i=0; args.arguments[i]; ++i)
-		fprintf(fp, "%s%c", args.arguments[i], args.arguments[i+1] ? ' ' : '\n');
-	fclose(fp);
-
-	chown(args.wrapper, getuid(), getgid());
-	chmod(args.wrapper, 0755);
-
 out_error:
-	if (ret < 0) {
+	if (ret != 0 && args.wrapper) {
 		unlink(args.wrapper);
 		free(args.wrapper);
 	}
@@ -1201,7 +1216,7 @@ cleanup(int signum)
 int
 main(int argc, char *argv[])
 {
-	int status, ret = 1, available = 1;
+	int status, ret = 1, available = 1, wrapper_val = 1;
 	pid_t pid;
 
 	CHECK(parse_arguments(argc, argv), false);
@@ -1246,9 +1261,9 @@ main(int argc, char *argv[])
 		if (mergedirs == NULL)
 			exit(ERR_MNT_OVERLAY);
 
-		ret = create_wrapper(mergedirs);
+		wrapper_val = create_wrapper(mergedirs);
 		free(mergedirs);
-		if (ret < 0)
+		if (wrapper_val < 0)
 			exit(ERR_WRAPPER);
 	}
 
@@ -1267,9 +1282,14 @@ main(int argc, char *argv[])
 		CHECK(update_env_var_list("PATH", GOBO_INDEX_DIR "/bin"), false);
 
 		/* Launch the program provided by the user */
-		char *exec_args[] = { args.wrapper, NULL };
-		ret = execvp(args.wrapper, exec_args);
-		perror(args.wrapper);
+		if (wrapper_val == 1) {
+			ret = execvp(args.executable, args.arguments);
+			perror(args.executable);
+		} else if (wrapper_val == 0) {
+			char *exec_args[] = { args.wrapper, NULL };
+			ret = execvp(args.wrapper, exec_args);
+			perror(args.wrapper);
+		}
 	} else if (pid > 0) {
 		/*
 		 * Wait for child and clean up files and directories left on its write
