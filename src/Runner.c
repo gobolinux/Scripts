@@ -47,6 +47,7 @@
 #include <sys/wait.h>
 #include <sys/time.h>      /* getrlimit() */
 #include <sys/resource.h>  /* getrlimit() */
+#include <time.h>
 #include <ftw.h>
 
 #include "LinuxList.h"
@@ -100,6 +101,7 @@ struct runner_args {
 	char **arguments;          /* Arguments to pass to executable */
 	char *architecture;        /* Architecture of dependencies to consider */
 
+	char *workdir;             /* Base work directory */
 	char *upperlayer;          /* Overlayfs' upper layer */
 	char *writelayer;          /* Overlayfs' write layer */
 };
@@ -794,6 +796,7 @@ mount_overlay()
 		goto out_free;
 	}
 	res = mount_overlay_dirs(mergedirs, GOBO_INDEX_DIR);
+
 out_free:
 	if (programdir) { free(programdir); }
 	if (mergedirs_program) { free(mergedirs_program); }
@@ -851,18 +854,28 @@ create_write_layer(void)
 	mkdir(path, 0755);
 	chown(path, getuid(), getgid());
 
-	/* Write layer */
-	ret = asprintf(&args.writelayer, "%s/.local/Runner/write_layer-XXXXXX", home);
+	/* Work directory */
+	ret = asprintf(&args.workdir, "%s/.local/Runner/%ld-%s-XXXXXX", home, time(NULL), args.executable);
 	if (ret < 0) {
 		ret = -ENOMEM;
 		perror("asprintf");
 		goto out_error;
 	}
-	if (mkdtemp(args.writelayer) == NULL) {
+	if (mkdtemp(args.workdir) == NULL) {
 		ret = -errno;
 		perror("mkdtemp");
 		goto out_error;
 	}
+	chown(args.workdir, getuid(), getgid());
+
+	/* Write layer */
+	ret = asprintf(&args.writelayer, "%s/write_layer", args.workdir);
+	if (ret < 0) {
+		ret = -ENOMEM;
+		perror("asprintf");
+		goto out_error;
+	}
+	mkdir(args.writelayer, 0755);
 	chown(args.writelayer, getuid(), getgid());
 	for (i=0; sources[i]; ++i) {
 		snprintf(path, sizeof(path)-1, "%s/%s", args.writelayer, sources[i]);
@@ -871,17 +884,13 @@ create_write_layer(void)
 	}
 
 	/* Upper layer. Overlayfs requires it to activate the write branch */
-	ret = asprintf(&args.upperlayer, "%s/.local/Runner/upper_layer-XXXXXX", home);
+	ret = asprintf(&args.upperlayer, "%s/upper_layer", args.workdir);
 	if (ret < 0) {
 		ret = -ENOMEM;
 		perror("asprintf");
 		goto out_error;
 	}
-	if (mkdtemp(args.upperlayer) == NULL) {
-		ret = -errno;
-		perror("mkdtemp");
-		goto out_error;
-	}
+	mkdir(args.upperlayer, 0755);
 	chown(args.upperlayer, getuid(), getgid());
 	for (i=0; sources[i]; ++i) {
 		snprintf(path, sizeof(path)-1, "%s/%s", args.upperlayer, sources[i]);
@@ -894,6 +903,7 @@ create_write_layer(void)
 out_error:
 	free(args.upperlayer);
 	free(args.writelayer);
+	free(args.workdir);
 	return ret;
 }
 
@@ -1099,6 +1109,7 @@ cleanup(int signum)
 	destroy_namespace();
 	cleanup_directory(args.upperlayer);
 	cleanup_directory(args.writelayer);
+	cleanup_directory(args.workdir);
 }
 
 /**
@@ -1179,9 +1190,7 @@ main(int argc, char *argv[])
 		 */
 		waitpid(pid, &status, 0);
 		ret = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
-		destroy_namespace();
-		cleanup_directory(args.upperlayer);
-		cleanup_directory(args.writelayer);
+		cleanup(0);
 	} else if (pid < 0) {
 		ret = -errno;
 		perror("fork");
