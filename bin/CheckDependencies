@@ -89,7 +89,7 @@ def get_rules_of_files(depfiles, t=None, no_compatlist=False):
 # Notice that type may be required since dependencies(recipe(p)) != dependencies(package(p))
 def get_rules_for(p, v, r, t, u, noWeb=False, no_compatlist=False, no_builddeps=False, availables=None):
 	if availables is None:
-		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb)
+		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package'], accessWeb=not noWeb)
 	depfiles = find_dependencies_files(p, v, r, t, u, noWeb=False, no_builddeps=no_builddeps, availables=availables)
 	toReturn = get_rules_of_files(depfiles, t=t, no_compatlist=no_compatlist)
 	return toReturn
@@ -97,7 +97,7 @@ def get_rules_for(p, v, r, t, u, noWeb=False, no_compatlist=False, no_builddeps=
 global_not_found_cache=[]
 def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False, goboPrograms=None, availables=None):
 	if availables is None:
-		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb)
+		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package'], accessWeb=not noWeb)
 	if t == 'installed':
 		p = GuessProgramCase(p, v)
 		if goboPrograms:
@@ -107,7 +107,7 @@ def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False,
 		if os.access(localdep, os.R_OK):
 			return [ localdep ]
 	if availables is None:
-		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb)
+		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package'], accessWeb=not noWeb)
 	elif t == 'local_package':
 		if not u or not os.access(u, os.R_OK):
 			ret = FindPackage(p, v, r, types=[t], availables=availables, accessWeb=not noWeb)
@@ -277,7 +277,7 @@ def find_matching_package(rule, acceptable_types, noWeb=False, goboPrograms=None
 		return global_matches_cache[string_rule]
 
 	if not availables:
-		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb, localdirs=localdirs, goboPrograms=goboPrograms)
+		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package'], accessWeb=not noWeb, localdirs=localdirs, goboPrograms=goboPrograms)
 
 	available_options = FindPackage(rule['program'], types=acceptable_types, availables=availables, accessWeb=not noWeb, fulllist=True, goboPrograms=goboPrograms, localdirs=localdirs)
 
@@ -374,7 +374,7 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	ordered_matches, ordered_rules = [], []
 	self_match, self_rule = None, None
 	if availables is None:
-		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package', 'tracked'], accessWeb=not noWeb, localdirs=localdirs, goboPrograms=goboPrograms)
+		availables = GetAvailable(types=['installed','local_package','official_package', 'recipe', 'contrib_package'], accessWeb=not noWeb, localdirs=localdirs, goboPrograms=goboPrograms)
 
 	if all_matches == None:
 		global_always_do = None
@@ -553,7 +553,6 @@ def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missin
 
 	if report_updating:
 		updating_dependencies          = [ rule for rule in all_rules if not find_matching_package(rule, ['installed']+types, noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs)[3] == 'installed' ]
-		tracked_is_higher_dependencies = [ rule for rule in all_rules if find_matching_package(rule, ['installed']+types+['tracked'], noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs)[3] == 'tracked' ]
 
 	if mode == 'terminal':
 		s = ''
@@ -589,8 +588,6 @@ def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missin
 					if rule in unresolvable_dependencies: ss += '<b>'
 			elif report_updating and rule in updating_dependencies:
 				ss += '</font><font color="#0000FF">'
-			elif report_updating  and rule in tracked_is_higher_dependencies:
-				ss += '</font><font color="#00BB00">'
 
 			ss += ' ' + version_range_string(rule)
 
@@ -648,7 +645,7 @@ if __name__ == '__main__':
 			print sys.argv[0].split('/')[-1]+': '+str(detail)
 			sys.exit(1)
 
-		validTypes = ['installed', 'local_package', 'official_package', 'recipe', 'contrib_package', 'tracked', 'all']
+		validTypes = ['installed', 'local_package', 'official_package', 'recipe', 'contrib_package', 'all']
 		types =  None
 		mode = 'missing'
 		recursive = True

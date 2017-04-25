@@ -2,7 +2,7 @@
 
 #
 # GetAvailable
-#  Get available packages, recipes and tracked versions.
+#  Get available package and recipe versions.
 #
 # (C) 2004 Andre Detsch. Released under the GNU GPL.
 #
@@ -34,7 +34,7 @@ def loadConfig():
 		except:
 			tr[i] = []
 
-	for listType in ['contribPackagesLists', 'officialPackagesLists', 'trackedVersionsLists']:
+	for listType in ['contribPackagesLists', 'officialPackagesLists']:
 		try:
 			tr[listType] = getGoboVariable(listType, 'Scripts/GetAvailable.conf', True)
 			for j in range(len(tr[listType])):
@@ -161,10 +161,6 @@ def UpdateCache(types, force=True, hook=None, verify=True):
 		for getRecipeStore in getRecipeStores:
 			files.append((getRecipeStore+'/MANIFEST.bz2', 'RecipeList'+str(i)+'.bz2'))
 			i = i + 1
-
-	if 'tracked' in types:
-		for url, file in globalSettings['trackedVersionsLists']:
-			files.append((url, file))
 
 	if not files:
 		return
@@ -301,10 +297,6 @@ def getVersionsFromList(file, url, d = None):
 		os.remove(file)
 		return d
 
-	for line in lines:
-		l = line.split()
-		if len(l) >= 2:
-			addToDict(d, l[0], l[1], '', str(l[0])+' '+str(l[1])+ ' ' + '<TRACKED>')
 	return d
 
 def getVersionsFromPackagesList(file, url, path_prefix = '', d = None):
@@ -446,13 +438,6 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 	if hook:
 		hook('Loading lists', 3, 4)
 
-	if 'tracked' in types:
-		if not availables.has_key('tracked') or not availables['tracked']:
-			availables['tracked'] = {}
-		availables['tracked']['programs'] = KeyInsensitiveDict()
-		for url, file in globalSettings['trackedVersionsLists']:
-			availables['tracked']['programs'] = getVersionsFromList(cacheDir+file, url, availables['tracked']['programs'])
-
 	if hook:
 		hook('Loading lists', 4, 4)
 
@@ -475,7 +460,7 @@ if __name__ == '__main__':
 		print sys.argv[0].split('/')[-1]+': '+str(detail)
 		sys.exit(1)
 
-	validTypes = ['local_package', 'official_package', 'recipe', 'contrib_package', 'tracked', 'installed', 'current', 'all']
+	validTypes = ['local_package', 'official_package', 'recipe', 'contrib_package', 'installed', 'current', 'all']
 	types      = ['local_package', 'official_package']
 	typesChanged = False
 	localdirs = None
@@ -511,7 +496,7 @@ if __name__ == '__main__':
 		elif o in ['--help', '-h']:
 			print """
 GetAvailable
- Get available packages, recipes and tracked versions.
+ Get available package and recipe versions.
 
 
 Options:
@@ -519,7 +504,7 @@ Options:
  --types=[t1,t2,...]     sets what kind of packages can be searched, in the
                          passed order. Valid types are:
                           local_package, official_package, contrib_package,
-                          installed, recipe, tracked, all
+                          installed, recipe, all
                          using only the first character from any of the above
                          is also valid:
                           l, o, c, i, r, t, a

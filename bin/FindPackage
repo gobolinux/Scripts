@@ -122,7 +122,7 @@ if __name__ == '__main__':
 	except getopt.GetoptError, detail:
 		print sys.argv[0].split('/')[-1]+': '+str(detail)
 		sys.exit(1)
-	validTypes = ['installed', 'current', 'local_package', 'official_package', 'recipe', 'contrib_package', 'tracked', 'all']
+	validTypes = ['installed', 'current', 'local_package', 'official_package', 'recipe', 'contrib_package', 'all']
 	types = None
 	localdirs = None
 	fulllist = False
@@ -173,7 +173,7 @@ Options:
  --types=[t1,t2,...]  Sets what kind of packages can be searched, in the
                       passed order. Valid types are:
                        local_package, official_package, contrib_package,
-                       installed, recipe, tracked, all
+                       installed, recipe, all
                       Using only the first character from any of the above
                       is also valid:
                        l, o, c, i, r, t, a
