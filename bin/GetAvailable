@@ -19,6 +19,8 @@ if not goboTemp:
 listdir_cache = {}
 
 def cached_listdir(name):
+	if name[-1:] == "/":
+		name = name[:-1]
 	if listdir_cache.has_key(name):
 		return listdir_cache[name]
 	entries = os.listdir(name)
