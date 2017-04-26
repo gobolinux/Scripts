@@ -496,6 +496,14 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 
 	return ordered_rules, ordered_matches
 
+def GetVersion(goboPrograms, p, v):
+	dirname = goboPrograms+"/"+p+"/"+v
+	if not os.path.isdir(dirname):
+		return None
+	realVersion = os.path.basename(os.path.realpath(dirname))
+	if os.path.isdir(goboPrograms+"/"+p+"/"+realVersion):
+		return realVersion
+	return None
 
 #
 # This function is used when mode == 'convert'
@@ -511,11 +519,7 @@ def ConvertRecipeToBinary(p, v, r, t, u, depfile, availables=None):
 	goboPrograms = getGoboVariable('goboPrograms')
 	ret = ''
 	for rule in rules:
-		cmd="""
-source ScriptFunctions
-Import GoboLinux
-Get_Version %s Current"""%rule['program']
-		installed_version = bash(cmd)
+		installed_version = GetVersion(goboPrograms, rule['program'], 'Current')
 		if installed_version:
 			ret += rule['program'] + ' >= ' + installed_version
 			for op, ver in rule['versions']:

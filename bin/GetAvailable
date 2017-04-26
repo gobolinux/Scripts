@@ -113,7 +113,7 @@ def downloadFiles(files, force=False, hook=None, message='', verify=True):
 		timeout = 10
 
 	for url, filename in files:
-		if force or not os.access(cacheDir+filename, os.R_OK): # or time.time() > (60*60 + os.stat(cacheDir+filename).st_mtime):
+		if force or not os.access(cacheDir+filename, os.R_OK):
 			import urllib
 			t = threading.Thread(target=doDownload, args=(url, cacheDir+filename, timeout))
 			t.setDaemon(True) # program exits on long timeout
