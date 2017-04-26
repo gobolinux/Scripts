@@ -189,7 +189,6 @@ def addToDict(d, p, v, r, u):
 	d[p][v][r].append(u)
 
 def getUnpackedLocalPackagesOrRecipes(directory, searching_packages=False, d=None, default_revision='', current_only=False, filtering=None):
-	import os, os.path
 
 	if d is None:
 		d = KeyInsensitiveDict();
@@ -197,7 +196,13 @@ def getUnpackedLocalPackagesOrRecipes(directory, searching_packages=False, d=Non
 	if not os.path.isdir(directory):
 		return d
 
-	programs = cached_listdir(directory)
+	programs = None
+	if filtering:
+		guessed_name = filtering[0].upper()+filtering[1:].lower()
+		if os.path.isdir(directory+'/'+guessed_name):
+			programs = [ guessed_name ]
+	if programs is None:
+		programs = cached_listdir(directory)
 
 	for i in range(len(programs)):
 		p = programs[i]
@@ -439,7 +444,6 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 		# searches local recipes first
 		default_revision='r'+str(sys.maxint)
 		for compileRecipeDir in compileRecipeDirs:
-			availables['recipe']['programs'] = getPackedLocalPackages(compileRecipeDir, availables['recipe']['programs'])
 			availables['recipe']['programs'] = getUnpackedLocalPackagesOrRecipes(compileRecipeDir, False, availables['recipe']['programs'], default_revision=default_revision, filtering=filtering)
 			default_revision = ''
 		if accessWeb:
