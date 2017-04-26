@@ -7,7 +7,7 @@
 # (C) 2004 Andre Detsch. Released under the GNU GPL.
 #
 
-import os.path, sys, string, time, os, thread, threading
+import os, os.path, sys, string, time, os, thread, threading
 
 from PythonUtils import *
 
@@ -15,6 +15,15 @@ goboTemp = getGoboVariable('goboTemp')
 if not goboTemp:
 	Log_Error("Unable to get $goboTemp value. Aborting.")
 	sys.exit(1)
+
+listdir_cache = {}
+
+def cached_listdir(name):
+	if listdir_cache.has_key(name):
+		return listdir_cache[name]
+	entries = os.listdir(name)
+	listdir_cache[name] = entries
+	return entries
 
 cacheDir = os.path.expanduser(goboTemp+'/Scripts-'+os.getenv('USER')+'/cache/')
 
@@ -91,7 +100,7 @@ def downloadFiles(files, force=False, hook=None, message='', verify=True):
 	# Clean up old and empty files
 	currentTime = time.time()
 	ageLimit = 60*60 # an hour
-	for filename in os.listdir(cacheDir):
+	for filename in cached_listdir(cacheDir):
 		st = os.stat(cacheDir+filename)
 		if st.st_size == 0 or currentTime > (ageLimit + st.st_mtime):
 			os.unlink(cacheDir+filename)
@@ -178,7 +187,7 @@ def addToDict(d, p, v, r, u):
 		d[p][v][r] = []
 	d[p][v][r].append(u)
 
-def getUnpackedLocalPackagesOrRecipes(directory, searching_packages=False, d=None, default_revision='', current_only=False):
+def getUnpackedLocalPackagesOrRecipes(directory, searching_packages=False, d=None, default_revision='', current_only=False, filtering=None):
 	import os, os.path
 
 	if d is None:
@@ -187,11 +196,14 @@ def getUnpackedLocalPackagesOrRecipes(directory, searching_packages=False, d=Non
 	if not os.path.isdir(directory):
 		return d
 
-	programs = os.listdir(directory)
+	programs = cached_listdir(directory)
 
 	for i in range(len(programs)):
 		p = programs[i]
 		if not os.path.isdir(directory+'/'+p):
+			continue
+			
+		if filtering and filtering.lower() != p.lower():
 			continue
 
 		if current_only:
@@ -214,7 +226,7 @@ def getUnpackedLocalPackagesOrRecipes(directory, searching_packages=False, d=Non
 			continue
 
 		try:
-			ds = os.listdir(directory+'/'+p)
+			ds = cached_listdir(directory+'/'+p)
 		except:
 			continue
 
@@ -257,7 +269,7 @@ def getPackedLocalPackages(directory, d = None, default_revision=''):
 	if not os.path.isdir(directory):
 		return d
 
-	files = os.listdir(directory)
+	files = cached_listdir(directory)
 	for file in files:
 		l = file.split('--')
 		if len(l) > 2:
@@ -342,7 +354,7 @@ def getVersionsFromPackagesList(file, url, path_prefix = '', d = None):
 
 def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 		availables=None, accessWeb=True, doNotUpdate=False, goboPrograms=None,
-		verify=True):
+		verify=True, filtering=None):
 	if 'recipe' in types:
 		compileRecipeDirs, getRecipeStores = getCompileOptions()
 
@@ -358,7 +370,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 			availables['installed'] = {}
 		if not availables['installed'].has_key('programs') or not availables['installed']['programs']:
 			availables['installed']['programs'] = KeyInsensitiveDict()
-		getUnpackedLocalPackagesOrRecipes(path, True, availables['installed']['programs'], default_revision= 'r1')
+		getUnpackedLocalPackagesOrRecipes(path, True, availables['installed']['programs'], default_revision= 'r1', filtering=filtering)
 
 	if 'current' in types:
 		if goboPrograms:
@@ -369,7 +381,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 			availables['current'] = {}
 		if not availables['current'].has_key('programs') or not availables['current']['programs']:
 			availables['current']['programs'] = KeyInsensitiveDict()
-		getUnpackedLocalPackagesOrRecipes(path, True, availables['current']['programs'], default_revision= 'r1', current_only=True)
+		getUnpackedLocalPackagesOrRecipes(path, True, availables['current']['programs'], default_revision= 'r1', current_only=True, filtering=filtering)
 
 	if 'local_package' in types:
 		if not availables.has_key('local_package') or not availables['local_package']:
@@ -386,7 +398,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 		default_revision='r'+str(sys.maxint)
 		for directory in localdirs:
 			getPackedLocalPackages(os.path.expanduser(directory.strip()), availables['local_package']['programs'], default_revision=default_revision)
-			getUnpackedLocalPackagesOrRecipes(os.path.expanduser(directory.strip()), True, availables['local_package']['programs'], default_revision=default_revision)
+			getUnpackedLocalPackagesOrRecipes(os.path.expanduser(directory.strip()), True, availables['local_package']['programs'], default_revision=default_revision, filtering=filtering)
 
 	if accessWeb and (not doNotUpdate or forceupdate):
 		UpdateCache(types, forceupdate, hook, verify=verify)
@@ -427,7 +439,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 		default_revision='r'+str(sys.maxint)
 		for compileRecipeDir in compileRecipeDirs:
 			availables['recipe']['programs'] = getPackedLocalPackages(compileRecipeDir, availables['recipe']['programs'])
-			availables['recipe']['programs'] = getUnpackedLocalPackagesOrRecipes(compileRecipeDir, False, availables['recipe']['programs'], default_revision=default_revision)
+			availables['recipe']['programs'] = getUnpackedLocalPackagesOrRecipes(compileRecipeDir, False, availables['recipe']['programs'], default_revision=default_revision, filtering=filtering)
 			default_revision = ''
 		if accessWeb:
 			i=0
@@ -437,8 +449,6 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 
 	if hook:
 		hook('Loading lists', 3, 4)
-
-	if hook:
 		hook('Loading lists', 4, 4)
 
 	return availables
@@ -455,7 +465,7 @@ if __name__ == '__main__':
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], 't:Whp:', [
 			'type=', 'types=', 'local-dirs=', 'full-list', 'force-update',
-			'no-web', 'gobo-programs=', 'help', 'no-check-certificate'])
+			'no-web', 'gobo-programs=', 'help', 'no-check-certificate', 'filtering='])
 	except getopt.GetoptError, detail:
 		print sys.argv[0].split('/')[-1]+': '+str(detail)
 		sys.exit(1)
@@ -468,6 +478,7 @@ if __name__ == '__main__':
 	noWeb = False
 	goboPrograms = None
 	verify = True
+	filtering = None
 
 	for o, a in opts:
 		if o in ['--types','--type', '-t']:
@@ -493,6 +504,8 @@ if __name__ == '__main__':
 				types = ['local_package']
 		elif o in ['--no-check-certificate']:
 			verify=False
+		elif o in ['--filtering']:
+			filtering = a
 		elif o in ['--help', '-h']:
 			print """
 GetAvailable
@@ -539,7 +552,7 @@ Examples of usage:
 	hook = consoleProgressHook
 
 	availables = GetAvailable(types, localdirs, forceupdate, accessWeb=not noWeb,
-			hook=hook, goboPrograms=goboPrograms, verify=verify)
+			hook=hook, goboPrograms=goboPrograms, verify=verify, filtering=filtering)
 
 	for t in availables.keys():
 		for p in caseinsensitive_sort(availables[t]['programs'].keys()):

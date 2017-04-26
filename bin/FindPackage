@@ -22,7 +22,7 @@ def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, 
 	# Phase 1: Get available packages from the selected type(s)
 	#######################################################################
 	if not availables or forceupdate: # can be used as a cache
-		availables = GetAvailable(types, localdirs, forceupdate=forceupdate, accessWeb=accessWeb, hook=hook, goboPrograms=goboPrograms)
+		availables = GetAvailable(types, localdirs, forceupdate=forceupdate, accessWeb=accessWeb, hook=hook, goboPrograms=goboPrograms, filtering=p)
 
 	#######################################################################
 	# Phase 2: From returned structure, decide which items fit (based on p, v and r)
