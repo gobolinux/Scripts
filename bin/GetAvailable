@@ -7,7 +7,7 @@
 # (C) 2004 Andre Detsch. Released under the GNU GPL.
 #
 
-import os, os.path, sys, string, time, os, thread, threading
+import os, os.path, sys, string, time, thread, threading
 
 from PythonUtils import *
 
