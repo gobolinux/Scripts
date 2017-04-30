@@ -458,6 +458,17 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 
 	return availables
 
+def updatedTypesList(types, validTypes):
+	for i in range(len(types)):
+		if len (types[i]) == 1:
+			for t in validTypes.keys():
+				if types[i][0] == t:
+					types[i] = validTypes[t]
+					break
+	if 'all' in types:
+		types = validTypes.values()
+		types.remove('all')
+	return types
 
 #############################################################################
 #  'main()'
@@ -475,7 +486,7 @@ if __name__ == '__main__':
 		print sys.argv[0].split('/')[-1]+': '+str(detail)
 		sys.exit(1)
 
-	validTypes = ['local_package', 'official_package', 'recipe', 'contrib_package', 'installed', 'current', 'all']
+        validTypes = {'i':'installed', 'T':'current', 'l':'local_package', 'o':'official_package', 'r':'recipe', 'c':'contrib_package', 'a':'all'}
 	types      = ['local_package', 'official_package']
 	typesChanged = False
 	localdirs = None
@@ -488,15 +499,7 @@ if __name__ == '__main__':
 	for o, a in opts:
 		if o in ['--types','--type', '-t']:
 			typesChanged = True
-			types = a.split(',')
-			for i in range(len(types)):
-				if len (types[i]) == 1:
-					for t in validTypes:
-						if types[i][0] == t[0]:
-							types[i] = t
-							break
-			if 'all' in types:
-				types = validTypes[:-1] # don't include 'all'
+			types = updatedTypesList(a.split(','), validTypes)
 		if o == '--local-dirs':
 			localdirs = a.split(',')
 		elif o == '--force-update':
@@ -519,18 +522,18 @@ GetAvailable
 
 Options:
  -t [t1,t2,...]
- --types=[t1,t2,...]     sets what kind of packages can be searched, in the
-                         passed order. Valid types are:
-                          local_package, official_package, contrib_package,
-                          installed, recipe, all
-                         using only the first character from any of the above
-                         is also valid:
-                          l, o, c, i, r, t, a
-                         Default types are:
-                          local_package, official_package
-                         notice that when "recipe" type is used, Compile.conf is
-                         read to set recipe-store locations and local recipes
-                         locations.
+ --types=[t1,t2,...]  Sets what kind of packages can be searched, in the
+                      passed order. Valid types are:
+                      - local_package, official_package, contrib_package,
+                        installed, recipe, current, all
+                      Using only the following one-character options is
+                      also valid:
+                      - l, o, c, i, r, a
+                      Default types are:
+                      - local_package, official_package
+                      Notice that when "recipe" type is used, Compile.conf is
+                      read to set recipe-store locations and local recipes
+                      locations.
 
  --local-dirs=[d1,..]    where to look for local binary packages. By default,
                          uses the paths defined at GetAvailable.conf

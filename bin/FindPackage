@@ -122,7 +122,7 @@ if __name__ == '__main__':
 	except getopt.GetoptError, detail:
 		print sys.argv[0].split('/')[-1]+': '+str(detail)
 		sys.exit(1)
-	validTypes = ['installed', 'current', 'local_package', 'official_package', 'recipe', 'contrib_package', 'all']
+        validTypes = {'i':'installed', 'T':'current', 'l':'local_package', 'o':'official_package', 'r':'recipe', 'c':'contrib_package', 'a':'all'}
 	types = None
 	localdirs = None
 	fulllist = False
@@ -133,16 +133,7 @@ if __name__ == '__main__':
 	goboPrograms = None
 	for o, a in opts:
 		if o in ['--types','--type', '-t']:
-			#typesChanged = True
-			types = a.split(',')
-			for i in range(len(types)):
-				if len (types[i]) == 1:
-					for t in validTypes:
-						if types[i][0] == t[0]:
-							types[i] = t
-							break
-			if 'all' in types:
-				types = validTypes[:-1] # don't include 'all'
+			types = updatedTypesList(a.split(','), validTypes)
 		if o == '--local-dirs':
 			localdirs = a.split(',')
 		elif o in ['--full-list', '-l']:
@@ -172,13 +163,13 @@ Options:
  -t [t1,t2,...]
  --types=[t1,t2,...]  Sets what kind of packages can be searched, in the
                       passed order. Valid types are:
-                       local_package, official_package, contrib_package,
-                       installed, recipe, all
-                      Using only the first character from any of the above
-                      is also valid:
-                       l, o, c, i, r, t, a
+                      - local_package, official_package, contrib_package,
+                        installed, recipe, current, all
+                      Using only the following one-character options is
+                      also valid:
+                      - l, o, c, i, r, T, a
                       Default types are:
-                       local_package, official_package
+                      - local_package, official_package
                       Notice that when "recipe" type is used, Compile.conf is
                       read to set recipe-store locations and local recipes
                       locations.
