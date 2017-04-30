@@ -486,7 +486,7 @@ if __name__ == '__main__':
 		print sys.argv[0].split('/')[-1]+': '+str(detail)
 		sys.exit(1)
 
-        validTypes = {'i':'installed', 'T':'current', 'l':'local_package', 'o':'official_package', 'r':'recipe', 'c':'contrib_package', 'a':'all'}
+	validTypes = {'i':'installed', 'T':'current', 'l':'local_package', 'o':'official_package', 'r':'recipe', 'c':'contrib_package', 'a':'all'}
 	types      = ['local_package', 'official_package']
 	typesChanged = False
 	localdirs = None
