@@ -459,7 +459,8 @@ prepare_merge_string(const char *callerprogram, const char *dependencies)
 		goto out_free;
 	}
 	list_for_each_entry(entry, deps, list) {
-		if (stat(entry->path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
+		if (stat(entry->path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode) &&
+			!program_blacklisted(entry->path)) {
 			verbose_printf("adding dependency at %s\n", entry->path);
 			strcat(mergedirs, entry->path);
 			strcat(mergedirs, ":");
