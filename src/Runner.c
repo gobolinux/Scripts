@@ -555,7 +555,7 @@ test_and_remove(char *srcdir, char *indexdir)
 			}
 			if (strstr(target, srcdir)) {
 				/* symlink points to conflicting dependency, so remove it */
-				debug_printf("%s: removing %s/%s -> %s\n", __func__, indexdir, entry->d_name, target);
+				//debug_printf("%s: removing %s/%s -> %s\n", __func__, indexdir, entry->d_name, target);
 				unlinkat(indexfd, entry->d_name, 0);
 			}
 			free(target);
@@ -716,7 +716,7 @@ create_wrapper(const char *mergedirs)
 		fp = fopen(args.wrapper, "w");
 		if (! fp) {
 			ret = -errno;
-			fprintf(stderr, "%s: %s\n", args.wrapper, strerror(errno));
+			fprintf(stderr, "open %s: %s\n", args.wrapper, strerror(errno));
 			goto out_error;
 		}
 		fprintf(fp, "#!/bin/bash\n\n");
