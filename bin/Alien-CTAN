@@ -1,0 +1,190 @@
+#!/bin/sh
+# Shell script implementing the Aliens interface for CTAN.
+# Copyright 2017 Hisham Muhammad. Released under the GNU GPL 2 or later.
+
+. ScriptFunctions
+Import Alien
+
+TEXMFHOME=$(kpsexpand '$TEXMFHOME')
+
+getversion() {
+   prog="$1"
+
+   cat $TEXMFHOME/gobolinux/$1/version 2> /dev/null || echo "0.0"
+}
+
+with_ctan_entry() {
+   local prog="$1"
+   shift
+   local fn="$1"
+   shift
+
+   local tmpfile=$(mktemp)
+   wget "http://ctan.org/pkg/$prog" -O "$tmpfile"
+cat $tmpfile | grep sty
+   local out=$($fn "$tmpfile" "$@")
+   local ret=$?
+   rm "$tmpfile"
+   echo "$out"
+   return $ret
+}
+
+   
+do_get_version() {
+   local htmlfile="$1"
+   cat "$htmlfile" | awk '
+      /Ver&shy;sion/ {
+         get_next = 1;
+      }
+      /<td>.* <\/td>/ {
+         if (get_next == 1) {
+            match($0, /<td>([^ ]*) <\/td>/, captures);
+            print captures[1];
+            exit;
+         }
+      }
+   '
+}
+
+getinstallversion() {
+   local prog="$1"
+   
+   local v=$(with_ctan_entry "$prog" do_get_version)
+   if In_Version_Range "$2" "$v" "$3"
+   then
+      echo $v
+      return 0
+   fi
+}
+
+install_file_to() {
+   local src="$1"
+   local dst="$2"
+   local prog="$3"
+   local ver="$4"
+   
+   mkdir -p "$dst"
+   cp "$src" "$dst"
+   echo "Installing $src to $dst ..."
+   echo "$dst/$src" >> "$TEXMFHOME/gobolinux/$prog/$ver/files"
+}
+
+do_install() {
+   local htmlfile="$1"
+   local prog="$2"
+   local ver="$3"
+   
+   local v=$(do_get_version "$htmlfile")
+   if [ -n "$ver" -a '(' "$ver" != "$v" ')' ]
+   then
+      return 1
+   fi
+   
+   local url=$(cat "$htmlfile" | gawk '
+      /class="download"/ {
+         get_next = 1;
+      }
+      /<a href=".*zip">/ {
+         if (get_next == 1) {
+            match($0, /<a href="(.*zip)">/, captures);
+            print captures[1];
+            exit;
+         }
+      }
+      /<a href=".*sty">/ {
+         match($0, /<a href="(.*sty)">/, captures);
+         print "https://ctan.org/" captures[1];
+         exit;
+      }
+      /<a href=".*cls">/ {
+         match($0, /<a href="(.*cls)">/, captures);
+         print "https://ctan.org/" captures[1];
+         exit;
+      }
+   ')
+   local tmpdir=$(mktemp -d)
+   
+   mkdir -p "$TEXMFHOME/gobolinux/$prog"
+   echo $v > "$TEXMFHOME/gobolinux/$prog/version"
+   
+   cd $tmpdir
+   wget "$url"
+   local base=$(basename "$url")
+   local full=$(readlink -f "$base")
+
+   if [[ "$url" =~ zip$ ]]
+   then
+      unzip "$full"
+      
+      find . -type f -name "*.ins" | while read file
+      do
+         pdflatex "$file"
+         pdflatex "$file"
+      done
+      
+      rm "$base"
+      find . -type f | while read file
+      do
+         case $file in
+         *.bib)
+            install_file_to "$file" "$TEXMFHOME/bibtex" "$prog" "$ver"
+            ;;
+         *.tex|*.sty|*.cls|*.dtx|*.ins)
+            install_file_to "$file" "$TEXMFHOME/tex" "$prog" "$ver"
+            ;;
+         *.pdf)
+            install_file_to "$file" "$TEXMFHOME/doc" "$prog" "$ver"
+            ;;
+         *)
+            echo "Unsupported file type: $file"
+            ;;
+         esac # esac is ridiculous.
+      done
+   elif [[ "$url" =~ sty$ ]] || [[ "$url" =~ cls$ ]] 
+   then 
+      install_file_to "$full" "$TEXMFHOME/tex" "$prog" "$ver"
+   fi
+      
+   texhash
+      
+}
+
+install() {
+   local prog="$1"
+   local ver="$2"
+
+   with_ctan_entry "$prog" do_install "$prog" "$ver"
+}
+
+command="$1"
+prog="$2"
+
+case "$command" in
+   --getversion)
+      echo $(getversion "$2")
+      ;;
+   --getinstallversion)
+      echo $(getinstallversion "$2" "$3" "$4")
+      ;;
+   --greater-than)
+      ver=$(getversion "$2")
+      latest=$(GuessLatest "$ver" "$3")
+      [ "$latest" = "$3" ] && exit 1 || exit 0
+      ;;
+   --met|--within-range|--interval)
+      prog="$2"
+      lower="$3"
+      upper="$4"
+      ver=$(getversion "$2")
+      In_Version_Range "$lower" "$ver" "$upper"
+      ;;
+   --have-manager)
+      which texhash >/dev/null 2>&1 || exit 1
+      ;;
+   --get-manager-rule)
+      echo ""
+      ;;
+   --install)
+      install "$2" "$3"
+      ;;
+esac # is ridiculous
