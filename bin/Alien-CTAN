@@ -21,7 +21,6 @@ with_ctan_entry() {
 
    local tmpfile=$(mktemp)
    wget "http://ctan.org/pkg/$prog" -O "$tmpfile"
-cat $tmpfile | grep sty
    local out=$($fn "$tmpfile" "$@")
    local ret=$?
    rm "$tmpfile"
