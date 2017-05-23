@@ -847,11 +847,30 @@ static bool ParseRanges(struct parse_data *data, struct search_options *options)
 	return true;
 }
 
+static inline void DoParseDependencies(struct list_head *head, struct parse_data *data, struct search_options *options, int line)
+{
+	if (! ParseName(data, options) || AlreadyInList(head, data, options)) {
+		free(data);
+	} else if (! ParseVersions(data, options)) {
+		WARN(options, "WARNING: %s:%d: syntax error, ignoring dependency %s.\n", options->depsfile, line, data->depname);
+		free(data);
+	} else if (! ParseRanges(data, options)) {
+		free(data);
+	} else {
+		bool quiet = options->quiet;
+		options->quiet = line >= 0 ? options->quiet : true;
+		if (GetBestVersion(data, options))
+			ListAppend(head, data, options);
+		options->quiet = quiet;
+	}
+}
+
 struct list_head *ParseDependencies(struct search_options *options)
 {
 	FILE *fp;
 	int line = 0;
 	struct list_head *head;
+	struct utsname *uts = RunningKernelInfo();
 
 	fp = fopen(options->depsfile, "r");
 	if (! fp) {
@@ -866,38 +885,32 @@ struct list_head *ParseDependencies(struct search_options *options)
 	}
 	INIT_LIST_HEAD(head);
 
+	/* Parse given dependencies */
 	while (!feof(fp)) {
 		char buf[LINE_MAX];
-
-		line++;
-		if (! ReadLine(buf, sizeof(buf), fp))
+		if (ReadLine(buf, sizeof(buf), fp)) {
+			if (! EmptyLine(buf)) {
+				struct parse_data *data = (struct parse_data*) calloc(1, sizeof(struct parse_data));
+				if (data) {
+					data->workbuf = buf;
+					DoParseDependencies(head, data, options, line);
+				}
+			}
+			line++;
+		} else
 			break;
-		else if (EmptyLine(buf))
-			continue;
+	}
 
-		struct parse_data *data = (struct parse_data*) calloc(1, sizeof(struct parse_data));
-		if (! data) {
-			perror("malloc");
-			free(head);
-			return NULL;
-		}
-		data->workbuf = buf;
-
-		if (! ParseName(data, options) || AlreadyInList(head, data, options)) {
-			free(data);
-			continue;
-		}
-		if (! ParseVersions(data, options)) {
-			WARN(options, "WARNING: %s:%d: syntax error, ignoring dependency %s.\n", options->depsfile, line, data->depname);
-			free(data);
-			continue;
-		}
-		if (ParseRanges(data, options))	{
-			if (GetBestVersion(data, options))
-				ListAppend(head, data, options);
-		else
-			free(data);
-
+	/* Append other programs if spawning an executable built for a different architecture */
+	if (options->wantedArch && uts && strcmp(options->wantedArch, uts->machine) != 0) {
+		DIR *dp = opendir(options->goboPrograms);
+		struct dirent *entry;
+		while ((entry = readdir(dp))) {
+			struct parse_data *data = (struct parse_data*) calloc(1, sizeof(struct parse_data));
+			if (data) {
+				data->workbuf = strdup(entry->d_name);
+				DoParseDependencies(head, data, options, -1);
+			}
 		}
 	}
 

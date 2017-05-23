@@ -389,6 +389,16 @@ then
    Boolean "no-updatesettings" || UpdateSettings "$packagename" "$packageversion"
 fi
 
+if [ -f "${goboPrograms}/$packagename/$packageversion/Resources/Architecture" ]
+then
+   pkgarch=$(cat "${goboPrograms}/$packagename/$packageversion/Resources/Architecture")
+   if [ "$pkgarch" != "noarch" ] && [ "$pkgarch" != "$(uname -m)" ]
+   then
+      Log_Normal "Package $packagename $packageversion is compiled for $pkgarch rather than $(uname -m). Will not symlink it"
+      symlink="no"
+   fi
+fi
+
 case "${symlink}" in
 "yes") SymlinkProgram ${unmanaged} "$packagename" "$packageversion" ;;
 "force") SymlinkProgram ${unmanaged} --conflict=overwrite "$packagename" "$packageversion" ;;
