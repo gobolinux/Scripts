@@ -50,7 +50,7 @@ def available_versions(prog):
       url = "https://pypi.python.org/pypi/%s/json" %prog
       data = load_json(urlopen(Request(url)))
       versions = list(data["releases"].keys())
-      versions.sort(key=StrictVersion)
+      versions.sort(key=StrictVersion, reverse=True)
       return versions
    except Exception as e:
       return []
