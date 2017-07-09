@@ -10,9 +10,22 @@
 . ScriptFunctions
 Import Alien
 
+PYTHON=${ALIEN_PYTHON:-python2}
+case $PYTHON in
+   "python2")
+       PIP=pip2
+       ;;
+   "python3")
+       PIP=pip3
+       ;;
+   *)
+       exit 1
+       ;;
+esac
+
 getversion() {
    local prog=$(echo "$1" | sed 's,\(.*\),\L\1,g')
-   local proginfo=$(pip list | sed 's,\(.*\),\L\1,g' | grep "^${prog} ")
+   local proginfo=$(${PIP} list | sed 's,\(.*\),\L\1,g' | grep "^${prog} ")
    if [ -z "$proginfo" ]
    then exit 1
    else echo "$proginfo | cut -d\( -f2 | cut -d\) -f1"
@@ -21,19 +34,27 @@ getversion() {
 
 getinstallversion() {
    prog="$1"
-   versions=($(python - << EOF 
-import json, urllib2
+   versions=($(${PYTHON} - << EOF
+import json
 from distutils.version import StrictVersion
+try:
+   from urllib2 import urlopen, Request
+   def load_json(res):
+      return json.load(res)
+except ModuleNotFoundError:
+   from urllib.request import urlopen, Request
+   def load_json(res):
+      return json.loads('\n'.join([l.decode() for l in res.readlines()]))
 def available_versions(prog):
    try:
-     url = "https://pypi.python.org/pypi/%s/json" %prog
-     data = json.load(urllib2.urlopen(urllib2.Request(url)))
-     versions = data["releases"].keys()
-     versions.sort(key=StrictVersion)
-     return versions
-   except:
-     return ''
-print "\n".join(available_versions("$prog"))
+      url = "https://pypi.python.org/pypi/%s/json" %prog
+      data = load_json(urlopen(Request(url)))
+      versions = list(data["releases"].keys())
+      versions.sort(key=StrictVersion)
+      return versions
+   except Exception as e:
+      return []
+print("\n".join(available_versions("$prog")))
 EOF
    ))
    for V in ${versions[@]}
@@ -55,7 +76,7 @@ install() {
    then
       mkdir -p "$target" || { echo "Failed to create $target."; exit 1; }
    fi
-   pip install --upgrade --prefix=$target --src=$srcdir "$prog" $ver
+   ${PIP} install --upgrade --prefix=$target --src=$srcdir "$prog" $ver
    
    Symlink_Aliens "$goboExecutables" "$goboSystem"/Aliens/PIP/bin
 }
@@ -64,7 +85,7 @@ remove() {
    local prog="$1"
    local ver="$2"
 
-   pip uninstall "$prog" $ver
+   ${PIP} uninstall "$prog" $ver
    
    Cleanup_Aliens
 }
@@ -92,7 +113,7 @@ case "$command" in
 	  In_Version_Range "$lower" "$ver" "$upper"
       ;;
    --have-manager)
-      which pip >/dev/null 2>&1 || exit 1
+      which ${PIP} >/dev/null 2>&1 || exit 1
       ;;
    --get-manager-rule)
       echo "PIP >= 7.0.0"

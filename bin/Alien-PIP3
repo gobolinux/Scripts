@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Shell script implementing the Aliens interface for PIP3.
+# Packages are installed onto /System/Aliens/PIP. The Python module search path
+# must include that directory, either through PYTHONPATH or through a .pth file.
+#
+# Copyright 2017 Aitor P. Iturri.
+# Released under the GNU GPL 2 or later.
+
+exec env ALIEN_PYTHON=python3 Alien-PIP $@
