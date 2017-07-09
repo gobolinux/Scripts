@@ -25,10 +25,10 @@ esac
 
 getversion() {
    local prog=$(echo "$1" | sed 's,\(.*\),\L\1,g')
-   local proginfo=$(${PIP} list | sed 's,\(.*\),\L\1,g' | grep "^${prog} ")
+   local proginfo=$(${PIP} list 2>/dev/null | sed 's,\(.*\),\L\1,g' | grep "^${prog} ")
    if [ -z "$proginfo" ]
    then exit 1
-   else echo "$proginfo | cut -d\( -f2 | cut -d\) -f1"
+   else echo "$proginfo" | cut -d\( -f2 | cut -d\) -f1
    fi
 }
 
@@ -95,7 +95,8 @@ prog="$2"
 
 case "$command" in
    --getversion)
-      echo $(getversion "$2")
+      ver=$(getversion "$2")
+      [ $? -eq 0 ] && echo $ver || exit $?  # propagate the error
       ;;
    --getinstallversion)
       echo $(getinstallversion "$2" "$3" "$4")
