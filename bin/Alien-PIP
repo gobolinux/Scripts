@@ -77,7 +77,7 @@ install() {
       mkdir -p "$target" || { echo "Failed to create $target."; exit 1; }
    fi
    ${PIP} install --upgrade --prefix=$target --src=$srcdir "$prog" $ver
-   
+
    Symlink_Aliens "$goboExecutables" "$goboSystem"/Aliens/PIP/bin
 }
 
@@ -86,7 +86,7 @@ remove() {
    local ver="$2"
 
    ${PIP} uninstall "$prog" $ver
-   
+
    Cleanup_Aliens
 }
 
@@ -110,7 +110,7 @@ case "$command" in
       lower="$3"
       upper="$4"
       ver=$(getversion "$2")
-	  In_Version_Range "$lower" "$ver" "$upper"
+      In_Version_Range "$lower" "$ver" "$upper"
       ;;
    --have-manager)
       which ${PIP} >/dev/null 2>&1 || exit 1
