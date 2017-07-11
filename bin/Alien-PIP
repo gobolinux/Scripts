@@ -11,21 +11,28 @@
 Import Alien
 
 PYTHON=${ALIEN_PYTHON:-python2}
-case $PYTHON in
+case ${ALIEN_PYTHON:-python2} in
    "python2")
-       PIP=pip2
+       PYTHONVER=$(python2 --version 2>&1 | awk {'print $2'} | cut -b1-3)
+       ALIEN_PYTHON=python2
+       ALIEN_PIP=pip2
        ;;
    "python3")
-       PIP=pip3
+       PYTHONVER=$(python3 --version 2>&1 | awk {'print $2'} | cut -b1-3)
+       ALIEN_PYTHON=python3
+       ALIEN_PIP=pip3
        ;;
    *)
        exit 1
        ;;
 esac
 
+PYTHON="PYTHONPATH=$goboSystem/Aliens/PIP/lib/python${PYTHONVER}/site-packages $ALIEN_PYTHON"
+PIP="PYTHONPATH=$goboSystem/Aliens/PIP/lib/python${PYTHONVER}/site-packages $ALIEN_PIP"
+
 getversion() {
    local prog=$(echo "$1" | sed 's,\(.*\),\L\1,g')
-   local proginfo=$(${PIP} list 2>/dev/null | sed 's,\(.*\),\L\1,g' | grep "^${prog} ")
+   local proginfo=$(eval ${PIP} list 2>/dev/null | sed 's,\(.*\),\L\1,g' | grep "^${prog} ")
    if [ -z "$proginfo" ]
    then exit 1
    else echo "$proginfo" | cut -d\( -f2 | cut -d\) -f1
@@ -34,9 +41,9 @@ getversion() {
 
 getinstallversion() {
    prog="$1"
-   versions=($(${PYTHON} - << EOF
+   versions=($(eval ${PYTHON} - << EOF
 import json
-from distutils.version import StrictVersion
+from packaging.version import Version
 try:
    from urllib2 import urlopen, Request
    def load_json(res):
@@ -50,7 +57,7 @@ def available_versions(prog):
       url = "https://pypi.python.org/pypi/%s/json" %prog
       data = load_json(urlopen(Request(url)))
       versions = list(data["releases"].keys())
-      versions.sort(key=StrictVersion, reverse=True)
+      versions.sort(key=Version, reverse=True)
       return versions
    except Exception as e:
       return []
@@ -76,16 +83,15 @@ install() {
    then
       mkdir -p "$target" || { echo "Failed to create $target."; exit 1; }
    fi
-   ${PIP} install --upgrade --prefix=$target --src=$srcdir "$prog" $ver
-
-   Symlink_Aliens "$goboExecutables" "$goboSystem"/Aliens/PIP/bin
+   eval ${PIP} install --upgrade --prefix=$target --src=$srcdir "$prog" $ver && \
+      Symlink_Aliens "$goboExecutables" "$goboSystem"/Aliens/PIP/bin
 }
 
 remove() {
    local prog="$1"
    local ver="$2"
 
-   ${PIP} uninstall "$prog" $ver
+   eval ${PIP} uninstall "$prog" $ver
 
    Cleanup_Aliens
 }
@@ -99,6 +105,10 @@ case "$command" in
       [ $? -eq 0 ] && echo $ver || exit $?  # propagate the error
       ;;
    --getinstallversion)
+       [ -z $(getversion "packaging") ] && {
+         echo "pip module 'packaging' (see PEP440) not found, installing it first"
+         install packaging || exit 1
+      }
       echo $(getinstallversion "$2" "$3" "$4")
       ;;
    --greater-than)
@@ -114,7 +124,7 @@ case "$command" in
       In_Version_Range "$lower" "$ver" "$upper"
       ;;
    --have-manager)
-      which ${PIP} >/dev/null 2>&1 || exit 1
+      eval which ${PIP} >/dev/null 2>&1 || exit 1
       ;;
    --get-manager-rule)
       echo "PIP >= 7.0.0"
