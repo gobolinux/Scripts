@@ -16,11 +16,13 @@ case ${ALIEN_PYTHON:-python2} in
        PYTHONVER=$(python2 --version 2>&1 | awk {'print $2'} | cut -b1-3)
        ALIEN_PYTHON=python2
        ALIEN_PIP=pip2
+       MANAGER_RULE="PIP >= 7.0.0"
        ;;
    "python3")
        PYTHONVER=$(python3 --version 2>&1 | awk {'print $2'} | cut -b1-3)
        ALIEN_PYTHON=python3
        ALIEN_PIP=pip3
+       MANAGER_RULE="Python >= 3.5.0"
        ;;
    *)
        exit 1
@@ -127,7 +129,7 @@ case "$command" in
       eval which ${PIP} >/dev/null 2>&1 || exit 1
       ;;
    --get-manager-rule)
-      echo "PIP >= 7.0.0"
+      echo $MANAGER_RULE
       ;;
    --install)
       install "$2" "$3"
