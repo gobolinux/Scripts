@@ -21,7 +21,7 @@ case ${ALIEN_PYTHON:-python2} in
    "python3")
        PYTHONVER=$(python3 --version 2>&1 | awk {'print $2'} | cut -b1-3)
        ALIEN_PYTHON=python3
-       ALIEN_PIP=pip3
+       ALIEN_PIP="python3 -m pip"
        MANAGER_RULE="Python >= 3.5.0"
        ;;
    *)
@@ -31,6 +31,20 @@ esac
 
 PYTHON="PYTHONPATH=$goboSystem/Aliens/PIP/lib/python${PYTHONVER}/site-packages $ALIEN_PYTHON"
 PIP="PYTHONPATH=$goboSystem/Aliens/PIP/lib/python${PYTHONVER}/site-packages $ALIEN_PIP"
+
+hasmanager() {
+    case ${ALIEN_PYTHON} in
+        "python2")
+            which $ALIEN_PIP > /dev/null 2>&1
+            ;;
+        "python3")
+            which $ALIEN_PYTHON > /dev/null 2>&1
+            ;;
+        *)
+            return 1
+    esac
+    return $?
+}
 
 getversion() {
    local prog=$(echo "$1" | sed 's,\(.*\),\L\1,g')
@@ -126,7 +140,7 @@ case "$command" in
       In_Version_Range "$lower" "$ver" "$upper"
       ;;
    --have-manager)
-      eval which ${PIP} >/dev/null 2>&1 || exit 1
+      hasmanager || exit 1
       ;;
    --get-manager-rule)
       echo $MANAGER_RULE
