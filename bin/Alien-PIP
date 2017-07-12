@@ -47,6 +47,7 @@ hasmanager() {
 }
 
 getversion() {
+
    local prog=$(echo "$1" | sed 's,\(.*\),\L\1,g')
    local proginfo=$(eval ${PIP} list 2>/dev/null | sed 's,\(.*\),\L\1,g' | grep "^${prog} ")
    if [ -z "$proginfo" ]
@@ -99,7 +100,8 @@ install() {
    then
       mkdir -p "$target" || { echo "Failed to create $target."; exit 1; }
    fi
-   eval ${PIP} install --upgrade --prefix=$target --src=$srcdir "$prog" $ver && \
+   [ ! -z $ver ] && prog_with_ver="$prog==$ver" || prog_with_ver="$prog"
+   eval ${PIP} install --upgrade --prefix=$target --src=$srcdir "$prog_with_ver" && \
       Symlink_Aliens "$goboExecutables" "$goboSystem"/Aliens/PIP/bin
 }
 
