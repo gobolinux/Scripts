@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mypath=$(dirname $(readlink -f $(which "$0")))
+
 args=("$@")
 if [[ "${#args[@]}" -lt 2 ]]
 then
@@ -15,10 +17,13 @@ then
    echo "    --install"
    echo
    echo "Valid options for AlienType are:"
-   echo "    CPAN"
-   echo "    LuaRocks"
-   echo "    PIP"
-   echo "    RubyGems"
+   (
+      cd "$mypath"
+      for alien in Alien-*
+      do
+         echo "    ${alien#Alien-}"
+      done
+   )
    echo
    echo "Example:"
    echo "    Alien --install CPAN:XML::Parser"
