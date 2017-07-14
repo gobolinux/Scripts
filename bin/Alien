@@ -33,12 +33,17 @@ fi
 
 mode="$1"
 prog="$2"
-alientype="${prog%%:*}"
-alienpkg="${prog#*:}"
-if [[ -z "$alientype" || -z "$alienpkg" ]]
+if [[ ! $prog =~ ^.+:.+$ ]] 
 then
-   echo "Error: missing program name"
+   echo "Error: missing program name, format shoud be 'AlienType:program'"
    exit 1
 fi
+alientype="${prog%%:*}"
+alienpkg="${prog#*:}"
 shift 2
+if [[ ! -x /System/Index/bin/Alien-$alientype ]]
+then
+    echo "Error: $alientype is not a valid alientype"
+    exit 1
+fi
 exec Alien-$alientype $mode $alienpkg "$@"

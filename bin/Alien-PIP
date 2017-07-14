@@ -10,30 +10,75 @@
 . ScriptFunctions
 Import Alien
 
+PYTHON=${ALIEN_PYTHON:-python2}
+case ${ALIEN_PYTHON:-python2} in
+   "python2")
+       PYTHONVER=$(python2 --version 2>&1 | awk {'print $2'} | cut -b1-3)
+       ALIEN_PYTHON=python2
+       ALIEN_PIP=pip2
+       MANAGER_RULE="PIP >= 7.0.0"
+       ;;
+   "python3")
+       PYTHONVER=$(python3 --version 2>&1 | awk {'print $2'} | cut -b1-3)
+       ALIEN_PYTHON=python3
+       ALIEN_PIP="python3 -m pip"
+       MANAGER_RULE="Python >= 3.5.0"
+       ;;
+   *)
+       exit 1
+       ;;
+esac
+
+PYTHON="PYTHONPATH=$goboSystem/Aliens/PIP/lib/python${PYTHONVER}/site-packages $ALIEN_PYTHON"
+PIP="PYTHONPATH=$goboSystem/Aliens/PIP/lib/python${PYTHONVER}/site-packages $ALIEN_PIP"
+
+hasmanager() {
+    case ${ALIEN_PYTHON} in
+        "python2")
+            which $ALIEN_PIP > /dev/null 2>&1
+            ;;
+        "python3")
+            which $ALIEN_PYTHON > /dev/null 2>&1
+            ;;
+        *)
+            return 1
+    esac
+    return $?
+}
+
 getversion() {
+
    local prog=$(echo "$1" | sed 's,\(.*\),\L\1,g')
-   local proginfo=$(pip list | sed 's,\(.*\),\L\1,g' | grep "^${prog} ")
+   local proginfo=$(eval ${PIP} list 2>/dev/null | sed 's,\(.*\),\L\1,g' | grep "^${prog} ")
    if [ -z "$proginfo" ]
    then exit 1
-   else echo "$proginfo | cut -d\( -f2 | cut -d\) -f1"
+   else echo "$proginfo" | cut -d\( -f2 | cut -d\) -f1
    fi
 }
 
 getinstallversion() {
    prog="$1"
-   versions=($(python - << EOF 
-import json, urllib2
-from distutils.version import StrictVersion
+   versions=($(eval ${PYTHON} - << EOF
+import json
+from packaging.version import Version
+try:
+   from urllib2 import urlopen, Request
+   def load_json(res):
+      return json.load(res)
+except ModuleNotFoundError:
+   from urllib.request import urlopen, Request
+   def load_json(res):
+      return json.loads('\n'.join([l.decode() for l in res.readlines()]))
 def available_versions(prog):
    try:
-     url = "https://pypi.python.org/pypi/%s/json" %prog
-     data = json.load(urllib2.urlopen(urllib2.Request(url)))
-     versions = data["releases"].keys()
-     versions.sort(key=StrictVersion)
-     return versions
-   except:
-     return ''
-print "\n".join(available_versions("$prog"))
+      url = "https://pypi.python.org/pypi/%s/json" %prog
+      data = load_json(urlopen(Request(url)))
+      versions = list(data["releases"].keys())
+      versions.sort(key=Version, reverse=True)
+      return versions
+   except Exception as e:
+      return []
+print("\n".join(available_versions("$prog")))
 EOF
    ))
    for V in ${versions[@]}
@@ -55,17 +100,17 @@ install() {
    then
       mkdir -p "$target" || { echo "Failed to create $target."; exit 1; }
    fi
-   pip install --upgrade --prefix=$target --src=$srcdir "$prog" $ver
-   
-   Symlink_Aliens "$goboExecutables" "$goboSystem"/Aliens/PIP/bin
+   [ ! -z $ver ] && prog_with_ver="$prog==$ver" || prog_with_ver="$prog"
+   eval ${PIP} install --upgrade --prefix=$target --src=$srcdir "$prog_with_ver" && \
+      Symlink_Aliens "$goboExecutables" "$goboSystem"/Aliens/PIP/bin
 }
 
 remove() {
    local prog="$1"
    local ver="$2"
 
-   pip uninstall "$prog" $ver
-   
+   eval ${PIP} uninstall "$prog" $ver
+
    Cleanup_Aliens
 }
 
@@ -74,9 +119,14 @@ prog="$2"
 
 case "$command" in
    --getversion)
-      echo $(getversion "$2")
+      ver=$(getversion "$2")
+      [ $? -eq 0 ] && echo $ver || exit $?  # propagate the error
       ;;
    --getinstallversion)
+       [ -z $(getversion "packaging") ] && {
+         echo "pip module 'packaging' (see PEP440) not found, installing it first"
+         install packaging || exit 1
+      }
       echo $(getinstallversion "$2" "$3" "$4")
       ;;
    --greater-than)
@@ -89,13 +139,13 @@ case "$command" in
       lower="$3"
       upper="$4"
       ver=$(getversion "$2")
-	  In_Version_Range "$lower" "$ver" "$upper"
+      In_Version_Range "$lower" "$ver" "$upper"
       ;;
    --have-manager)
-      which pip >/dev/null 2>&1 || exit 1
+      hasmanager || exit 1
       ;;
    --get-manager-rule)
-      echo "PIP >= 7.0.0"
+      echo $MANAGER_RULE
       ;;
    --install)
       install "$2" "$3"
