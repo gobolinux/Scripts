@@ -1,44 +1,46 @@
 #!/bin/bash
 
-mypath=$(dirname $(readlink -f $(which "$0")))
+. ScriptFunctions
+Import OptionParser
 
-args=("$@")
-if [[ "${#args[@]}" -lt 2 ]]
-then
-   echo "Usage: Alien --<mode> AlienType:alienpkg [...]"
-   echo
-   echo "Valid options for <mode> are:"
-   echo "    --get-version"
-   echo "    --getinstallversion"
-   echo "    --greater-than"
-   echo "    --met|--within-range|--interval"
-   echo "    --have-manager"
-   echo "    --get-manager-rule"
-   echo "    --install"
-   echo
+helpOnNoArguments=yes
+scriptDescription="Install packages using language-specific package managers into the /System/Aliens tree."
+scriptCredits="Copyright (C) 2017 GoboLinux Team - Released under the GNU GPL."
+scriptUsage="--<mode> <AlienType>:<alienpkg> [<version>] [<max-version>]"
+scriptExample="--install CPAN:XML::Parser"
+scriptNotes=$(
    echo "Valid options for AlienType are:"
-   (
-      cd "$mypath"
-      for alien in Alien-*
-      do
-         echo "    ${alien#Alien-}"
-      done
-   )
-   echo
-   echo "Example:"
-   echo "    Alien --install CPAN:XML::Parser"
-   echo "    Alien --install PIP:burn"
-   exit 1
-fi
+   cd /bin
+   for alien in Alien-*
+   do
+      echo "    ${alien#Alien-}"
+   done
+)
+Add_Option_Boolean "" "install" "Install a package, with an optional <version>."
+Add_Option_Boolean "" "getversion" "Get version of a currently installed package."
+Add_Option_Boolean "" "getinstallversion" "Get version of a package to be installed."
+Add_Option_Boolean "" "greater-than" "Succeeds if installed version is greater than <version>."
+Add_Option_Boolean "" "within-range" "Succeeds if installed version is between <version> and <max-version>."
+Add_Option_Boolean "" "have-manager" "Succeeds if the package manager for the language is installed."
+Add_Option_Boolean "" "get-manager-rule" "Returns a Dependencies rule for the package manager."
+Parse_Options "$@"
 
-mode="$1"
-prog="$2"
+for mode in install getversion getinstallversion greater-than within-range have-manager get-manager-rule
+do
+   if Boolean "$mode"
+   then
+      mode=--$mode
+      break
+   fi
+done
+
+prog="$(Arg 1)"
 alientype="${prog%%:*}"
 alienpkg="${prog#*:}"
+
 if [[ -z "$alientype" || -z "$alienpkg" ]]
 then
-   echo "Error: missing program name"
-   exit 1
+   Die "missing program name"
 fi
-shift 2
-exec Alien-$alientype $mode $alienpkg "$@"
+
+exec Alien-$alientype $mode $alienpkg "$(Arg 2)" "$(Arg 3)"
