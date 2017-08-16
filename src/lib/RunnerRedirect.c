@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include <spawn.h>
+#include <assert.h>
 
 static int   (*execl_orig)(const char *filename, const char *arg, ...);
 static int   (*execlp_orig)(const char *filename, const char *arg, ...);
@@ -50,6 +51,11 @@ __attribute__((constructor)) static void init()
 	_IO_popen_orig    = dlsym(RTLD_NEXT, "_IO_popen");
 	posix_spawn_orig  = dlsym(RTLD_NEXT, "posix_spawn");
 	posix_spawnp_orig = dlsym(RTLD_NEXT, "posix_spawnp");
+
+	assert(execl_orig != execl);
+	assert(execv_orig != execv);
+	assert(execvp_orig != execvp);
+	assert(execvpe_orig != execvpe);
 }
 
 #define PRINT_CMD() \
@@ -168,7 +174,7 @@ int posix_spawn(pid_t *pid, const char *file,
                 char *const argv[], char *const envp[])
 {
 	DECLARE_ARGS();
-    return posix_spawn_orig(pid, file, file_actions, attrp, argv, envp);
+    return posix_spawn_orig(pid, file, file_actions, attrp, args, envp);
 }
 
 int posix_spawnp(pid_t *pid, const char *file,
@@ -177,5 +183,5 @@ int posix_spawnp(pid_t *pid, const char *file,
                 char *const argv[], char *const envp[])
 {
 	DECLARE_ARGS();
-    return posix_spawnp_orig(pid, file, file_actions, attrp, argv, envp);
+    return posix_spawnp_orig(pid, file, file_actions, attrp, args, envp);
 }
