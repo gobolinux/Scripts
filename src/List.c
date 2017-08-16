@@ -446,9 +446,9 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
    char mask_U[4], mask_G[4], mask_O[4], final_mask[64];
    char tmp_buffer[PATH_MAX], symlink_path[PATH_MAX], link_entry[PATH_MAX * 2];
    char extension[EXTENSION_MAX], color_code[COLORCODE_MAX];
-    char *full_pathname;
+   char *full_pathname;
    struct tm *time_info;
-    struct stat status, target_status;
+   struct stat status, target_status;
 
    for (pass = 0; pass < 7; ++pass) {
       if (opt_time || opt_size)
@@ -560,8 +560,8 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
                color_code,
                namelist[i]->d_name);
          } else {
-                char *size_str = colorize_bytes(status.st_size, SCHEME_FILES, 9);
-                
+            char *size_str = colorize_bytes(status.st_size, SCHEME_FILES, 11);
+
             fprintf(stdout, "%s%02d/%02d %02d:%02d %s%s%s \033[%sm%s%s\n",
                COLOR_WHITE_CODE,
                time_info->tm_mday,
@@ -570,7 +570,7 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
                time_info->tm_min,
                final_mask,
                COLOR_WHITE_CODE,
-                    size_str,
+               size_str,
                color_code,
                namelist[i]->d_name,
                link_entry);
@@ -822,7 +822,7 @@ get_filesystem(struct statfs *status)
 void
 summarize_simple(long long total, long counter, long hiddenfiles)
 {
-    char *bytes_total_string = colorize_bytes(total, SCHEME_FILES, 9);
+   char *bytes_total_string = colorize_bytes(total, SCHEME_FILES, 11);
 
    printf("%s                      ---------\n", COLOR_WHITE_CODE);
 
@@ -871,7 +871,7 @@ summarize(struct statfs status, long long total, long counter, long hiddenfiles,
    
     bytes_used_string  = colorize_bytes(bytes_used, SCHEME_STATUS, -1);
     bytes_free_string  = colorize_bytes(bytes_free, SCHEME_STATUS, -1);
-    bytes_total_string = colorize_bytes(total, SCHEME_FILES, 9);
+    bytes_total_string = colorize_bytes(total, SCHEME_FILES, 11);
     
    if (hiddenfiles) {
       printf("\n%s in %ld%s+%ld%s files - %s: %s%s kB used (%02.0f%%), %s%s kB free\n", bytes_total_string,
