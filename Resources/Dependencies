@@ -8,6 +8,7 @@ Fuse # UnionSandbox with FUSE
 Gawk
 Grep
 Gzip # Archive
+Make
 MkTemp
 Mtail # ColorMake
 Patch # UpdateSettings
