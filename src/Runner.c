@@ -49,6 +49,7 @@
 #include <sys/resource.h>  /* getrlimit() */
 #include <time.h>
 #include <ftw.h>
+#include <elf.h>
 
 #include "LinuxList.h"
 #include "FindDependencies.h"
@@ -775,6 +776,52 @@ out_error:
 }
 
 static char *
+parse_elf_file(const char *executable)
+{
+	char *arch = NULL;
+	FILE *fp = fopen(executable, "r");
+	if (fp) {
+		char ident[EI_NIDENT];
+		size_t n = fread(ident, sizeof(ident), 1, fp);
+		if (n <= 0 || memcmp(ident, ELFMAG, SELFMAG) != 0) {
+			fclose(fp);
+			return NULL;
+		}
+		rewind(fp);
+
+		int e_machine = 0;
+		if (ident[EI_CLASS] == ELFCLASS32) {
+			Elf32_Ehdr hdr;
+			if (fread(&hdr, sizeof(hdr), 1, fp) <= 0) {
+				fclose(fp);
+				return NULL;
+			}
+			e_machine = (int) hdr.e_machine;
+		} else if (ident[EI_CLASS] == ELFCLASS64) {
+			Elf64_Ehdr hdr;
+			if (fread(&hdr, sizeof(hdr), 1, fp) <= 0) {
+				fclose(fp);
+				return NULL;
+			}
+			e_machine = (int) hdr.e_machine;
+		}
+		fclose(fp);
+
+		switch (e_machine) {
+			case EM_386:
+				arch = strdup("i686");
+				break;
+			case EM_X86_64:
+				arch = strdup("x86_64");
+				break;
+			default:
+				break;
+		}
+	}
+	return arch;
+}
+
+static char *
 parse_architecture_file(const char *archfile)
 {
 	struct stat statbuf;
@@ -825,13 +872,17 @@ mount_overlay()
 			goto out_free;
 		}
 		if (args.architecture == NULL) {
-			/* Try to determine architecture based on the Resources/Architecture metadata file */
-			if (asprintf(&archfile, "%s/Resources/Architecture", programdir) <= 0) {
-				fprintf(stderr, "Not enough memory\n");
-				goto out_free;
+			/* If args.executable is an ELF file, determine architecture from the header */
+			args.architecture = parse_elf_file(args.executable);
+			if (args.architecture == NULL) {
+				/* Try to determine architecture based on the Resources/Architecture metadata file */
+				if (asprintf(&archfile, "%s/Resources/Architecture", programdir) <= 0) {
+					fprintf(stderr, "Not enough memory\n");
+					goto out_free;
+				}
+				/* TODO: args.architecture is never freed */
+				args.architecture = parse_architecture_file(archfile);
 			}
-			/* TODO: args.architecture is never freed */
-			args.architecture = parse_architecture_file(archfile);
 		}
 		callerprogram = program_blacklisted(programdir) ? NULL : programdir;
 		mergedirs_program = prepare_merge_string(callerprogram, fname);
@@ -1038,8 +1089,8 @@ show_usage_and_exit(char *exec, int err)
 	"Syntax: %s [options] <command> [arguments]\n"
 	"\n"
 	"Available options are:\n"
-	"  -a, --arch=ARCH           Look for dependencies whose architecture is ARCH (default: taken from\n"
-	"                            Resources/Architecture, otherwise assumed to be %s)\n"
+	"  -a, --arch=ARCH           Look for dependencies built for ARCH (default: extract from ELF headers\n"
+	"                            or from Resources/Architecture, falling back to %s on failure)\n"
 	"  -d, --dependencies=FILE   Path to GoboLinux Dependencies file to use\n"
 	"  -h, --help                This help\n"
 	"  -q, --quiet               Don't warn on bogus dependencies file(s)\n"
