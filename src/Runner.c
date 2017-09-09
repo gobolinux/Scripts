@@ -307,9 +307,8 @@ get_program_dir(const char *executable)
 		free(exec);
 	}
 
-	if (strlen(path) < strlen(GOBO_PROGRAMS_DIR)) {
-		verbose_printf("'%s' ('%s') is not in a $goboPrograms subdirectory\n",
-			executable, path);
+	if (strstr(path, GOBO_PROGRAMS_DIR) != path) {
+		verbose_printf("'%s' is not in a $goboPrograms subdirectory\n", executable);
 		free(path);
 		return NULL;
 	}
