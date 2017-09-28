@@ -552,7 +552,7 @@ static void ListAppend(struct list_head *head, struct parse_data *data, struct s
 	list_add_tail(&ldata->list, head);
 }
 
-static bool AlreadyInList(struct list_head *head, struct parse_data *data, struct search_options *options)
+static bool AlreadyInList(struct list_head *head, struct parse_data *data, struct search_options *options, bool warn_on_dups)
 {
 	struct list_data *ldata;
 	char bufname[NAME_MAX+3];
@@ -567,7 +567,8 @@ static bool AlreadyInList(struct list_head *head, struct parse_data *data, struc
 			else if (!bufname[0])
 				snprintf(bufname, sizeof(bufname)-1, "%s", data->depname);
 			if (strstr(ldata->path, bufname)) {
-				WARN(options, "WARNING: '%s' is included twice in %s\n", data->depname, options->depsfile);
+				if (warn_on_dups)
+					WARN(options, "WARNING: '%s' is included twice in %s\n", data->depname, options->depsfile);
 				return true;
 			}
 		}
@@ -856,7 +857,7 @@ static bool ParseRanges(struct parse_data *data, struct search_options *options)
 
 static inline void DoParseDependencies(struct list_head *head, struct parse_data *data, struct search_options *options, int line)
 {
-	if (! ParseName(data, options) || AlreadyInList(head, data, options)) {
+	if (! ParseName(data, options) || AlreadyInList(head, data, options, line >= 0)) {
 		if (line < 0) free(data->workbuf);
 		free(data);
 	} else if (! ParseVersions(data, options)) {
