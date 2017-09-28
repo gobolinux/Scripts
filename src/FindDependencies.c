@@ -556,9 +556,16 @@ static bool AlreadyInList(struct list_head *head, struct parse_data *data, struc
 {
 	struct list_data *ldata;
 	char bufname[NAME_MAX+3];
+
+	memset(bufname, 0, sizeof(bufname));
 	if (!list_empty(head)) {
-		sprintf(bufname, "/%s--", data->depname);
 		list_for_each_entry(ldata, head, list) {
+			if (!bufname[0] && strstr(ldata->path, "--"))
+				snprintf(bufname, sizeof(bufname)-1, "/%s--", data->depname);
+			else if (!bufname[0] && strstr(ldata->path, "/"))
+				snprintf(bufname, sizeof(bufname)-1, "/%s/", data->depname);
+			else if (!bufname[0])
+				snprintf(bufname, sizeof(bufname)-1, "%s", data->depname);
 			if (strstr(ldata->path, bufname)) {
 				WARN(options, "WARNING: '%s' is included twice in %s\n", data->depname, options->depsfile);
 				return true;
@@ -850,11 +857,14 @@ static bool ParseRanges(struct parse_data *data, struct search_options *options)
 static inline void DoParseDependencies(struct list_head *head, struct parse_data *data, struct search_options *options, int line)
 {
 	if (! ParseName(data, options) || AlreadyInList(head, data, options)) {
+		if (line < 0) free(data->workbuf);
 		free(data);
 	} else if (! ParseVersions(data, options)) {
 		WARN(options, "WARNING: %s:%d: syntax error, ignoring dependency %s.\n", options->depsfile, line, data->depname);
+		if (line < 0) free(data->workbuf);
 		free(data);
 	} else if (! ParseRanges(data, options)) {
+		if (line < 0) free(data->workbuf);
 		free(data);
 	} else {
 		bool quiet = options->quiet;
@@ -906,10 +916,12 @@ struct list_head *ParseDependencies(struct search_options *options)
 		DIR *dp = opendir(options->goboPrograms);
 		struct dirent *entry;
 		while ((entry = readdir(dp))) {
-			struct parse_data *data = (struct parse_data*) calloc(1, sizeof(struct parse_data));
-			if (data) {
-				data->workbuf = strdup(entry->d_name);
-				DoParseDependencies(head, data, options, -1);
+			if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+				struct parse_data *data = (struct parse_data*) calloc(1, sizeof(struct parse_data));
+				if (data) {
+					data->workbuf = strdup(entry->d_name);
+					DoParseDependencies(head, data, options, -1);
+				}
 			}
 		}
 	}
