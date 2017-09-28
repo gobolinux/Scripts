@@ -845,6 +845,27 @@ parse_architecture_file(const char *archfile)
 	return NULL;
 }
 
+static char *
+open_dependencies_file(const char *programdir, const char *depfile)
+{
+	struct stat statbuf;
+	char *fname = NULL;
+	int res;
+
+	if (asprintf(&fname, "%s%s", programdir, depfile) <= 0) {
+		fprintf(stderr, "Not enough memory\n");
+		return NULL;
+	}
+	res = stat(fname, &statbuf);
+	if (res == 0 && statbuf.st_size > 1)
+		return fname;
+	else if (res < 0 && errno != ENOENT)
+		perror(fname);
+
+	free(fname);
+	return NULL;
+}
+
 /**
  * mount_overlay:
  */
@@ -861,14 +882,10 @@ mount_overlay()
 	programdir = get_program_dir(args.executable);
 	if (programdir) {
 		/* check if the software's Resources/Dependencies file exists */
-		if (asprintf(&fname, "%s/Resources/Dependencies", programdir) <= 0) {
-			fprintf(stderr, "Not enough memory\n");
-			goto out_free;
-		}
-		res = stat(fname, &statbuf);
-		if (res < 0 && errno == EACCES) {
-			perror(fname);
-			goto out_free;
+		fname = open_dependencies_file(programdir, "/Resources/Dependencies");
+		if (fname == NULL) {
+			/* try again with Resources/BuildInformation */
+			fname = open_dependencies_file(programdir, "/Resources/BuildInformation");
 		}
 		if (args.architecture == NULL) {
 			/* If args.executable is an ELF file, determine architecture from the header */
@@ -884,7 +901,7 @@ mount_overlay()
 			}
 		}
 		callerprogram = program_blacklisted(programdir) ? NULL : programdir;
-		mergedirs_program = prepare_merge_string(callerprogram, fname);
+		mergedirs_program = fname ? prepare_merge_string(callerprogram, fname) : NULL;
 		merge_len += mergedirs_program ? strlen(mergedirs_program) : 0;
 		free(fname);
 		fname = NULL;
