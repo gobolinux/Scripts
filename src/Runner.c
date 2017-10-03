@@ -879,6 +879,11 @@ mount_overlay()
 	char *mergedirs_user = NULL, *mergedirs_program = NULL, *mergedirs = NULL;
 	char **envfiles = NULL;
 
+	if (args.architecture == NULL) {
+		/* If args.executable is an ELF file, try to determine architecture from the header */
+		args.architecture = parse_elf_file(args.executable);
+	}
+
 	programdir = get_program_dir(args.executable);
 	if (programdir) {
 		/* check if the software's Resources/Dependencies file exists */
@@ -888,17 +893,13 @@ mount_overlay()
 			fname = open_dependencies_file(programdir, "/Resources/BuildInformation");
 		}
 		if (args.architecture == NULL) {
-			/* If args.executable is an ELF file, determine architecture from the header */
-			args.architecture = parse_elf_file(args.executable);
-			if (args.architecture == NULL) {
-				/* Try to determine architecture based on the Resources/Architecture metadata file */
-				if (asprintf(&archfile, "%s/Resources/Architecture", programdir) <= 0) {
-					fprintf(stderr, "Not enough memory\n");
-					goto out_free;
-				}
-				/* TODO: args.architecture is never freed */
-				args.architecture = parse_architecture_file(archfile);
+			/* Try to determine architecture based on the Resources/Architecture metadata file */
+			if (asprintf(&archfile, "%s/Resources/Architecture", programdir) <= 0) {
+				fprintf(stderr, "Not enough memory\n");
+				goto out_free;
 			}
+			/* TODO: args.architecture is never freed */
+			args.architecture = parse_architecture_file(archfile);
 		}
 		callerprogram = program_blacklisted(programdir) ? NULL : programdir;
 		mergedirs_program = fname ? prepare_merge_string(callerprogram, fname) : NULL;
