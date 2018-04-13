@@ -116,6 +116,14 @@ then
 fi
 }
 
+function Update_GLib_Schemas() {
+if Executable_Exists_In_Path "glib-compile-schemas"
+then
+   Log_Normal "Updating GLib schemas..."
+   glib-compile-schemas ${goboShared}/glib-2.0/schemas &>/dev/null
+fi
+}
+
 function Update_Scrollkeeper_Database() {
 if Executable_Exists_In_Path "scrollkeeper-update"
 then

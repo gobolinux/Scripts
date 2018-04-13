@@ -329,6 +329,7 @@ then
    Is_Real_Nonempty_Directory "${currentshare}/applications" && Rebuild_Desktop_Database
    Is_Real_Nonempty_Directory "${currentshare}/fonts" && Rebuild_Font_Cache
    Is_Real_Nonempty_Directory "${currentshare}/omf" && Update_Scrollkeeper_Database
+   Is_Real_Nonempty_Directory "${currentshare}/glib-2.0/schemas" && Update_GLib_Schemas
    Is_Real_Nonempty_Directory "${current}/lib/gtk-2.0" && Rebuild_GDK_Pixbuf_Loaders
    [ -f "${current}/Resources/XmlCatalogData" ] && Add_To_XML_Catalog "${packageDir}/${version}"
    # it's ok to install the GConf schemas even if they are already installed
