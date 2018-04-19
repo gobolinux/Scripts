@@ -663,7 +663,7 @@ list_file(const char *path, long long *total, long *counter, long *hiddenfiles)
 }
 
 int
-list_entries(const char *path, long long *total, long *counter, long *hiddenfiles)
+list_entries(const char *path, long long *total, long *counter, long *hiddenfiles, bool isbrokenlink)
 {
    int i, n, ret, len;
    char complete_path[PATH_MAX];
@@ -671,7 +671,9 @@ list_entries(const char *path, long long *total, long *counter, long *hiddenfile
    struct file_info *file_info;
    
    /* scandir doesn't propagate the complete pathname */
-   if (realpath(path, complete_path) == NULL) {
+   if (isbrokenlink)
+	   strncpy(complete_path, path, sizeof(complete_path)-1);
+   else if (realpath(path, complete_path) == NULL) {
       perror(path);
       return -1;
    }
@@ -949,7 +951,7 @@ main(int argc, char **argv)
          perror("getcwd");
          exit(1);
       }
-      list_entries(curr_dir, &total, &counter, &hiddenfiles);
+      list_entries(curr_dir, &total, &counter, &hiddenfiles, false);
 
       if ((statfs(curr_dir, &status)) < 0) {
          fprintf(stderr, "statfs %s: %s\n", curr_dir, strerror(errno));
@@ -969,9 +971,9 @@ main(int argc, char **argv)
        while (optind < argc) {
          if ((stat(argv[optind], &entry_status)) < 0) {
             if ((lstat(argv[optind], &entry_status)) == 0)
-               list_entries(argv[optind], &total_local, &counter_local, &hidden_local);
+               list_entries(argv[optind], &total_local, &counter_local, &hidden_local, true);
             else
-               fprintf(stderr, "%s: %s\n", argv[optind], strerror(errno));
+               fprintf(stderr, "lstat %s: %s\n", argv[optind], strerror(errno));
             optind++;
             continue;
          } else if (! got_statfs){
@@ -984,7 +986,7 @@ main(int argc, char **argv)
             printf("%s%s%s\n", COLOR_YELLOW_CODE, argv[optind], COLOR_WHITE_CODE);
             
          total_local = 0, counter_local = 0, hidden_local = 0;
-         list_entries(argv[optind], &total_local, &counter_local, &hidden_local);
+         list_entries(argv[optind], &total_local, &counter_local, &hidden_local, false);
          
          if (S_ISDIR(entry_status.st_mode) && num_dirs > 1) {
             summarize(status, total_local, counter_local, hidden_local, 0);
