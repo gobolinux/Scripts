@@ -175,7 +175,8 @@ static bool IsVersionDirectory(char *candidate)
 	return (! (*candidate == '.' ||
 			!strcmp(candidate, "Variable") ||
 			!strcmp(candidate, "Settings") ||
-			!strcmp(candidate, "Current")));
+			!strcmp(candidate, "Current") ||
+			 strstr(candidate, "-failed")));
 }
 
 static bool MatchRule(char *candidate, struct version *v)
