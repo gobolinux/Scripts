@@ -1154,8 +1154,17 @@ parse_arguments(int argc, char *argv[])
 			break;
 		else if (c == 'd')
 			num_deps++;
-		else if (!(c == 'a' || c == 'h' || c == 'q' || c == 'c' || c == 'f' || c == 'v' || c == 'E' || c == 'R'))
+		else {
+			struct option *ptr = long_options;
 			valid = false;
+			while (ptr->name) {
+				if (c == ptr->val) {
+					valid = true;
+					break;
+				}
+				ptr++;
+			}
+		}
 	}
 
 	/* Default values */
