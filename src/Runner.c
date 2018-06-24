@@ -1069,14 +1069,17 @@ out_error:
 }
 
 void
-cleanup_directory(char *dirname)
+cleanup_directory(const char *layername, char *dirname)
 {
 	int cleanup_entry(const char *path, const struct stat *statbuf, int typeflag, struct FTW *ftwbuf)
 	{
-		if (typeflag == FTW_F || typeflag == FTW_SLN)
+		if (typeflag == FTW_F || typeflag == FTW_SL || typeflag == FTW_SLN) {
+			debug_printf("%s: deleting file %s\n", layername, path);
 			unlink(path);
-		else if (typeflag == FTW_D || typeflag == FTW_DP)
+		} else if (typeflag == FTW_D || typeflag == FTW_DP || typeflag == FTW_DNR) {
+			debug_printf("%s: deleting directory %s\n", layername, path);
 			rmdir(path);
+		}
 		return 0;
 	}
 
@@ -1089,6 +1092,7 @@ cleanup_directory(char *dirname)
 	ret = nftw(dirname, cleanup_entry, limit.rlim_cur, FTW_DEPTH);
 	if (ret < 0)
 		perror("nftw");
+	debug_printf("%s: deleting directory %s\n", layername, dirname);
 	rmdir(dirname);
 }
 
@@ -1283,9 +1287,9 @@ void
 cleanup(int signum)
 {
 	destroy_namespace();
-	cleanup_directory(args.upperlayer);
-	cleanup_directory(args.writelayer);
-	cleanup_directory(args.workdir);
+	cleanup_directory("upper layer", args.upperlayer);
+	cleanup_directory("write layer", args.writelayer);
+	cleanup_directory("working layer", args.workdir);
 }
 
 /**
