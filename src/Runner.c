@@ -277,6 +277,50 @@ which(const char *executable)
 	return NULL;
 }
 
+char *
+get_interpreter_name(const char *executable)
+{
+	char buf[128], *start;
+	size_t n, i;
+	FILE *fp;
+
+	fp = fopen(executable, "r");
+	if (fp == NULL)
+		return NULL;
+
+	/* Try to read the first few bytes of the file */
+	n = fread(buf, sizeof(char), sizeof(buf)-1, fp);
+	if (n < 0) {
+		perror(executable);
+		fclose(fp);
+		return NULL;
+	}
+	buf[n] = '\0';
+
+	/* Is this a script file? */
+	if (buf[0] != '#' || buf[1] != '!') {
+		fclose(fp);
+		return NULL;
+	}
+
+	for (i=2; i<sizeof(buf) && buf[i] != '/' && buf[i] != '\0'; ++i)
+		/* advance pointer */;
+
+	if (! strncmp(&buf[i], "/usr/bin/env", strlen("/usr/bin/env"))) {
+		i += strlen("/usr/bin/env");
+		while (i<sizeof(buf) && (buf[i] == ' ' || buf[i] == '\t'))
+			i++;
+	}
+
+	start = &buf[i];
+	while (i<sizeof(buf) && (buf[i] != '\0' && buf[i] != '\n'))
+		i++;
+	buf[i] = '\0';
+
+	fclose(fp);
+	return strdup(start);
+}
+
 /**
  * Get the path to /Programs/App/Version of a given executable.
  * @param executable Executable to search the goboPrograms entry for
@@ -284,9 +328,9 @@ which(const char *executable)
  * on failure.
  */ 
 char *
-get_program_dir(const char *executable)
+get_program_dir(const char *executable, bool is_fallback)
 {
-	char *path, *exec, *ptr;
+	char *path, *name, *exec, *ptr;
 	int i, count;
 	
 	path = realpath(executable, NULL);
@@ -310,7 +354,17 @@ get_program_dir(const char *executable)
 	if (strstr(path, GOBO_PROGRAMS_DIR) != path) {
 		verbose_printf("'%s' is not in a $goboPrograms subdirectory\n", executable);
 		free(path);
-		return NULL;
+		if (is_fallback)
+			return NULL;
+
+		/* Is this a script? */
+		name = get_interpreter_name(executable);
+		if (name == NULL)
+			return NULL;
+
+		path = get_program_dir(name, true);
+		free(name);
+		return path;
 	}
 
 	ptr = &path[strlen(GOBO_PROGRAMS_DIR)];
@@ -884,7 +938,7 @@ mount_overlay()
 		args.architecture = parse_elf_file(args.executable);
 	}
 
-	programdir = get_program_dir(args.executable);
+	programdir = get_program_dir(args.executable, false);
 	if (programdir) {
 		/* check if the software's Resources/Dependencies file exists */
 		fname = open_dependencies_file(programdir, "/Resources/Dependencies");
