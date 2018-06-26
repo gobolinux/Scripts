@@ -363,6 +363,8 @@ get_program_dir(const char *executable, bool is_fallback)
 			return NULL;
 
 		path = get_program_dir(name, true);
+		if (path)
+			verbose_printf("'%s' is a script interpretable by a program under %s\n", executable, path);
 		free(name);
 		return path;
 	}
