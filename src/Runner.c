@@ -331,10 +331,10 @@ char *
 get_program_dir(const char *executable, bool is_fallback)
 {
 	char *path, *name, *exec, *ptr;
-	int i, count;
-	
-	path = realpath(executable, NULL);
-	if (path == NULL) {
+	int i, count, err = 0;
+
+	if (executable[0] != '.' && executable[0] != '/') {
+		/* Determine path to the executable from $PATH */
 		exec = which(executable);
 		if (! exec) {
 			fprintf(stderr, "Unable to resolve path to '%s': %s\n",
@@ -342,13 +342,16 @@ get_program_dir(const char *executable, bool is_fallback)
 			return NULL;
 		}
 		path = realpath(exec, NULL);
-		if (path == NULL) {
-			fprintf(stderr, "Unable to resolve path to '%s': %s\n",
-					executable, strerror(errno));
-			free(exec);
-			return NULL;
-		}
+		err = errno;
 		free(exec);
+	} else {
+		path = realpath(executable, NULL);
+		err = errno;
+	}
+	if (path == NULL) {
+		fprintf(stderr, "Unable to resolve path to '%s': %s\n",
+				executable, strerror(err));
+		return NULL;
 	}
 
 	if (strstr(path, GOBO_PROGRAMS_DIR) != path) {
