@@ -812,8 +812,12 @@ create_wrapper(const char *mergedirs)
 
 		/* Call user program */
 		if (keep_wrapper) {
-			for (int i=0; args.arguments[i]; ++i)
-				fprintf(fp, "%s%c", args.arguments[i], args.arguments[i+1] ? ' ' : '\n');
+			for (int i=0; args.arguments[i]; ++i) {
+				if (strstr(args.arguments[i], " "))
+					fprintf(fp, "\"%s\"%c", args.arguments[i], args.arguments[i+1] ? ' ' : '\n');
+				else
+					fprintf(fp, "%s%c", args.arguments[i], args.arguments[i+1] ? ' ' : '\n');
+			}
 			fclose(fp);
 
 			chown(args.wrapper, getuid(), getgid());
