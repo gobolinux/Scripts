@@ -277,6 +277,50 @@ which(const char *executable)
 	return NULL;
 }
 
+char *
+get_interpreter_name(const char *executable)
+{
+	char buf[128], *start;
+	size_t n, i;
+	FILE *fp;
+
+	fp = fopen(executable, "r");
+	if (fp == NULL)
+		return NULL;
+
+	/* Try to read the first few bytes of the file */
+	n = fread(buf, sizeof(char), sizeof(buf)-1, fp);
+	if (n < 0) {
+		perror(executable);
+		fclose(fp);
+		return NULL;
+	}
+	buf[n] = '\0';
+
+	/* Is this a script file? */
+	if (buf[0] != '#' || buf[1] != '!') {
+		fclose(fp);
+		return NULL;
+	}
+
+	for (i=2; i<sizeof(buf) && buf[i] != '/' && buf[i] != '\0'; ++i)
+		/* advance pointer */;
+
+	if (! strncmp(&buf[i], "/usr/bin/env", strlen("/usr/bin/env"))) {
+		i += strlen("/usr/bin/env");
+		while (i<sizeof(buf) && (buf[i] == ' ' || buf[i] == '\t'))
+			i++;
+	}
+
+	start = &buf[i];
+	while (i<sizeof(buf) && (buf[i] != '\0' && buf[i] != '\n'))
+		i++;
+	buf[i] = '\0';
+
+	fclose(fp);
+	return strdup(start);
+}
+
 /**
  * Get the path to /Programs/App/Version of a given executable.
  * @param executable Executable to search the goboPrograms entry for
@@ -284,13 +328,13 @@ which(const char *executable)
  * on failure.
  */ 
 char *
-get_program_dir(const char *executable)
+get_program_dir(const char *executable, bool is_fallback)
 {
-	char *path, *exec, *ptr;
-	int i, count;
-	
-	path = realpath(executable, NULL);
-	if (path == NULL) {
+	char *path, *name, *exec, *ptr;
+	int i, count, err = 0;
+
+	if (executable[0] != '.' && executable[0] != '/') {
+		/* Determine path to the executable from $PATH */
 		exec = which(executable);
 		if (! exec) {
 			fprintf(stderr, "Unable to resolve path to '%s': %s\n",
@@ -298,19 +342,34 @@ get_program_dir(const char *executable)
 			return NULL;
 		}
 		path = realpath(exec, NULL);
-		if (path == NULL) {
-			fprintf(stderr, "Unable to resolve path to '%s': %s\n",
-					executable, strerror(errno));
-			free(exec);
-			return NULL;
-		}
+		err = errno;
 		free(exec);
+	} else {
+		path = realpath(executable, NULL);
+		err = errno;
+	}
+	if (path == NULL) {
+		fprintf(stderr, "Unable to resolve path to '%s': %s\n",
+				executable, strerror(err));
+		return NULL;
 	}
 
 	if (strstr(path, GOBO_PROGRAMS_DIR) != path) {
 		verbose_printf("'%s' is not in a $goboPrograms subdirectory\n", executable);
 		free(path);
-		return NULL;
+		if (is_fallback)
+			return NULL;
+
+		/* Is this a script? */
+		name = get_interpreter_name(executable);
+		if (name == NULL)
+			return NULL;
+
+		path = get_program_dir(name, true);
+		if (path)
+			verbose_printf("'%s' is a script interpretable by a program under %s\n", executable, path);
+		free(name);
+		return path;
 	}
 
 	ptr = &path[strlen(GOBO_PROGRAMS_DIR)];
@@ -753,8 +812,12 @@ create_wrapper(const char *mergedirs)
 
 		/* Call user program */
 		if (keep_wrapper) {
-			for (int i=0; args.arguments[i]; ++i)
-				fprintf(fp, "%s%c", args.arguments[i], args.arguments[i+1] ? ' ' : '\n');
+			for (int i=0; args.arguments[i]; ++i) {
+				if (strstr(args.arguments[i], " "))
+					fprintf(fp, "\"%s\"%c", args.arguments[i], args.arguments[i+1] ? ' ' : '\n');
+				else
+					fprintf(fp, "%s%c", args.arguments[i], args.arguments[i+1] ? ' ' : '\n');
+			}
 			fclose(fp);
 
 			chown(args.wrapper, getuid(), getgid());
@@ -884,7 +947,7 @@ mount_overlay()
 		args.architecture = parse_elf_file(args.executable);
 	}
 
-	programdir = get_program_dir(args.executable);
+	programdir = get_program_dir(args.executable, false);
 	if (programdir) {
 		/* check if the software's Resources/Dependencies file exists */
 		fname = open_dependencies_file(programdir, "/Resources/Dependencies");
@@ -1069,14 +1132,17 @@ out_error:
 }
 
 void
-cleanup_directory(char *dirname)
+cleanup_directory(const char *layername, char *dirname)
 {
 	int cleanup_entry(const char *path, const struct stat *statbuf, int typeflag, struct FTW *ftwbuf)
 	{
-		if (typeflag == FTW_F || typeflag == FTW_SLN)
+		if (typeflag == FTW_F || typeflag == FTW_SL || typeflag == FTW_SLN) {
+			debug_printf("%s: deleting file %s\n", layername, path);
 			unlink(path);
-		else if (typeflag == FTW_D || typeflag == FTW_DP)
+		} else if (typeflag == FTW_D || typeflag == FTW_DP || typeflag == FTW_DNR) {
+			debug_printf("%s: deleting directory %s\n", layername, path);
 			rmdir(path);
+		}
 		return 0;
 	}
 
@@ -1089,6 +1155,7 @@ cleanup_directory(char *dirname)
 	ret = nftw(dirname, cleanup_entry, limit.rlim_cur, FTW_DEPTH);
 	if (ret < 0)
 		perror("nftw");
+	debug_printf("%s: deleting directory %s\n", layername, dirname);
 	rmdir(dirname);
 }
 
@@ -1283,9 +1350,9 @@ void
 cleanup(int signum)
 {
 	destroy_namespace();
-	cleanup_directory(args.upperlayer);
-	cleanup_directory(args.writelayer);
-	cleanup_directory(args.workdir);
+	cleanup_directory("upper layer", args.upperlayer);
+	cleanup_directory("write layer", args.writelayer);
+	cleanup_directory("working layer", args.workdir);
 }
 
 /**
