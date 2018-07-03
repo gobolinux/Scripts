@@ -38,7 +38,7 @@ def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, 
 				if pname.lower().find(p.lower()) > -1:
 					matched_programs.append(pname)
 			else:
-				if pname.lower() == p.lower():
+				if p == None or pname.lower() == p.lower():
 					matched_programs.append(pname)
 					break
 
@@ -215,7 +215,7 @@ Examples of usage:
 	if len (args) >= 2:
 		p = args[1]
 	else:
-		sys.exit(1)
+		p = None
 
 	if len (args) >= 3:
 		v,r = Split_Version_Revision(args[2])
