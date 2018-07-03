@@ -2,7 +2,7 @@
 #include <string.h>
 #include <errno.h>
 
-inline int endsWith(char* haystack, char* needle) {
+static inline int endsWith(char* haystack, char* needle) {
   char* objext = strstr(haystack, needle);
   if (objext) {
     objext += strlen(needle);
