@@ -99,6 +99,7 @@ struct runner_args {
 	bool fallback;             /* Run in fallback mode if sandbox is not available */
 	bool sourceenv;            /* Source ENV at Resources/Environment? */
 	bool removedeps;           /* Remove conflicting dependencies from /System/Index? */
+	bool pure;                 /* Create a /S/I tree based solely on listed dependencies? */
 	const char *executable;    /* Executable to run */
 	const char **dependencies; /* NULL-terminated */
 	char **arguments;          /* Arguments to pass to executable */
@@ -716,8 +717,15 @@ mount_overlay_dirs(const char *mergedirs, const char *mountpoint)
 		}
 		if (have_entries) {
 			sprintf(mp, "%s/%s", mountpoint, targets[i]);
-			sprintf(&unionfs[unionfs_idx], "%s,upperdir=%s/%s,workdir=%s/%s",
-				mp, args.upperlayer, sources[i], args.writelayer, sources[i]);
+			if (args.pure) {
+				char *sep = strrchr(unionfs, ':');
+				if (sep) { *sep = ','; }
+				sprintf(&unionfs[unionfs_idx], "upperdir=%s/%s,workdir=%s/%s",
+					args.upperlayer, sources[i], args.writelayer, sources[i]);
+			} else {
+				sprintf(&unionfs[unionfs_idx], "%s,upperdir=%s/%s,workdir=%s/%s",
+					mp, args.upperlayer, sources[i], args.writelayer, sources[i]);
+			}
 			debug_printf("mount -t overlay none -o %s %s\n", unionfs, mp);
 			res = mount("overlay", mp, "overlay", 0, unionfs);
 			if (res != 0)
@@ -1180,6 +1188,7 @@ show_usage_and_exit(char *exec, int err)
 	"  -q, --quiet               Don't warn on bogus dependencies file(s)\n"
 	"  -v, --verbose             Run in verbose mode (type twice to enable debug messages)\n"
 	"  -c, --check               Check if Runner can be used in this system\n"
+	"  -p, --pure                Create a /System/Index overlay based purely on listed dependencies\n"
 	"  -f, --fallback            Run the command without the sandbox in case this is not available\n"
 	"  -E, --no-source-env       Do not import dependencies\' Resources/Environment files\n"
 	"  -R, --no-removedeps       Do not remove conflicting versions of dependencies from /System/Index view\n"
@@ -1200,12 +1209,13 @@ parse_arguments(int argc, char *argv[])
 		{"quiet",           no_argument,       0,  'q'},
 		{"check",           no_argument,       0,  'c'},
 		{"fallback",        no_argument,       0,  'f'},
+		{"pure",            no_argument,       0,  'p'},
 		{"no-source-env",   no_argument,       0,  'E'},
 		{"no-removedeps",   no_argument,       0,  'R'},
 		{"verbose",         no_argument,       0,  'v'},
 		{0,                 0,                 0,   0 }
 	};
-	const char *short_options = "+d:a:hcqvfER";
+	const char *short_options = "+d:a:hcpqvfER";
 	bool valid = true;
 	int next = optind;
 	int num_deps = 0;
@@ -1239,6 +1249,7 @@ parse_arguments(int argc, char *argv[])
 	args.debug = false;
 	args.verbose = false;
 	args.quiet = false;
+	args.pure = false;
 	args.fallback = false;
 	args.sourceenv = true;
 	args.removedeps = true;
@@ -1264,6 +1275,10 @@ parse_arguments(int argc, char *argv[])
 				break;
 			case 'h':
 				show_usage_and_exit(argv[0], 0);
+				break;
+			case 'p':
+				args.pure = true;
+				args.removedeps = false; // implicitly set to 'false' with --pure
 				break;
 			case 'q':
 				args.quiet = true;
