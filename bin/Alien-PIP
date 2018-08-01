@@ -1,10 +1,10 @@
 #!/bin/sh
 
-# Shell script implementing the Aliens interface for PIP.
-# Packages are installed onto /System/Aliens/PIP. The Python module search path
-# must include that directory, either through PYTHONPATH or through a .pth file.
+# Shell script implementing the Aliens interface for PIP 2.x and 3.x.
+# Packages are installed onto /System/Aliens/PIP/$major.$minor. The Python module search
+# path must include that directory, either through PYTHONPATH or through a .pth file.
 #
-# Copyright 2015 Lucas C. Villa Real based on LuaRocks interface by Michael Homer.
+# Copyright 2015-2018 Lucas C. Villa Real based on LuaRocks interface by Michael Homer.
 # Released under the GNU GPL 2 or later.
 
 . ScriptFunctions
@@ -12,7 +12,7 @@ Import Alien
 
 getversion() {
    local prog=$(echo "$1" | sed 's,\(.*\),\L\1,g')
-   local proginfo=$(pip list | sed 's,\(.*\),\L\1,g' | grep "^${prog} ")
+   local proginfo=$(pip${python_major} list | sed 's,\(.*\),\L\1,g' | grep "^${prog} ")
    if [ -z "$proginfo" ]
    then exit 1
    else echo "$proginfo | cut -d\( -f2 | cut -d\) -f1"
@@ -21,7 +21,7 @@ getversion() {
 
 getinstallversion() {
    prog="$1"
-   versions=($(python - << EOF 
+   versions=($(python${python_major} - << EOF
 import json, urllib2
 from distutils.version import StrictVersion
 def available_versions(prog):
@@ -49,25 +49,38 @@ EOF
 install() {
    local prog="$1"
    local ver="$2"
-   local target="$goboSystem/Aliens/PIP"
+   local target="$goboSystem/Aliens/PIP/${python_version}"
    local srcdir="$goboData/Compile/Sources"
    if [ ! -d "$target" ]
    then
       mkdir -p "$target" || { echo "Failed to create $target."; exit 1; }
    fi
-   pip install --upgrade --prefix=$target --src=$srcdir "$prog" $ver
+   pip${python_major} install --upgrade --prefix=$target --src=$srcdir "$prog" $ver
    
-   Symlink_Aliens "$goboExecutables" "$goboSystem"/Aliens/PIP/bin
+   Symlink_Aliens "$goboExecutables" "$goboSystem"/Aliens/PIP/${python_version}/bin
 }
 
 remove() {
    local prog="$1"
    local ver="$2"
 
-   pip uninstall "$prog" $ver
+   pip${python_major} uninstall "$prog" $ver
    
    Cleanup_Aliens
 }
+
+executable="$(basename $0)"
+if [ "$executable" = "Alien-PIP" -o "$executable" = "Alien-PIP2" ]
+then
+   python_major=2
+elif [ "$(basename $0)" = "Alien-PIP3" ]
+then
+   python_major=3
+else
+   echo "Invalid executable name used: $executable"
+   exit 1
+fi
+python_version=$(python${python_major} --version 2>&1 | awk {'print $2'} | cut -d. -f1-2)
 
 command="$1"
 prog="$2"
@@ -92,10 +105,13 @@ case "$command" in
 	  In_Version_Range "$lower" "$ver" "$upper"
       ;;
    --have-manager)
-      which pip >/dev/null 2>&1 || exit 1
+      which pip${python_major} >/dev/null 2>&1 || exit 1
       ;;
    --get-manager-rule)
-      echo "PIP >= 7.0.0"
+      if [ "$python_major" = 2 ]
+      then echo "PIP >= 7.0.0"
+      else echo "Python >= ${python_version}"
+      fi
       ;;
    --install)
       install "$2" "$3"
