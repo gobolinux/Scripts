@@ -101,7 +101,7 @@ function Unpack_Archive() {
       ;;
    xz)
       needs_archiver "xz" xz || return 2
-      xz --decompress --keep --stdout "${path}/${archive}" > "${targetdirectory}/${archive%%.lzma}"
+      xz --decompress --keep --stdout "${path}/${archive}" > "${targetdirectory}/${archive%%.xz}"
       ;;
    cpio)
       needs_archiver "cpio" cpio || return 2
