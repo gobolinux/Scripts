@@ -9,8 +9,8 @@ function Get_Archive_Format() {
    local format=$(Downcase "${archive}" | sed -r \
    -e "s/.*\.(tar\.bz|tbz)$/tarbzip/" \
    -e "s/.*\.(tar\.bz2|tbz2)$/tarbzip2/" \
-   -e "s/.*\.(tar\.(gz|Z)|tgz)$/targzip/" \
-   -e "s/.*\.(cpio\.(gz|Z)|tgz)$/cpiogzip/" \
+   -e "s/.*\.(tar\.(gz|z)|tgz)$/targzip/" \
+   -e "s/.*\.(cpio\.(gz|z)|tgz)$/cpiogzip/" \
    -e "s/.*\.tar\.(lzma|7z)$/tarlzma/" \
    -e "s/.*\.tar\.lz$/tarlz/" \
    -e "s/.*\.tar\.xz$/tarxz/" \
@@ -101,7 +101,7 @@ function Unpack_Archive() {
       ;;
    xz)
       needs_archiver "xz" xz || return 2
-      xz --decompress --keep --stdout "${path}/${archive}" > "${targetdirectory}/${archive%%.lzma}"
+      xz --decompress --keep --stdout "${path}/${archive}" > "${targetdirectory}/${archive%%.xz}"
       ;;
    cpio)
       needs_archiver "cpio" cpio || return 2
