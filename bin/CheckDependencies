@@ -230,6 +230,9 @@ def interpret_dependency_line(whole_line, t=None, flags=None):
 
 
 def does_version_match_rule(version, rule):
+	if version.find("-failed") > 0:
+		return False
+
 	for (operand, dependency_version) in rule['versions']:
 		if operand == '!=' and dependency_version != version:
 			continue
