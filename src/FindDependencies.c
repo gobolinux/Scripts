@@ -244,7 +244,7 @@ static char **GetVersionsFromAlien(struct parse_data *data, struct search_option
 {
   char *sp, **versions;
   char alien[LINE_MAX];
-  char aliencmd[LINE_MAX];
+  char aliencmd[LINE_MAX+32];
   FILE *fp;
   size_t num_vers, cur_vers;
 
