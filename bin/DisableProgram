@@ -39,7 +39,13 @@ then
 fi 
 if [ -z "${versionnumber}" ]
 then
-   Die "No current version found and no version specified. Available versions are:\n$(All_Versions "$programname")"
+   allversions=$(All_Versions "$programname")
+   if [ $(echo "$allversions" | wc -l) != 1 ]
+   then
+      Die "No current version found and no version specified. Available versions are:\n$allversions"
+   else
+      versionnumber="$allversions"
+   fi
 fi
 prefix="${goboPrograms}/$programname/$versionnumber"
 
