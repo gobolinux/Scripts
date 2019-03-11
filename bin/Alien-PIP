@@ -22,18 +22,22 @@ getversion() {
 getinstallversion() {
    prog="$1"
    versions=($(python${python_major} - << EOF
-import json, urllib2
+import json
+try:
+   from urllib2 import urlopen, Request
+except ImportError:
+   from urllib.request import urlopen, Request
 from distutils.version import StrictVersion
 def available_versions(prog):
    try:
      url = "https://pypi.python.org/pypi/%s/json" %prog
-     data = json.load(urllib2.urlopen(urllib2.Request(url)))
+     data = json.load(urlopen(Request(url)))
      versions = data["releases"].keys()
      versions.sort(key=StrictVersion)
      return versions
    except:
      return ''
-print "\n".join(available_versions("$prog"))
+print("\n".join(available_versions("$prog")))
 EOF
    ))
    for V in ${versions[@]}
