@@ -977,6 +977,14 @@ mount_overlay()
 		}
 		callerprogram = program_blacklisted(programdir) ? NULL : programdir;
 		mergedirs_program = fname ? prepare_merge_string(callerprogram, fname) : NULL;
+		if (! mergedirs_program) {
+			/* For some reason the Dependencies file could not be parsed. Still,
+			 * we want to make sure that the callerprogram's directory is included
+			 * in @mergedirs so that things like the Environment file are properly
+			 * included in the wrapper file
+			 */
+			mergedirs_program = strdup(programdir);
+		}
 		merge_len += mergedirs_program ? strlen(mergedirs_program) : 0;
 		free(fname);
 		fname = NULL;
