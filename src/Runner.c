@@ -94,6 +94,7 @@
 struct runner_args {
 	bool quiet;                /* Run in quiet mode? */
 	bool debug;                /* Print debug messages? */
+	bool cleanup;              /* Cleanup work directory on exit? */
 	bool verbose;              /* Run in verbose mode? */
 	bool check;                /* Run in check mode? */
 	bool fallback;             /* Run in fallback mode if sandbox is not available */
@@ -779,6 +780,7 @@ create_wrapper(const char *mergedirs)
 			perror("asprintf");
 			return -ENOMEM;
 		}
+		verbose_printf("Creating wrapper %s\n", args.wrapper);
 
 		fp = fopen(args.wrapper, "w");
 		if (! fp) {
@@ -839,7 +841,8 @@ create_wrapper(const char *mergedirs)
 
 out_error:
 	if (ret != 0 && args.wrapper) {
-		unlink(args.wrapper);
+		if (args.cleanup)
+			unlink(args.wrapper);
 		free(args.wrapper);
 	}
 	return ret;
@@ -1191,6 +1194,7 @@ show_usage_and_exit(char *exec, int err)
 	"  -p, --pure                Create a /System/Index overlay based purely on listed dependencies\n"
 	"  -f, --fallback            Run the command without the sandbox in case this is not available\n"
 	"  -E, --no-source-env       Do not import dependencies\' Resources/Environment files\n"
+	"  -C, --no-cleanup          Do not cleanup work directory on exit\n"
 	"  -R, --no-removedeps       Do not remove conflicting versions of dependencies from /System/Index view\n"
 	"\n", exec, uts_data.machine);
 	exit(err);
@@ -1210,12 +1214,13 @@ parse_arguments(int argc, char *argv[])
 		{"check",           no_argument,       0,  'c'},
 		{"fallback",        no_argument,       0,  'f'},
 		{"pure",            no_argument,       0,  'p'},
+		{"no-cleanup",      no_argument,       0,  'C'},
 		{"no-source-env",   no_argument,       0,  'E'},
 		{"no-removedeps",   no_argument,       0,  'R'},
 		{"verbose",         no_argument,       0,  'v'},
 		{0,                 0,                 0,   0 }
 	};
-	const char *short_options = "+d:a:hcpqvfER";
+	const char *short_options = "+d:a:hcpqvfCER";
 	bool valid = true;
 	int next = optind;
 	int num_deps = 0;
@@ -1247,6 +1252,7 @@ parse_arguments(int argc, char *argv[])
 	/* Default values */
 	args.check = false;
 	args.debug = false;
+	args.cleanup = true;
 	args.verbose = false;
 	args.quiet = false;
 	args.pure = false;
@@ -1282,6 +1288,9 @@ parse_arguments(int argc, char *argv[])
 				break;
 			case 'q':
 				args.quiet = true;
+				break;
+			case 'C':
+				args.cleanup = false;
 				break;
 			case 'E':
 				args.sourceenv = false;
@@ -1364,10 +1373,12 @@ bool check_availability()
 void
 cleanup(int signum)
 {
-	destroy_namespace();
-	cleanup_directory("upper layer", args.upperlayer);
-	cleanup_directory("write layer", args.writelayer);
-	cleanup_directory("working layer", args.workdir);
+	if (args.cleanup) {
+		destroy_namespace();
+		cleanup_directory("upper layer", args.upperlayer);
+		cleanup_directory("write layer", args.writelayer);
+		cleanup_directory("working layer", args.workdir);
+	}
 }
 
 /**
