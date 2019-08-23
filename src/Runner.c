@@ -479,8 +479,18 @@ program_blacklisted(const char *programname)
 	return false;
 }
 
+static bool
+program_inlist(const char *programname, const char *currdeps)
+{
+	/*
+	 * Don't provide the same path twice to overlayfs
+	 */
+	return currdeps && strstr(currdeps, programname) ? true : false;
+}
+
 static char *
-prepare_merge_string(const char *callerprogram, const char *dependencies)
+prepare_merge_string(const char *callerprogram, const char *dependencies,
+	const char *mergedirs_program, const char *mergedirs_user)
 {
 	struct search_options options;
 	struct list_data *entry;
@@ -521,7 +531,10 @@ prepare_merge_string(const char *callerprogram, const char *dependencies)
 	}
 	list_for_each_entry(entry, deps, list) {
 		if (stat(entry->path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode) &&
-			!program_blacklisted(entry->path)) {
+			!program_blacklisted(entry->path) &&
+			!program_inlist(entry->path, mergedirs_program) &&
+			!program_inlist(entry->path, mergedirs_user) &&
+			!program_inlist(entry->path, mergedirs)) {
 			verbose_printf("adding dependency at %s\n", entry->path);
 			strcat(mergedirs, entry->path);
 			strcat(mergedirs, ":");
@@ -947,7 +960,7 @@ static char *
 mount_overlay()
 {
 	struct stat statbuf;
-	int i, res = -1, merge_len = 0;
+	int i, res = -1;
 	char *programdir = NULL, *callerprogram;
 	char *archfile = NULL, *fname = NULL, *tmpstr;
 	char *mergedirs_user = NULL, *mergedirs_program = NULL, *mergedirs = NULL;
@@ -976,7 +989,7 @@ mount_overlay()
 			args.architecture = parse_architecture_file(archfile);
 		}
 		callerprogram = program_blacklisted(programdir) ? NULL : programdir;
-		mergedirs_program = fname ? prepare_merge_string(callerprogram, fname) : NULL;
+		mergedirs_program = fname ? prepare_merge_string(callerprogram, fname, NULL, NULL) : NULL;
 		if (! mergedirs_program) {
 			/* For some reason the Dependencies file could not be parsed. Still,
 			 * we want to make sure that the callerprogram's directory is included
@@ -985,7 +998,6 @@ mount_overlay()
 			 */
 			mergedirs_program = strdup(programdir);
 		}
-		merge_len += mergedirs_program ? strlen(mergedirs_program) : 0;
 		free(fname);
 		fname = NULL;
 	}
@@ -1002,8 +1014,7 @@ mount_overlay()
 			perror(fname);
 			goto out_free;
 		}
-		tmpstr = prepare_merge_string(NULL, fname);
-		merge_len += tmpstr ? strlen(tmpstr) : 0;
+		tmpstr = prepare_merge_string(NULL, fname, mergedirs_program, mergedirs_user);
 		free(fname);
 		fname = NULL;
 
