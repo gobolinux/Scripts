@@ -569,6 +569,7 @@ make_path(const char *namestart, const char *subdir, char *out, bool *found)
 	}
 	res = strlen(out);
 	out[res] = ':';
+	out[res+1] = '\0';
 	*found = true;
 	return res+1;
 }
