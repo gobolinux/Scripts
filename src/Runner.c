@@ -540,7 +540,10 @@ prepare_merge_string(const char *callerprogram, const char *dependencies,
 			strcat(mergedirs, ":");
 		}
 	}
-	if (callerprogram) {
+	if (callerprogram &&
+		!program_inlist(callerprogram, mergedirs_program) &&
+		!program_inlist(callerprogram, mergedirs_user) &&
+		!program_inlist(callerprogram, mergedirs)) {
 		strcat(mergedirs, callerprogram);
 		strcat(mergedirs, ":");
 	}
