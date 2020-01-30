@@ -170,13 +170,23 @@ static int VersionCmp(char *_candidate, char *_specified)
 	return ret;
 }
 
+static bool StringEndsWith(const char *candidate, const char *suffix)
+{
+	size_t candidate_len = strlen(candidate);
+	size_t suffix_len = strlen(suffix);
+	if (suffix_len > candidate_len)
+		return false;
+	return strncmp(&candidate[candidate_len-suffix_len], suffix, suffix_len) == 0 ? true : false;
+}
+
 static bool IsVersionDirectory(char *candidate)
 {
 	return (! (*candidate == '.' ||
 			!strcmp(candidate, "Variable") ||
 			!strcmp(candidate, "Settings") ||
 			!strcmp(candidate, "Current") ||
-			 strstr(candidate, "-failed")));
+			 StringEndsWith(candidate, "-failed") ||
+			 StringEndsWith(candidate, "-Disabled")));
 }
 
 static bool MatchRule(char *candidate, struct version *v)
