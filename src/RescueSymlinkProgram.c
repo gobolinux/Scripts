@@ -10,7 +10,7 @@
 int StrEq(char* a, char* b) {
    return strcmp(a, b) == 0;
 }
-char* StrCat(char* a, char* b) {
+char* StrCat(const char* a, const char* b) {
    char* result = malloc(strlen(a) + strlen(b) + 1);
    strcpy(result, a);
    strcat(result, b);
@@ -37,7 +37,7 @@ char* BaseName(char* path) {
 char* full_path = NULL;
 char* goboindex = NULL;
 
-void LinkIfExists(char* dir) {
+void LinkIfExists(const char* dir) {
    char* path = StrCat(full_path, dir);
    if (IsDir(path)) {
       int i;
@@ -93,52 +93,32 @@ int main(int argc, char** argv) {
 
    fprintf(stderr, "RescueSymlinkProgram: Linking %s inside %s\n", full_path, goboindex);
 
-   path = StrCat(goboindex, "/bin");
-   if (IsDir(path)) {
-      assert(chdir(path) == 0);
-      fprintf(stderr, "RescueSymlinkProgram: %s\n", path);
-      LinkIfExists("/bin");
-      LinkIfExists("/sbin");
-      LinkIfExists("/Resources/Wrappers");
-   }
-   free(path);
+   struct {
+      const char *source;
+      const char *target;
+   } symlink_map[] = {
+      {"/lib", "/lib"},
+      {"/lib64", "/lib"},
+      {"/libexec", "/libexec"},
+      {"/include", "/include"},
+      {"/share", "/share"},
+      {"/bin", "/bin"},
+      {"/sbin", "/bin"},
+      {"/Resources/Wrappers", "/bin"},
+      {"/../Settings", "/../Settings"},
+      {NULL, NULL},
+   };
 
-   path = StrCat(goboindex, "/lib");
-   if (IsDir(path)) {
-      assert(chdir(path) == 0);
-      fprintf(stderr, "RescueSymlinkProgram: %s\n", path);
-      LinkIfExists("/lib");
+   for (int i=0; symlink_map[i].source != NULL; ++i) {
+      path = StrCat(goboindex, symlink_map[i].source);
+      if (IsDir(path)) {
+         assert(chdir(path) == 0);
+         fprintf(stderr, "RescueSymlinkProgram: %s -> %s\n", &symlink_map[i].target[1], path);
+         LinkIfExists(symlink_map[i].target);
+      }
+      free(path);
    }
-   free(path);
    
-   path = StrCat(goboindex, "/libexec");
-   if (IsDir(path)) {
-      assert(chdir(path) == 0);
-      fprintf(stderr, "RescueSymlinkProgram: %s\n", path);
-      LinkIfExists("/libexec");
-   }
-   free(path);
-
-   path = StrCat(goboindex, "/include");
-   if (IsDir(path)) {
-      assert(chdir(path) == 0);
-      fprintf(stderr, "RescueSymlinkProgram: %s\n", path);
-      LinkIfExists("/include");
-   }
-   free(path);
-
-   path = StrCat(goboindex, "/../Settings");
-   if (IsDir(path)) {
-      assert(chdir(path) == 0);
-      fprintf(stderr, "RescueSymlinkProgram: %s\n", path);
-      /* The bash version added an extra readlink here to get rid
-         of the .. in paths. We can live without this, can we? ;) */
-      LinkIfExists("/../Settings");
-   }
-   free(path);
-
-   /* Do not link Shared nor Manuals */
-
    fprintf(stderr, "RescueSymlinkProgram: Done\n");
 
    exit(0);
