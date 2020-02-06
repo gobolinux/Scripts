@@ -474,7 +474,9 @@ int main(int argc, char** argv) {
       }
    }
 
-   os_dir dir = { .name = argv[1] };
+   char source[PATH_MAX+1];
+   snprintf(source, PATH_MAX, "%s%s", goboPrefix ? goboPrefix : "", argv[1]);
+   os_dir dir = { .name = source };
    char* i;
    while ((i = os_listdir(&dir))) {
       char entry[PATH_MAX+1];
