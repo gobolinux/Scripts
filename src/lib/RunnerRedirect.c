@@ -2,7 +2,10 @@
  * LD_PRELOAD hooks for seamless integration of Runner.
  *
  * Written by Lucas C. Villa Real <lucasvr@gobolinux.org>
- * Released under the GNU GPL version 2
+ * Released under the GNU GPL version 2.
+ *
+ * Build with:
+ * gcc RunnerRedirect.c -shared -fpic -ldl -o RunnerRedirect.so
  */
 #define _GNU_SOURCE
 
@@ -58,12 +61,16 @@ __attribute__((constructor)) static void init()
 	assert(execvpe_orig != execvpe);
 }
 
+#define RESET_ENV() \
+    unsetenv("LD_PRELOAD")
+
 #define PRINT_CMD() \
 	fprintf(stderr, "%s\n", cmd)
 
 #define DECLARE_CMD() \
 	char *cmd = NULL; \
 	asprintf(&cmd, "/bin/Runner -f %s", command); \
+	RESET_ENV(); \
 	PRINT_CMD()
 
 #define PRINT_ARGS() \
@@ -78,6 +85,7 @@ __attribute__((constructor)) static void init()
 	args[1] = "-f"; \
 	for (i=1; i<argcount; ++i) { args[1+i] = argv[i-1]; } \
 	args[1+argcount] = NULL; \
+	RESET_ENV(); \
 	PRINT_ARGS()
 
 #define DECLARE_VA_ARGS() \
@@ -94,6 +102,7 @@ __attribute__((constructor)) static void init()
 		args[1+argcount] = va_arg(ap, char *); \
 	} \
 	va_end(ap); \
+	RESET_ENV(); \
 	PRINT_ARGS()
 
 int execl(const char *filename, const char *arg, ...)
