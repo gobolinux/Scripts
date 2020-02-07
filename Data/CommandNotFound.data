@@ -1,6 +1,7 @@
 #UseFlags# Scripts
 2to3 Python
 411toppm Netpbm
+4channels LibRaw
 7z P7Zip
 7za P7Zip
 7zr P7Zip
@@ -17,6 +18,7 @@ Alien-CTAN Scripts
 Alien-Cabal Scripts
 Alien-LuaRocks Scripts
 Alien-PIP Scripts
+Alien-PIP3 Scripts
 Alien-RubyGems Scripts
 Animate AfterStep
 ApplySkel EnhancedSkel
@@ -29,7 +31,6 @@ BMPtoRGB Dirac
 BackgroundExec Scripts
 Banner AfterStep
 BatchChrootCompile ChrootCompile
-BatchNewVersion DevelScripts
 BootDriver BootScripts
 BuildRoot BuildLiveCD
 CFCMovingTarget.pm GnuIFT
@@ -50,18 +51,20 @@ CXTVWriter.pm GnuIFT
 CheckCDPackages BuildLiveCD
 CheckDependants Scripts
 CheckDependencies Scripts
-CheckoutRecipe DevelScripts
 ChrootCompile ChrootCompile
 ChrootEnvironment BuildLiveCD
-ColorMake Scripts
+ColorMake Compile Scripts
 CommandNotFound Scripts
 Compile Compile
 CompressAndBuildISO BuildLiveCD
 ContributeRecipe Compile
-ControlPanel Sun-JDK Sun-JRE
+ControlPanel JDK JRE Sun-JDK Sun-JRE
 Corrections Scripts
+CreateDOMDocument Xerces-C++
 CreatePackage Scripts
 DNDDemo OpenMotif
+DOMCount Xerces-C++
+DOMPrint Xerces-C++
 DeduceName Scripts
 Dependencies Scripts
 DescribeProgram Scripts
@@ -69,6 +72,7 @@ DetachProgram Scripts
 DisableProgram Scripts
 Docs Scripts
 EditRecipe Compile
+EnumVal Xerces-C++
 Esetroot Eterm
 Etbg Eterm
 Etbg_update_list Eterm
@@ -114,11 +118,10 @@ HasCompatiblePackage Scripts
 Hashes Scripts
 HtmlConverter Sun-JDK
 Ident AfterStep
-ImportRecipe DevelScripts
 InstallPackage Scripts
 IsExecutable Scripts
-KeyManager DevelScripts
 KillProcess Scripts
+LICENSE Bluemix
 LinkOrExpandAll Scripts
 List Scripts
 ListProgramFiles Scripts
@@ -132,18 +135,23 @@ MakeRecipe Compile
 MakeSystemSettings BuildLiveCD
 Manager Manager
 ManagerRunner Manager
+MemParse Xerces-C++
 MergeTree Scripts
 MiniInstallPackage ChrootCompile
 MiniSymlinkProgram ChrootCompile
 ModifyEnlightenmentConf ConfigTools
 ModifyXinitrc ConfigTools
 MonitorWharf AfterStep
+Mosaic NCSA-Mosaic
 MouseInfo ConfigTools
+NOTICE Bluemix
 NamingConventions Scripts
 NetInterfaces ConfigTools
 NetworkManager NetworkManager
 NewVersion Compile
 NoRecipe Compile Scripts
+PParse Xerces-C++
+PSVIWriter Xerces-C++
 PackRecipe Compile
 Pager AfterStep
 PathFinder Fox
@@ -153,8 +161,6 @@ PrintDesktopEntries AfterStep
 PrioritiseUpdates Scripts
 ProblemReport Scripts
 ProfileInstall Installer
-PublishRevision DevelScripts
-PutRecipe DevelScripts
 RGBtoBMP Dirac
 RGBtoUYVY Dirac
 RGBtoYUV411 Dirac
@@ -163,6 +169,7 @@ RGBtoYUV422 Dirac
 RGBtoYUV444 Dirac
 RPMFinder ThirdPartyInstallers
 RecipeLint Compile
+Redirect Xerces-C++
 RemoveBroken Scripts
 RemoveEmpty Scripts
 RemoveProgram Scripts
@@ -170,6 +177,12 @@ Rename Scripts
 RescueInstallPackage Scripts
 RescueSymlinkProgram Scripts
 Runner Scripts
+SAX2Count Xerces-C++
+SAX2Print Xerces-C++
+SAXCount Xerces-C++
+SAXPrint Xerces-C++
+SCMPrint Xerces-C++
+SEnumVal Xerces-C++
 SandboxInstall Compile Scripts
 SciTE SciTE
 ScriptFunctions Scripts
@@ -178,6 +191,7 @@ SetupChrootEnv ChrootCompile
 ShowPackages Manager
 SignProgram Scripts
 StartTask BootScripts
+StdInParse Xerces-C++
 StopTask BootScripts
 SuggestDuplicates Scripts
 SuggestUpdates Scripts
@@ -195,20 +209,30 @@ UnionSandbox Compile Scripts
 UnversionExecutables Scripts
 UpdateEnvironment BuildLiveCD
 UpdateKdeRecipe Scripts
-UpdateLocalStore DevelScripts
 UpdateRecipes Compile
 UpdateSettings Scripts
 UpdateXorgRecipe Scripts
 UpgradeSystem Scripts
 UseFlags Scripts
+VBoxAutostart VirtualBox
+VBoxBalloonCtrl VirtualBox
+VBoxBugReport VirtualBox
+VBoxDTrace VirtualBox
+VBoxHeadless VirtualBox
+VBoxManage VirtualBox
+VBoxSDL VirtualBox
+VBoxVRDP VirtualBox
 VerifyProgram Scripts
 VersionExecutables Scripts
+VirtualBox VirtualBox
 Wand-config ImageMagick
 Wharf AfterStep
 WinCommand AfterStep
 WinList AfterStep
 WinTabs AfterStep
+WriteBoot64 Linux
 X Xorg Xorg-Server
+XInclude Xerces-C++
 Xati Xorg-Server
 Xchips Xorg-Server
 Xdmx Xorg Xorg-Server
@@ -242,11 +266,12 @@ YUV422toYUV420 Dirac
 YUV444toRGB Dirac
 [ CoreUtils
 a2p Perl
-a2ping TeTeX
+a2ping TeTeX TeXLive
 a2ps A2PS
 a2x AsciiDoc
 a2x.py AsciiDoc
 a52dec A52Dec
+a5toa4 TeXLive
 aafire AALib
 aainfo AALib
 aalib-config AALib
@@ -274,16 +299,20 @@ addftinfo Groff
 addgnupghome GnuPG
 addpart Util-Linux-NG
 addr2line BinUtils
+adhocfilelist TeXLive
 adie Fox
 adiff Atool
 aescrypt2 MbedTLS
-afm2tfm TeTeX
+afm2afm TeXLive
+afm2pl TeXLive
+afm2tfm TeTeX TeXLive
 afmtodit Groff
 afterimage-config AfterStep
 afterimage-libs AfterStep
 afterstep AfterStep
 afterstep-config AfterStep
 afterstepdoc AfterStep
+agentxtrap Net-SNMP
 aget Aget
 agetty Util-Linux-NG
 airport OpenMotif
@@ -326,19 +355,25 @@ al Mono
 al1 Mono
 al2 Mono
 albumart-qt Albumart
-aleph TeTeX
+aleph TeTeX TeXLive
 alien Alien Perl-Alien
-allcm TeTeX
-allec TeTeX
-allneeded TeTeX
+allcm TeTeX TeXLive
+allec TeTeX TeXLive
+allneeded TeTeX TeXLive
 alloy Alloy
 als Atool
 alsa-info.sh ALSA-Utils
+alsa_in JACK
+alsa_out JACK
+alsabat ALSA-Utils
+alsabat-test.sh ALSA-Utils
 alsaconf ALSA-Utils
 alsactl ALSA-Utils
 alsaloop ALSA-Utils
 alsamixer ALSA-Utils
+alsatplg ALSA-Utils
 alsaucm ALSA-Utils
+altonegen OpenAL
 amarok Amarok
 amarok_afttagger Amarok
 amarok_daapserver.rb Amarok
@@ -351,6 +386,7 @@ amor KDE-Toys
 amsn AMSN
 amsn-remote AMSN
 amsn-remote-CLI AMSN
+amstex TeXLive
 amuFormat.sh MTools
 androiddump Wireshark
 animate ImageMagick
@@ -375,7 +411,8 @@ aplaymidi ALSA-Utils
 apmount KDE-Edu
 apogee_ppi KDE-Edu
 appletproxy KDE-Base
-appletviewer IcedTea8 Sun-JDK
+appletviewer IcedTea8 JDK Sun-JDK
+applygeo LibGeoTIFF
 applygnupgdefaults GnuPG
 appres Xorg Xorg-App
 apr-1-config APR HTTPD
@@ -386,6 +423,11 @@ apulse APulse
 apxs HTTPD
 aquamarine Aquamarine
 ar BinUtils
+arara TeXLive
+arbfplight Xorg-App
+arbfslight Xorg-App
+arbocclude Xorg-App
+arbocclude2 Xorg-App
 arch Util-Linux-NG
 archivemount Archivemount
 ardour2 Ardour
@@ -394,6 +436,7 @@ arecordmidi ALSA-Utils
 arepack Atool
 aria2c Aria2
 ark KDE-Utils KDE-Webdev
+arlatex TeXLive
 armagetronad ArmagetronAD
 armagetronad-uninstall ArmagetronAD
 arora Arora
@@ -401,6 +444,7 @@ arora-cacheinfo Arora
 arora-placesimport Arora
 arp Net-Tools
 arping IPUtils
+array Xorg-App
 artsbuilder KDE-Multimedia
 artsc-config KDE-Libs
 artscat KDE-Libs
@@ -442,6 +486,7 @@ astile AfterStep
 asunder Asunder
 asvector AfterStep
 asview AfterStep
+asy TeXLive
 ata_id Udev
 ath_info Madwifi
 athchans Madwifi
@@ -472,9 +517,11 @@ auphone NAS
 auplay NAS
 aurecord NAS
 auscope NAS
+authorindex TeXLive
 autoconf Autoconf
 autoexpect Expect
 autoheader Autoconf
+autoinst TeXLive
 autom4te Autoconf
 automake Automake
 automoc4 Automoc
@@ -485,6 +532,7 @@ autopoint Gettext
 autopopups OpenMotif
 autoreconf Autoconf
 autoscan Autoconf
+autosp TeXLive
 autoupdate Autoconf
 auwave NAS
 avahi-autoipd Avahi
@@ -501,6 +549,11 @@ avahi-resolve-address Avahi
 avahi-resolve-host-name Avahi
 avahi-set-host-name Avahi
 avcenc LibVA
+avifix Transcode
+aviindex Transcode
+avimerge Transcode
+avisplit Transcode
+avisync Transcode
 awesome Awesome
 awesome-client Awesome
 awk Gawk
@@ -508,12 +561,14 @@ axel Axel
 b2m Emacs
 badblocks E2FSProgs
 baobab Baobab
+base32 CoreUtils
 base64 CoreUtils
 basename CoreUtils
 bash Bash
 bashbug Bash
 basket BasKet
 bat ALSA-Utils
+bbox TeXLive
 bboxdemo OpenMotif
 bc BC
 bccmd Bluez
@@ -531,7 +586,19 @@ beryl-manager Beryl-Manager
 beryl-settings Beryl-Settings
 beryl-settings-simple Beryl-Settings-Simple
 beryl-xgl Beryl-Core
-bibtex TeTeX
+bezier Xorg-App
+bg5+latex TeXLive
+bg5+pdflatex TeXLive
+bg5conv TeXLive
+bg5latex TeXLive
+bg5pdflatex TeXLive
+bibdoiadd TeXLive
+biber TeXLive
+bibexport TeXLive
+bibtex TeTeX TeXLive
+bibtex8 TeXLive
+bibtexu TeXLive
+bibzbladd TeXLive
 bicon Bicon
 bioradtopgm Netpbm
 biosdecode Dmidecode
@@ -542,13 +609,17 @@ bitcoind Bitcoin
 bitlbee BitlBee
 bitmap Xorg Xorg-App
 bjam Boost
-bla DevelScripts
 blinken KDE-Edu
+blinking-teapot Xorg-App
 blitztest QImageBlitz
+blkdeactivate LVM2
 blkid E2FSProgs Util-Linux-NG
 blockdev Util-Linux-NG
 blogilo KDE-PIM
+bluealsa Bluez-ALSA
+bluealsa-aplay Bluez-ALSA
 bluefish Bluefish
+bluemix Bluemix
 bluemoon Bluez
 bluetoothctl Bluez
 bmp2tiff TIFF
@@ -563,9 +634,11 @@ bonobo-slay LibBonobo
 bootchartd Bootchart
 bootlogd Sysvinit
 botan-config Botan
+bounce Xorg-App
 bovo KDE-Games
 bpgdec LibBPG
 bpgenc LibBPG
+brick Xorg-App
 bridge IPRoute2
 briquolo BRIQUOLO
 brprintconf_dcp130c Brother-DCP130cLPR
@@ -576,6 +649,7 @@ bsdtar LibArchive
 bshell Avahi
 bsp2img QuakeForge
 bssh Avahi
+btattach Bluez
 btcflash CDRTools
 btmon Bluez
 btrfs-convert BTRFS-Progs
@@ -584,12 +658,16 @@ btrfs-show BTRFS-Progs
 btrfs-vol BTRFS-Progs
 btrfsck BTRFS-Progs
 btrfsctl BTRFS-Progs
+bugpoint LLVM
 build-progress.sh KDE-SDK
 buildhash Ispell
+bump Xorg-App
+bundledoc TeXLive
 bunzip2 Bzip2
 busybox BusyBox
 bvnc Avahi
 bwmon Bwmon
+bx Bluemix
 bzadmin BZFlag
 bzcat Bzip2
 bzcmp Bzip2
@@ -607,12 +685,14 @@ bzr Bazaar
 bzz DjVuLibre
 c++ GCC
 c++filt BinUtils
+c-index-test Clang
 c1541 VICE
 c2ph Perl
 c44 DjVuLibre
 c_rehash OpenSSL
 cabal Cabal-Install
 cabextract Cabextract
+cachepic TeXLive
 cadaver Cadaver
 caff Signing-Party
 cairo-sphinx Cairo
@@ -633,6 +713,8 @@ canberra-gtk-play LibCanberra
 cancel CUPS
 cantor KDE-Edu
 capinfos Wireshark
+capsh LibCap
+captest LibCap-NG
 captoinfo Ncurses NcursesW
 captype Wireshark
 card A2PS
@@ -649,9 +731,11 @@ cb_console_runner CodeBlocks
 cb_share_config CodeBlocks
 cc GCC
 ccache CCache
+ccache-swig SWIG
 ccmake CMake
 ccmakedep Imake Xorg
 ccomps Graphviz
+cct Proj
 cd-discid CD-DiscID
 cd-drive LibCdio
 cd-info LibCdio
@@ -670,6 +754,15 @@ cdrdao CDRDAO
 cdrecord CDRTools
 cdrom_id Udev
 cdrskin LibBurn
+cef5conv TeXLive
+cef5latex TeXLive
+cef5pdflatex TeXLive
+cefconv TeXLive
+ceflatex TeXLive
+cefpdflatex TeXLive
+cefsconv TeXLive
+cefslatex TeXLive
+cefspdflatex TeXLive
 celestrongps KDE-Edu
 celtdec051 CELT
 celtenc051 CELT
@@ -682,12 +775,16 @@ certtool GnuTLS Gnutls
 certutil NSS
 cervisia KDE-SDK
 cfdisk Util-Linux-NG
+cfftot1 TeXLive
 cg_annotate Valgrind
 cg_diff Valgrind
 cg_merge Valgrind
 cgc Cg
 cgfxcat Cg
+cgi-fcgi FCGI
 cginfo Cg
+cgroupfs-mount Cgroupfs-Mount
+cgroupfs-umount Cgroupfs-Mount
 chacl ACL
 chage Shadow
 chat PPP
@@ -696,14 +793,19 @@ chcon CoreUtils
 chcp NilFS-Utils
 cheatmake KDE-SDK
 checkXML KDE-Libs
+checkcites TeXLive
 checkgid HTTPD
+checklistings TeXLive
 checkmail NAS
+checksctp LKSCPT-Tools
 chem Groff
 chfn Shadow
 chgpasswd Shadow
 chgrp CoreUtils
 chkdupexe Util-Linux-NG
+chktex TeXLive
 chktrust Mono
+chkweb TeXLive
 chmod CoreUtils
 chown CoreUtils
 chpasswd Shadow
@@ -716,11 +818,14 @@ chsh Shadow
 chvt KBD
 cifs.idmap CIFS-Utils
 cifs.upcall CIFS-Utils
+cifsdd Samba
+cifsiostat Sysstat
 cilc Mono
 ciptool Bluez Bluez-Utils
 circo Graphviz
 cjb2 DjVuLibre
-cjpeg JPEG
+cjk-gs-integrate TeXLive
+cjpeg JPEG LibJPEG-Turbo
 ck-history ConsoleKit
 ck-launch-session ConsoleKit
 ck-list-sessions ConsoleKit
@@ -728,18 +833,50 @@ ck-log-system-restart ConsoleKit
 ck-log-system-start ConsoleKit
 ck-log-system-stop ConsoleKit
 cksum CoreUtils
+clamav-config Clamav
+clambc Clamav
+clamconf Clamav
+clamd Clamav
+clamdscan Clamav
+clamdtop Clamav
+clamscan Clamav
+clang Clang
+clang++ Clang
+clang-check Clang
+clang-cl Clang
+clang-cpp Clang
+clang-extdef-mapping Clang
+clang-format Clang
+clang-import-test Clang
+clang-offload-bundler Clang
+clang-refactor Clang
+clang-rename Clang
+clang-scan-deps Clang
 cleanlinks Imake Xorg
 cleanup_digikamdb Digikam
 clear Ncurses NcursesW
+clear-color Xorg-App
+clear-fbo Xorg-App
+clear-fbo-scissor Xorg-App
+clear-fbo-tex Xorg-App
+clear-random Xorg-App
+clear-repeat Xorg-App
+clear-scissor Xorg-App
+clear-undefined Xorg-App
+clearspd Xorg-App
 cln-config CLN
 clockdiff IPUtils
+cloudfuse CloudFuse
 cluster Graphviz
+clusterdb PostgreSQL
 cmake CMake
 cmp DiffUtils
 cmus Cmus
 cmus-remote Cmus
 cmuwmtopbm Netpbm
+code VSCode
 codeblocks CodeBlocks
+codiff Dwarves
 col Util-Linux-NG
 colcrt Util-Linux-NG
 colordemo OpenMotif
@@ -762,10 +899,17 @@ config_data Perl Perl-Module-Build
 conjure ImageMagick
 connmand ConnMan
 console-kit-daemon ConsoleKit
+context TeXLive
+contextjit TeXLive
+convbkmk TeXLive
 convcard Msynctool
 convert ImageMagick
 convertfonts WindowMaker
+convolutions Xorg-App
 convtest Msynctool
+copypix Xorg-App
+copytex Xorg-App
+core VMware-Player
 corelist Perl Perl-Module-CoreList
 corkscrew Corkscrew
 corrupt_mpeg2 LibMpeg2 Mpeg2Dec
@@ -778,7 +922,7 @@ cpanp Perl
 cpanp-run-perl Perl
 cpfs.reiserfs ProgsReiserFS
 cpio Cpio
-cpp GCC
+cpp GCC GCC-Fortran
 cpphs-hugs Hugs
 cpsinfo Capseo
 cpsplay Capseo
@@ -800,7 +944,10 @@ create_floppy_devices Udev
 create_makefile KDE-SDK
 create_makefiles KDE-SDK
 create_svnignore KDE-SDK
+createdb PostgreSQL
 createtorrent CreateTorrent
+createuser PostgreSQL
+createwin Xorg-App
 crl_app MbedTLS
 croco-0.6-config LibCroco
 crond Dcron
@@ -808,18 +955,28 @@ crontab Dcron
 crossexec KSH
 crypt_and_hash MbedTLS
 cryptdir Expect
+cryptest.exe LibCrypto++
 cryptsetup CryptSetup
+cs2cs Proj
 cscope Cscope
 csepdjvu DjVuLibre
 csharp Mono
+cslatex TeXLive
+csplain TeXLive
 csplit CoreUtils
 csync Csync
+ct_run Erlang
 ctags Ctags Emacs
-ctangle TeTeX
+ctangle TeTeX TeXLive
+ctanify TeXLive
+ctanupload TeXLive
 ctest CMake
-ctie TeTeX
+ctie TeTeX TeXLive
+ctracer Dwarves
 ctrlaltdel Util-Linux-NG
 ctstat IPRoute2
+cubemap Xorg-App
+cuberender Xorg-App
 cue2toc CDRDAO
 cups-browsed CUPS-Filters
 cups-calibrate Gutenprint
@@ -858,10 +1015,12 @@ cvsrevertlast KDE-SDK
 cvsservice KDE-SDK
 cvsversion KDE-SDK
 cvt Xorg Xorg-Server
-cweave TeTeX
+cweave TeTeX TeXLive
 cwebp LibWebP
+cx18-ctl V4L-Utils
 cxpm Xorg Xorg-Lib
 cxxmetric KDE-SDK
+cxxtestgen CxxTest
 cygdb Cython
 cython Cython
 cytune Util-Linux-NG
@@ -883,6 +1042,7 @@ db_printlog DB
 db_recover DB
 db_replicate DB
 db_stat DB
+db_tuner DB
 db_upgrade DB
 db_verify DB
 dbmmanage HTTPD
@@ -897,7 +1057,9 @@ dbus-send DBus
 dbus-test-tool DBus
 dbus-update-activation-environment DBus
 dbus-uuidgen DBus
+dbwrap_tool Samba
 dc BC
+dconf DConf
 dcop KDE-Libs
 dcopclient KDE-Libs
 dcopfind KDE-Libs
@@ -910,30 +1072,41 @@ dcopref KDE-Libs
 dcopserver KDE-Libs
 dcopserver_shutdown KDE-Libs
 dcopstart KDE-Libs
+dcraw_emu LibRaw
+dcraw_half LibRaw
 dd CoreUtils
+dd_rescue DD_Rescue
 ddate Util-Linux-NG
 ddbugtopbm Netpbm
 ddd DDD
 ddjvu DjVuLibre
+de-macro TeXLive
 deallocvt KBD
 debugfs E2FSProgs
 debugfs.reiserfs ReiserFSProgs
 debugreiserfs ReiserFSProgs
 decibel Decibel
 decibel_logger Decibel
+decode_tm6000 V4L-Utils
 decryptdir Expect
 deepfind Strigi
 deepgrep Strigi
 delpart Util-Linux-NG
 demangle KDE-SDK
 demo GTKMM
+demuxfs DemuxFS
 depmod Kmod Module-Init-Tools
+depythontex TeXLive
 derb LibICU4C
+deriv Xorg-App
 designer Qt
 desktop-file-install Desktop-File-Utils
 desktop-file-validate Desktop-File-Utils
+detex TeXLive
 devdump CDRTools
 devmap_name Multipath-Tools
+devnag TeXLive
+deweb TeXLive
 df CoreUtils
 dfbdump DirectFB
 dfbfx DirectFB
@@ -957,9 +1130,13 @@ dhcpcd DHCPCD
 dhcpd DHCP
 dhcrelay DHCP
 dia Dia
+diadia TeXLive
+diagtool Clang
 dialog Dialog
+dialyzer Erlang
 diff DiffUtils
 diff3 DiffUtils
+diffimg Graphviz
 diffxml DiffXML
 dig Bind
 digikam Digikam
@@ -968,6 +1145,7 @@ digitaglinktree Digikam
 dijkstra Graphviz
 dillo Dillo
 dillo-install-hyphenation Dillo
+dinoshade Xorg-App
 dir CoreUtils
 dirac_decoder Dirac
 dirac_encoder Dirac
@@ -980,13 +1158,15 @@ dirmngr-client DirMngr
 dirname CoreUtils
 disable-paste GPM
 disco Mono
+disdvi TeXLive
 dislocate Expect
 display ImageMagick
 display-buttons GPM
 display-coords GPM
+dissolve Xorg-App
 dit Dit
 ditto KSH
-djpeg JPEG
+djpeg JPEG LibJPEG-Turbo
 djview DjVuLibre Djview
 djview3 DjVuLibre
 djvm DjVuLibre
@@ -1001,12 +1181,24 @@ djvuserve DjVuLibre
 djvutoxml DjVuLibre
 djvutxt DjVuLibre
 djvuxmlparser DjVuLibre
+dlist-begin-call-end Xorg-App
+dlist-dangling Xorg-App
+dlist-degenerate Xorg-App
+dlist-edgeflag Xorg-App
+dlist-edgeflag-dangling Xorg-App
+dlist-flat-tri Xorg-App
+dlist-mat-tri Xorg-App
+dlist-recursive-call Xorg-App
+dlist-tri-flat-tri Xorg-App
+dlist-tri-mat-tri Xorg-App
 dlist_test SysFSUtils
+dltest UnixODBC
 dmesg Util-Linux-NG
 dmidecode Dmidecode
 dmp TeTeX
 dmraid Dmraid
-dmsetup Device-Mapper
+dmsetup Device-Mapper LVM2
+dmstats LVM2
 dmxaddinput Xorg Xorg-Server
 dmxaddscreen Xorg Xorg-Server
 dmxinfo Xorg-Server
@@ -1016,7 +1208,8 @@ dmxrminput Xorg Xorg-Server
 dmxrmscreen Xorg Xorg-Server
 dmxtodmx Xorg Xorg-Server
 dmxwininfo Xorg Xorg-Server
-dnsdomainname Net-Tools
+dns-sd MDNSResponder
+dnsdomainname InetUtils Net-Tools
 dnssec-dsfromkey Bind
 dnssec-keyfromlabel Bind
 dnssec-keygen Bind
@@ -1024,12 +1217,22 @@ dnssec-signzone Bind
 doc.url Netpbm
 docbook2man Docbook2X
 docbook2texi Docbook2X
+docker Docker
+docker-compose Docker-Compose
+docker-containerd Docker
+docker-containerd-ctr Docker
+docker-containerd-shim Docker
+docker-init Docker
+docker-proxy Docker
+docker-runc Docker
+dockerd Docker
 documentor Ecere
 dolphin KDE-Base
 domainname Net-Tools
 dos2mac Dos2Unix
 dos2unix Dos2Unix
 dosbox DOSBox
+dosepsbin TeXLive
 dosfsck DosFSTools
 dot Graphviz
 dot2gxl Graphviz
@@ -1040,20 +1243,61 @@ doxygen Doxygen
 doxytag Doxygen
 dpid Dillo
 dpidc Dillo
+dpkg Dpkg
+dpkg-architecture Dpkg
+dpkg-buildflags Dpkg
+dpkg-buildpackage Dpkg
+dpkg-checkbuilddeps Dpkg
+dpkg-deb Dpkg
+dpkg-distaddfile Dpkg
+dpkg-divert Dpkg
+dpkg-genbuildinfo Dpkg
+dpkg-genchanges Dpkg
+dpkg-gencontrol Dpkg
+dpkg-gensymbols Dpkg
+dpkg-maintscript-helper Dpkg
+dpkg-mergechangelogs Dpkg
+dpkg-name Dpkg
+dpkg-parsechangelog Dpkg
+dpkg-query Dpkg
+dpkg-scanpackages Dpkg
+dpkg-scansources Dpkg
+dpkg-shlibdeps Dpkg
+dpkg-source Dpkg
+dpkg-split Dpkg
+dpkg-statoverride Dpkg
+dpkg-trigger Dpkg
+dpkg-vendor Dpkg
 dprof2calltree KDE-SDK
 dprofpp Perl
+dracut Dracut
+dracut-catimages Dracut
 dragon KDE-Multimedia
 draw OpenMotif
+draw2arrays Xorg-App
+drawarrays Xorg-App
+drawelements Xorg-App
+drawelements-large Xorg-App
+drawoverhead Xorg-App
+drawpix Xorg-App
+drawrange Xorg-App
 driconf DriConf
 drkonqi KDE-Base
+dropdb PostgreSQL
 dropdown OpenMotif
+dropuser PostgreSQL
 dsirc KDE-Network
 dstat DStat
+dsymutil LLVM
+dt2dv TeXLive
 dtach Dtach
+dtagnames Dwarves
 dtd2rng Mono
 dtd2xsd Mono
 dtls_client MbedTLS
 dtls_server MbedTLS
+dtrace SystemTap
+dtxgen TeXLive
 du CoreUtils
 dump-acct ACCT
 dump-mixers Xawtv
@@ -1067,56 +1311,79 @@ dumpkeys KBD
 dumpreg SVGALib
 dumpseg NilFS-Utils
 dumpsexp LibGCrypt
+dv2dt TeXLive
+dvb-fe-tool V4L-Utils
+dvb-format-convert V4L-Utils
+dvbv5-scan V4L-Utils
+dvbv5-zap V4L-Utils
 dvd+rw-booktype DVD+RW-Tools
 dvd+rw-format DVD+RW-Tools
 dvd+rw-mediainfo DVD+RW-Tools
 dvd-ram-control DVD+RW-Tools
 dvdnav-config LibDVDNav
 dvdread-config LibDVDRead
-dvi2fax TeTeX
-dvicopy TeTeX
-dvigif TeTeX
-dvihp TeTeX
-dvilj TeTeX
-dvilj2p TeTeX
-dvilj4 TeTeX
-dvilj4l TeTeX
-dvilj6 TeTeX
+dvi2fax TeTeX TeXLive
+dvi2tty TeXLive
+dviasm TeXLive
+dvibook TeXLive
+dviconcat TeXLive
+dvicopy TeTeX TeXLive
+dvidvi TeXLive
+dvigif TeTeX TeXLive
+dvihp TeTeX TeXLive
+dvilj TeTeX TeXLive
+dvilj2p TeTeX TeXLive
+dvilj4 TeTeX TeXLive
+dvilj4l TeTeX TeXLive
+dvilj6 TeTeX TeXLive
+dvilualatex TeXLive
+dviluatex TeXLive
 dvipdf ESP-Ghostscript GNU-Ghostscript Ghostscript
-dvipdfm TeTeX
-dvipdft TeTeX
-dvipng TeTeX
-dvips TeTeX
-dvired TeTeX
-dvitomp TeTeX
-dvitype TeTeX
+dvipdfm TeTeX TeXLive
+dvipdfmx TeXLive
+dvipdft TeTeX TeXLive
+dvipng TeTeX TeXLive
+dvipos TeXLive
+dvips TeTeX TeXLive
+dvired TeTeX TeXLive
+dviselect TeXLive
+dvisvgm TeXLive
+dvitodvi TeXLive
+dvitomp TeTeX TeXLive
+dvitype TeTeX TeXLive
 dwebp LibWebP
 dwp BinUtils
 e2freefrag E2FSProgs
 e2fsck E2FSProgs
 e2image E2FSProgs
 e2label E2FSProgs
-e2pall TeTeX
+e2pall TeTeX TeXLive
 e2undo E2FSProgs
+e4crypt E2FSProgs
 e4defrag E2FSProgs
 ear Ecere
 earth OpenMotif
 easy_install Python-Setuptools SetupTools Setuptools
 easytag EasyTAG
-ebb TeTeX
+ebb TeTeX TeXLive
+ebong TeXLive
 ebrowse Emacs
 ecc Ecere
 echo CoreUtils
 echo-client-2 LibBonobo
-eclipse Eclipse
-eclipse-java Eclipse-Java
 ecp Ecere
+ecpg PostgreSQL
 ecs Ecere
 ed Ed
 edd_id Udev
 edgepaint Graphviz
 editcap Wireshark
+editra WxPython
 editres Xorg Xorg-App
+efibootdump EFIBootMgr
+efibootmgr EFIBootMgr
+efivar EFIVar
+efivar-static EFIVar
 egrep Grep
 egroupwarewizard KDE-PIM
 eject Eject
@@ -1135,8 +1402,11 @@ enc2xs Perl
 encfs EncFS
 encfsctl EncFS
 encfssh EncFS
+encguess Perl
 enchant Enchant
 enchant-lsmod Enchant
+encode_keychange Net-SNMP
+engine Xorg-App
 env CoreUtils
 envset.cmd Apache-Ant
 envsubst Gettext
@@ -1144,14 +1414,28 @@ envvars HTTPD
 envvars-std HTTPD
 epdfview EPDFView
 epeg Epeg
+eplain TeXLive
+epmd Erlang
 eps2eps ESP-Ghostscript GNU-Ghostscript Ghostscript
-epstopdf TeTeX
+epsffit TeXLive
+epsg_tr.py GDAL
+epspdf TeXLive
+epspdftk TeXLive
+epstopdf TeTeX TeXLive
+eptex TeXLive
 epylint.bat Python
 eqn Groff
 eqn2graph Groff
 erb Ruby
+erl Erlang
+erlc Erlang
+es2_info Xorg-App
+es2gears_x11 Xorg-App
+es2tri Xorg-App
+escapesrc LibICU4C
 escp2topbm Netpbm
 escputil Gimp-Print Gutenprint
+escript Erlang
 esd Esound
 esd-config Esound
 esdcat Esound
@@ -1164,19 +1448,40 @@ esdmon Esound
 esdplay Esound
 esdrec Esound
 esdsample Esound
+esri2wkt.py GDAL
 etags Emacs
-etex TeTeX
+etex TeTeX TeXLive
 ethtool Ethtool
 etracer ExtremeTuxRacer
+eu-addr2line ELFUtils
+eu-ar ELFUtils
+eu-elfcmp ELFUtils
+eu-elfcompress ELFUtils
+eu-elflint ELFUtils
+eu-findtextrel ELFUtils
+eu-make-debug-archive ELFUtils
+eu-nm ELFUtils
+eu-objdump ELFUtils
+eu-ranlib ELFUtils
+eu-readelf ELFUtils
+eu-size ELFUtils
+eu-stack ELFUtils
+eu-strings ELFUtils
+eu-strip ELFUtils
+eu-unstrip ELFUtils
+euptex TeXLive
 event_rpcgen.py LibEvent
 eventlogadm Samba
 eview Vim
 evilwm EvilWM
 evim Vim
 evince Evince
+evince-previewer Evince
 evince-thumbnailer Evince
 ex Vim
+exceltex TeXLive
 exchangewizard KDE-PIM
+exempi Exempi
 exif Exif
 exiv2 Exiv2
 exo-csource EXO
@@ -1195,8 +1500,11 @@ exrenvmap OpenEXR
 exrheader OpenEXR
 exrmakepreview OpenEXR
 exrmaketiled OpenEXR
+exrmultipart OpenEXR
+exrmultiview OpenEXR
 exrstdattr OpenEXR
-extcheck IcedTea8 Sun-JDK
+extcheck IcedTea8 JDK Sun-JDK
+extconv TeXLive
 extend_dmalloc KDE-SDK
 extensionproxy KDE-Base
 extlinux SYSLINUX
@@ -1205,7 +1513,9 @@ extract-nss-root-certs Extract-NSS-Root-Certs
 extract_a52 A52Dec
 extract_mpeg2 LibMpeg2 Mpeg2Dec
 extractattr KDE-SDK
+extractbb TeXLive
 extractrc KDE-SDK
+extractres TeXLive
 eyeD3 EyeD3
 eyuvtoppm Netpbm
 f2py NumPy
@@ -1224,8 +1534,12 @@ false CoreUtils
 faltest Falcon
 famd FAM
 fancontrol LM-Sensors
+fatlabel DosFSTools
 fax2ps TIFF
 fax2tiff TIFF
+fbo_firecube Xorg-App
+fbobind Xorg-App
+fbotexture Xorg-App
 fbtv Xawtv
 fbxine Xine-UI
 fc-cache Fontconfig
@@ -1238,6 +1552,7 @@ fc-scan Fontconfig
 fc-validate Fontconfig
 fceux FCEUX
 fceux-net-server FCEUX
+fcgistarter HTTPD
 fdf2tan TeTeX
 fdf2tex TeTeX
 fdformat Util-Linux-NG
@@ -1260,22 +1575,27 @@ fgconsole KBD
 fgrep Grep
 fiascotopnm Netpbm
 fig2ps TeXmacs
+fig4latex TeXLive
 filan Socat
 file File
+filecap LibCap-NG
 filefrag E2FSProgs
 filelight Filelight
 filemanager OpenMotif
 filesharelist KDE-Libs
 fileshareset KDE-Libs
 fileview OpenMotif
+fill Xorg-App
 filter KSH
 finch Pidgin
 find FindUtils
 find2perl Perl
 findaffix Ispell
 findfs E2FSProgs Util-Linux-NG
+findhyph TeXLive
 findmissingcrystal KDE-SDK
 findsmb Samba
+fire Xorg-App
 firefox Firefox
 firefox-config Firefox
 firestarter Firestarter
@@ -1290,9 +1610,11 @@ fix-qdf Qpdf
 fixkdeincludes KDE-SDK
 fixmswrd.pl ESP-Ghostscript GNU-Ghostscript Ghostscript
 fixnt A2PS
+fixproc Net-SNMP
 fixps A2PS
 fixuifiles KDE-SDK
 flac Flac
+flat-clip Xorg-App
 flea Mutt
 flegita Gnome-Scan
 flex Flex
@@ -1305,13 +1627,14 @@ floppyd_installtest MTools
 fltk-config FLTK
 fluid FLTK
 fmt CoreUtils
-fmtutil TeTeX
-fmtutil-sys TeTeX
+fmtutil TeTeX TeXLive
+fmtutil-sys TeTeX TeXLive
+fogcoord Xorg-App
 fold CoreUtils
 font2c ESP-Ghostscript GNU-Ghostscript Ghostscript
 fontforge Fontforge
 fontimage Fontforge
-fontinst TeTeX
+fontinst TeTeX TeXLive
 fontlint Fontforge
 fontname.sh Xorg Xorg-App
 fontpick Icon
@@ -1337,26 +1660,35 @@ foomatic-preferred-driver Foomatic
 foomatic-printermap-to-gimp-print-xml Foomatic
 foomatic-printjob Foomatic
 foomatic-replaceoldprinterids Foomatic
-foomatic-rip Foomatic Hpijs
+foomatic-rip CUPS-Filters Foomatic Hpijs
 fox-config Fox
+fplight Xorg-App
 fprint_demo Fprint_Demo
+fragcoord Xorg-App
+fragmaster TeXLive
 free Procps Procps-NG
 freealut-config FreeALUT
 freetype-config FreeType
+freshclam Clamav
 fribidi Fribidi
 fribidi-config Fribidi
+fs-tri Xorg-App
+fsadm LVM2
 fsck E2FSProgs
 fsck.cramfs Util-Linux-NG
 fsck.ext2 E2FSProgs
 fsck.ext3 E2FSProgs
 fsck.ext4 E2FSProgs
 fsck.ext4dev E2FSProgs
+fsck.fat DosFSTools
 fsck.minix Util-Linux-NG
 fsck.msdos DosFSTools
 fsck.reiserfs ProgsReiserFS ReiserFSProgs
 fsck.vfat DosFSTools
 fsck.xfs XFSProgs
+fslight Xorg-App
 fslsfonts Xorg Xorg-App
+fsraytrace Xorg-App
 fstab-decode Sysvinit
 fstobdf Xorg Xorg-App
 fstopgm Netpbm
@@ -1371,16 +1703,19 @@ funionfs FunionFS
 funzip Unzip
 fuser Psmisc
 fusermount Fuse
+fusermount3 Fuse
 fxload FxLoad
 g++ GCC
 g-ir-annotation-tool GObject-Introspection
 g-ir-compiler GObject-Introspection
 g-ir-generate GObject-Introspection
+g-ir-inspect GObject-Introspection
 g-ir-scanner GObject-Introspection
 g3topbm Netpbm
 gacutil Mono
 gacutil1 Mono
 gacutil2 Mono
+gamma Xorg-App
 gamma4scanimage Sane-Backends
 gapi2-codegen GTK-Sharp
 gapi2-fixup GTK-Sharp
@@ -1388,19 +1723,25 @@ gapi2-parser GTK-Sharp
 gapplication GLib
 gawk Gawk
 gbdfed GBdfed
+gbklatex TeXLive
+gbkpdflatex TeXLive
 gc Graphviz
-gcc GCC
-gcc-ar GCC
-gcc-nm GCC
-gcc-ranlib GCC
+gcad3d GCad3D
+gcc GCC GCC-Fortran
+gcc-ar GCC GCC-Fortran
+gcc-nm GCC GCC-Fortran
+gcc-ranlib GCC GCC-Fortran
 gccbug GCC
 gccmakedep Gccmakedep Xorg
-gconf-merge-tree GConf
+gconf-merge-tree GConf GConf2
 gconfsharp2-schemagen Gnome-Sharp
-gconftool-2 GConf
+gconftool-2 GConf GConf2
 gcore GDB
-gcov GCC
-gcov-tool GCC
+gcov GCC GCC-Fortran
+gcov-dump GCC
+gcov-tool GCC GCC-Fortran
+gcps2vec.py GDAL
+gcps2wld.py GDAL
 gcr-viewer Gcr
 gd2copypal GD
 gd2togif GD
@@ -1410,7 +1751,44 @@ gda-config-tool LibGDA
 gda-report-test LibGDA
 gda-run LibGDA
 gda-test LibGDA
+gdal-config GDAL
+gdal2tiles.py GDAL
+gdal2xyz.py GDAL
+gdal_auth.py GDAL
+gdal_calc.py GDAL
+gdal_contour GDAL
+gdal_edit.py GDAL
+gdal_fillnodata.py GDAL
+gdal_grid GDAL
+gdal_merge.py GDAL
+gdal_pansharpen.py GDAL
+gdal_polygonize.py GDAL
+gdal_proximity.py GDAL
+gdal_rasterize GDAL
+gdal_retile.py GDAL
+gdal_sieve.py GDAL
+gdal_translate GDAL
+gdaladdo GDAL
+gdalbuildvrt GDAL
+gdalchksum.py GDAL
+gdalcompare.py GDAL
+gdaldem GDAL
+gdalenhance GDAL
+gdalident.py GDAL
+gdalimport.py GDAL
+gdalinfo GDAL
+gdallocationinfo GDAL
+gdalmanage GDAL
+gdalmove.py GDAL
+gdalserver GDAL
+gdalsrsinfo GDAL
+gdaltindex GDAL
+gdaltransform GDAL
+gdalwarp GDAL
 gdb GDB
+gdbm_dump GDBM
+gdbm_load GDBM
+gdbmtool GDBM
 gdbserver GDB
 gdbtui GDB
 gdbus GLib
@@ -1426,6 +1804,9 @@ gdmap GDmap
 gdome-config GDome2
 gdparttopng GD
 gdtopng GD
+gearbox Xorg-App
+gears Xorg-App
+geartrain Xorg-App
 gegl Gegl
 gem Ruby
 gemtopbm Netpbm
@@ -1452,15 +1833,23 @@ geninfo Lcov
 genkdmconf KDE-Base KDE-Base-Workspace
 genl IPRoute2
 genl-ctrl-list LibNL
+genmipmap Xorg-App
 gennorm2 LibICU4C
 genpng Lcov
 genrb LibICU4C
 gensprep LibICU4C
+gentest Samba
 genuca LibICU4C
 genxs Mono
 genxs1 Mono
 genxs2 Mono
+geod Proj
 geodatatest KDE-Edu
+geom-sprites Xorg-App
+geom-stipple-lines Xorg-App
+geom-wide-lines Xorg-App
+geos-config GEOS
+geotifcp LibGeoTIFF
 geqn Groff
 get-versions GPM
 get-wings-flags WindowMaker
@@ -1472,6 +1861,7 @@ get_classdev_parent SysFSUtils
 get_device SysFSUtils
 get_driver SysFSUtils
 get_module SysFSUtils
+getcap LibCap
 getcifsacl CIFS-Utils
 getconf Glibc
 getent Glibc
@@ -1480,38 +1870,46 @@ getfattr ATTR
 gethostip SYSLINUX
 geticonset WindowMaker
 getkeycodes KBD
+getmapdl TeXLive
 getopt Util-Linux-NG
+getpcaps LibCap
 getstyle WindowMaker
 getsubres OpenMotif
 gettext Gettext
 gettext.sh Gettext
 gettextize Gettext
 getx11font GfxBoot
-gftodvi TeTeX
-gftopk TeTeX
+gfortran GCC-Fortran
+gftodvi TeTeX TeXLive
+gftopk TeTeX TeXLive
 gftp GFTP
 gftp-gtk GFTP
 gftp-text GFTP
-gftype TeTeX
+gftype TeTeX TeXLive
 ghc GHC GHC-Bin
 ghc-pkg GHC GHC-Bin
 ghc-updater GHC-Bin
 ghci GHC GHC-Bin
 ghcprof GHC GHC-Bin
 giblib-config GibLib
+gie Proj
 gif2epsn Giflib
+gif2h5 HDF5
+gif2hdf HDF4
 gif2ps Giflib
 gif2rgb Giflib
 gif2tiff TIFF
 gif2x11 Giflib
 gifasm Giflib
 gifbg Giflib
+gifbuild Giflib
 gifburst Giflib
 gifclip Giflib
 gifclrmp Giflib
 gifcolor Giflib
 gifcomb Giflib
 gifcompose Giflib
+gifecho Giflib
 giffiltr Giflib
 giffix Giflib
 gifflip Giflib
@@ -1543,12 +1941,14 @@ gift-url-to-fts.pl GnuIFT
 gift-write-feature-descs GnuIFT
 giftext Giflib
 giftogd2 GD
+giftool Giflib
 giftopnm Netpbm
 gifwedge Giflib
 gimp Gimp
 gimp-console Gimp
 gimp-remote Gimp
 gimptool-2.0 Gimp
+gio GLib
 gio-querymodules GLib
 git Git
 git-add Git
@@ -1570,6 +1970,7 @@ git-checkout-index Git
 git-cherry Git
 git-cherry-pick Git
 git-citool Git
+git-clang-format Clang
 git-clean Git
 git-clone Git
 git-commit Git
@@ -1715,21 +2116,31 @@ glib-compile-schemas GLib
 glib-genmarshal GLib
 glib-gettextize GLib
 glib-mkenums GLib
-glthreads Mesa
-glxcontexts Mesa
-glxdemo Mesa
-glxgears Mesa
-glxgears_fbconfig Mesa
-glxheads Mesa
-glxinfo Mesa
-glxpbdemo Mesa
-glxpixmap Mesa
-glxswapcontrol Mesa
+glilypond Groff
+glinfo Xorg-App
+gloss Xorg-App
+glslstateschange Xorg-App
+glsync Xorg-App
+gltestperf Xorg-App
+glthreads Mesa Xorg-App
+glxcontexts Mesa Xorg-App
+glxdemo Mesa Xorg-App
+glxgears Mesa Xorg-App
+glxgears_fbconfig Mesa Xorg-App
+glxgears_pixmap Xorg-App
+glxheads Mesa Xorg-App
+glxinfo Mesa Xorg-App
+glxpbdemo Mesa Xorg-App
+glxpixmap Mesa Xorg-App
+glxsnoop Xorg-App
+glxswapcontrol Mesa Xorg-App
 gm GraphicsMagick
 gmcs Mono
 gml2gv Graphviz
 gmpc GMPC
 gmplayer MPlayer
+gnmanalyse GDAL
+gnmmanage GDAL
 gnokii Gnokii
 gnokiid Gnokii
 gnome-about Gnome-Desktop
@@ -1764,6 +2175,7 @@ gobohide GoboHide
 gobonet GoboNet
 gobonet_backend GoboNet
 gofmt Golang
+google-chrome-stable GoogleChrome
 googlesuggest Arora
 gouldtoppm Netpbm
 gpa GPA
@@ -1771,6 +2183,7 @@ gparted GParted
 gpartedbin GParted
 gpasswd Shadow
 gperf Gperf
+gperl Groff
 gpg GnuPG
 gpg-agent GPG-Agent GnuPG
 gpg-connect-agent GnuPG
@@ -1796,16 +2209,19 @@ gphoto2 GPhoto2
 gphoto2-config LibGPhoto2
 gphoto2-port-config LibGPhoto2
 gpicview GPicView
+gpinyin Groff
 gpm GPM
 gpm-root GPM
 gpodder GPodder
 gprof BinUtils
 gqview GQview
+gradle Gradle
 granatier KDE-Games
 grandr GRandR Xorg-App
 grap2graph Groff
 graphml2gv Graphviz
 grcat Gawk
+gregorio TeXLive
 grep Grep
 grep-changelog Emacs
 gresource GLib
@@ -1840,46 +2256,82 @@ grpconv Shadow
 grpunconv Shadow
 grub Grub
 grub-bios-setup GRUB
+grub-bios-setup-efi GRUB-EFI
 grub-editenv GRUB
+grub-editenv-efi GRUB-EFI
+grub-file GRUB
+grub-file-efi GRUB-EFI
 grub-fstest GRUB
+grub-fstest-efi GRUB-EFI
+grub-glue-efi GRUB
+grub-glue-efi-efi GRUB-EFI
 grub-install GRUB Grub
+grub-install-efi GRUB-EFI
 grub-kbdcomp GRUB
+grub-kbdcomp-efi GRUB-EFI
+grub-macbless GRUB
+grub-macbless-efi GRUB-EFI
 grub-md5-crypt Grub
 grub-menulst2cfg GRUB
+grub-menulst2cfg-efi GRUB-EFI
 grub-mkconfig GRUB
+grub-mkconfig-efi GRUB-EFI
+grub-mkfont GRUB
+grub-mkfont-efi GRUB-EFI
 grub-mkimage GRUB
+grub-mkimage-efi GRUB-EFI
 grub-mklayout GRUB
+grub-mklayout-efi GRUB-EFI
 grub-mknetdir GRUB
+grub-mknetdir-efi GRUB-EFI
 grub-mkpasswd-pbkdf2 GRUB
+grub-mkpasswd-pbkdf2-efi GRUB-EFI
 grub-mkrelpath GRUB
+grub-mkrelpath-efi GRUB-EFI
 grub-mkrescue GRUB
+grub-mkrescue-efi GRUB-EFI
 grub-mkstandalone GRUB
+grub-mkstandalone-efi GRUB-EFI
+grub-mount GRUB
+grub-mount-efi GRUB-EFI
 grub-ofpathname GRUB
+grub-ofpathname-efi GRUB-EFI
 grub-probe GRUB
+grub-probe-efi GRUB-EFI
 grub-reboot GRUB
+grub-reboot-efi GRUB-EFI
+grub-render-label GRUB
+grub-render-label-efi GRUB-EFI
 grub-script-check GRUB
+grub-script-check-efi GRUB-EFI
 grub-set-default GRUB Grub
+grub-set-default-efi GRUB-EFI
 grub-sparc64-setup GRUB
+grub-sparc64-setup-efi GRUB-EFI
+grub-syslinux2cfg GRUB
+grub-syslinux2cfg-efi GRUB-EFI
 grub-terminfo Grub
 gs ESP-Ghostscript GNU-Ghostscript Ghostscript
+gs-tri Xorg-App
 gsbj ESP-Ghostscript GNU-Ghostscript Ghostscript
 gsc GNU-Ghostscript Ghostscript
 gsdj ESP-Ghostscript GNU-Ghostscript Ghostscript
 gsdj500 ESP-Ghostscript GNU-Ghostscript Ghostscript
 gset-kiba GSetKiba Kiba-Dock
 gsettings GLib
-gsettings-data-convert GConf
+gsettings-data-convert GConf GConf2
 gsettings-schema-convert GConf
 gsf LibGSF
 gsf-office-thumbnailer LibGSF
 gsf-vba-dump LibGSF
-gsftopk TeTeX
+gsftopk TeTeX TeXLive
 gsl-config GSL
 gsl-histogram GSL
 gsl-randist GSL
 gslj ESP-Ghostscript GNU-Ghostscript Ghostscript
 gslp ESP-Ghostscript GNU-Ghostscript Ghostscript
 gsnd ESP-Ghostscript GNU-Ghostscript Ghostscript
+gsraytrace Xorg-App
 gss-client Kerberos
 gss-server Kerberos
 gst-complete GStreamer
@@ -1965,6 +2417,26 @@ gzip Gzip
 h264encode LibVA
 h2ph Perl
 h2xs Perl
+h4cc HDF4
+h4redeploy HDF4
+h52gif HDF5
+h5c++ HDF5
+h5cc HDF5
+h5copy HDF5
+h5debug HDF5
+h5diff HDF5
+h5dump HDF5
+h5edit H5Edit
+h5import HDF5
+h5jam HDF5
+h5ls HDF5
+h5mkgrp HDF5
+h5perf_serial HDF5
+h5redeploy HDF5
+h5repack HDF5
+h5repart HDF5
+h5stat HDF5
+h5unjam HDF5
 haddock GHC GHC-Bin Haddock
 hal-device HAL
 hal-device-manager HAL
@@ -1977,17 +2449,34 @@ hal-lock HAL
 hal-set-property HAL
 hal-setup-keymap HAL
 hald HAL
+half_mt LibRaw
 halt Sysvinit
 hasktags GHC GHC-Bin
 hb-ot-shape-closure HarfBuzz
 hb-shape HarfBuzz
 hb-view HarfBuzz
+hbf2gf TeXLive
 hciattach Bluez Bluez-Utils
 hciconfig Bluez Bluez-Utils
 hcid Bluez-Utils
 hcidump Bluez
 hcitool Bluez Bluez-Utils
+hcitop Bluez-ALSA
+hdf24to8 HDF4
+hdf2gif HDF4
+hdf2jpeg HDF4
+hdf8to24 HDF4
+hdfcomp HDF4
+hdfed HDF4
+hdfimport HDF4
+hdfls HDF4
+hdfpack HDF4
+hdftopal HDF4
+hdftor8 HDF4
+hdfunpac HDF4
+hdiff HDF4
 hdifftopam Netpbm
+hdp HDF4
 hdparm Hdparm
 head CoreUtils
 hello MbedTLS
@@ -1995,7 +2484,9 @@ helloint OpenMotif
 hellomotif OpenMotif
 help2man Help2Man
 help2txt GfxBoot
+helpviewer WxPython
 hex2hcd Bluez
+hexchat HexChat
 hexdump Util-Linux-NG
 hg Mercurial
 hg-relink Mercurial
@@ -2007,6 +2498,7 @@ hibernate.sh Hibernate-Script
 hipstopgm Netpbm
 hltest GPM
 hmac256 LibGCrypt
+hmaptool Clang
 host Bind
 hostid CoreUtils
 hostname CoreUtils InetUtils Net-Tools
@@ -2053,24 +2545,33 @@ hpc GHC GHC-Bin
 hpcdtoppm Netpbm
 hpftodit Groff
 hpijs Hpijs Hplip
+hrepack HDF4
 hsc2hs GHC GHC-Bin
 hsc2hs-ghc GHC-Bin
 hsc2hs-hugs Hugs
+ht TeXLive
 htcacheclean HTTPD
+htcontext TeXLive
 htdbm HTTPD
 htdig HtDig
 htdigest HTTPD
 htdump HtDig
 htfuzzy HtDig
+htlatex TeXLive
 htload HtDig
 htmerge HtDig
+htmex TeXLive
 htmlToXBel Arora
 htnotify HtDig
 htop Htop
 htpasswd HTTPD
+httex TeXLive
+httexi TeXLive
 httpcfg Mono
 httpd HTTPD
 httxt2dbm HTTPD
+htxelatex TeXLive
+htxetex TeXLive
 hugs Hugs
 humfsify UML-Utilities
 hurl KSH
@@ -2100,17 +2601,21 @@ i686-pc-linux-gnu-gcc GCC
 i686-pc-linux-gnu-gcc-ar GCC
 i686-pc-linux-gnu-gcc-nm GCC
 i686-pc-linux-gnu-gcc-ranlib GCC
+ibmcloud Bluemix
+ibmcloud-analytics Bluemix
 ical2vcal KDE-PIM
 icc2ps LCMS
 icclink LCMS
 icctrans LCMS
 iceauth Xorg Xorg-App
+icns2png LibICNS
 ico Xorg Xorg-App
 icombine Ispell
 icon Icon
 icon2gif Giflib
 iconbuttondemo OpenMotif
 icont Icon
+icontainer2icns LibICNS
 icontopbm Netpbm
 iconv Glibc
 iconvconfig Glibc
@@ -2129,10 +2634,13 @@ ide Ecere
 ide_info Pcmcia-CS
 identd Linux-Identd
 identify ImageMagick
+identity Xorg-App
+idiag-socket-details LibNL
 idl2wrs Wireshark
 idle Python
 idle3 Python
-idlj IcedTea8 Sun-JDK
+idle3.8 Python
+idlj IcedTea8 JDK Sun-JDK
 idn LibIDN
 iecset ALSA-Utils
 ifcfg IPRoute2
@@ -2145,6 +2653,7 @@ ifstat IPRoute2
 ifuser Pcmcia-CS
 igawk Gawk
 ignore KSH
+igt_stats Xorg-App
 ijoin Ispell
 ijs-config IJS
 ijs_client_example IJS
@@ -2157,6 +2666,9 @@ ilbmtoppm Netpbm
 images2mpg Kipi-Plugins
 imagetops KDE-Libs
 imake Imake Xorg
+img2png WxPython
+img2py WxPython
+img2xpm WxPython
 imgcmp Jasper
 imginfo Jasper
 imgtoppm Netpbm
@@ -2178,6 +2690,7 @@ in.telnetd Netkit-Telnet
 in.tftpd TFTP-HPA
 inb Xorg Xorg-Server
 includemocs KDE-SDK
+includeres TeXLive
 indent Indent
 indexlib-config KDE-PIM
 indi_celestron_gps KDE-Edu
@@ -2203,7 +2716,11 @@ infokey TeTeX Texinfo
 infotocap Ncurses NcursesW
 infotopam Netpbm
 inifile Virtuoso
+inimf TeXLive
 init Initramfs-Tools Sysvinit
+init.lxc LXC
+initdb PostgreSQL
+initex TeXLive
 inkscape Inkscape
 inkview Inkscape
 inl Xorg Xorg-Server
@@ -2215,14 +2732,52 @@ install Scripts
 install-catalog SGML-Common
 install-info TeTeX Texinfo
 installastheme.pl AfterStep
+installfont-tl TeXLive
 installvst Mono
 instmodsh Perl
+intel-gen4asm Xorg-App
+intel-gen4disasm Xorg-App
+intel-gpu-overlay Xorg-App
 intel-virtual-output Xorg-Driver
+intel_aubdump Xorg-App
+intel_audio_dump Xorg-App
+intel_backlight Xorg-App
+intel_bios_dumper Xorg-App
+intel_display_crc Xorg-App
+intel_display_poller Xorg-App
+intel_dp_compliance Xorg-App
+intel_dump_decode Xorg-App
+intel_error_decode Xorg-App
+intel_firmware_decode Xorg-App
+intel_forcewaked Xorg-App
+intel_framebuffer_dump Xorg-App
+intel_gem_info Xorg-App
+intel_gpu_abrt Xorg-App
+intel_gpu_frequency Xorg-App
+intel_gpu_time Xorg-App
+intel_gpu_top Xorg-App
+intel_gtt Xorg-App
+intel_guc_logger Xorg-App
+intel_gvtg_test Xorg-App
+intel_infoframes Xorg-App
+intel_l3_parity Xorg-App
+intel_lid Xorg-App
+intel_opregion_decode Xorg-App
+intel_panel_fitter Xorg-App
+intel_perf_counters Xorg-App
+intel_reg Xorg-App
+intel_reg_checker Xorg-App
+intel_residency Xorg-App
+intel_stepping Xorg-App
+intel_vbt_decode Xorg-App
+intel_watermark Xorg-App
 intltool-extract Intltool
 intltool-merge Intltool
 intltool-prepare Intltool
 intltool-update Intltool
 intltoolize Intltool
+invgeod Proj
+invproj Proj
 inw Xorg Xorg-Server
 iodbc-config LibIODBC
 iodbctest LibIODBC
@@ -2241,6 +2796,8 @@ ipcmk Util-Linux-NG
 ipcrm Util-Linux-NG
 ipcs Util-Linux-NG
 iperf IPERF
+ipers Xorg-App
+ipf-mod.pl Net-SNMP
 ipg IPUtils
 ipptool CUPS
 ipsec Openswan
@@ -2250,6 +2807,7 @@ iptables-restore Iptables
 iptables-save Iptables
 iptables-xml Iptables
 ipw3945d IPW3945d
+ir-keytable V4L-Utils
 irb Ruby
 irkick KDE-Utils
 irssi Irssi
@@ -2266,14 +2824,20 @@ isohybrid SYSLINUX
 isohybrid.pl SYSLINUX
 isoinfo CDRTools
 isosize Util-Linux-NG
+isosurf Xorg-App
 isovfy CDRTools
 ispell Ispell
-isql Virtuoso
+isql UnixODBC Virtuoso
 isqlw Virtuoso
 issndfile NAS
 istanbul Istanbul
 itstool ITSTool
 itweb-settings IcedTea-Web
+iucode_tool Iucode-Tool
+iusql UnixODBC
+ivshmem-client QEMU
+ivshmem-server QEMU
+ivtv-ctl V4L-Utils
 iwconfig Wireless-Tools
 iwevent Wireless-Tools
 iwgetid Wireless-Tools
@@ -2288,70 +2852,94 @@ jack_disconnect JACK
 jack_evmon JACK
 jack_freewheel JACK
 jack_impulse_grabber JACK
+jack_iodelay JACK
+jack_latent_client JACK
 jack_load JACK
+jack_load_test JACK
 jack_lsp JACK
 jack_metro JACK
+jack_midi_dump JACK
 jack_midiseq JACK
 jack_midisine JACK
 jack_monitor_client JACK
+jack_netsource JACK
+jack_property JACK
+jack_rec JACK
+jack_samplerate JACK
+jack_server_control JACK
+jack_session_notify JACK
 jack_showtime JACK
 jack_simple_client JACK
+jack_simple_session_client JACK
 jack_transport JACK
+jack_transport_client JACK
 jack_unload JACK
+jack_wait JACK
 jackd JACK
 jackrec JACK
+jadetex TeXLive
 jail_uml UML-Utilities
 jailtest UML-Utilities
 jam Jam
-jar IcedTea8 Sun-JDK
-jarsigner IcedTea8 Sun-JDK
+jamo-normalize TeXLive
+jar IcedTea8 JDK Sun-JDK
+jarsigner IcedTea8 JDK Sun-JDK
 jasper Jasper
-java IcedTea8 Sun-JDK Sun-JRE
-java-rmi.cgi IcedTea8 Sun-JDK
+java IcedTea8 JDK JRE Sun-JDK Sun-JRE
+java-rmi.cgi IcedTea8 JDK Sun-JDK
 java2groovy Groovy
 java2groovy.bat Groovy
 java_vm Sun-JRE
-javac IcedTea8 Sun-JDK
-javadoc IcedTea8 Sun-JDK
-javah IcedTea8 Sun-JDK
+javac IcedTea8 JDK Sun-JDK
+javadoc IcedTea8 JDK Sun-JDK
+javafxpackager JDK
+javah IcedTea8 JDK Sun-JDK
 javaldx OpenOffice
-javap IcedTea8 Sun-JDK
-javaws IcedTea-Web Sun-JDK Sun-JRE
+javap IcedTea8 JDK Sun-JDK
+javapackager JDK
+javaws IcedTea-Web JDK JRE Sun-JDK Sun-JRE
 jay Mono
 jbigtopnm Netpbm
-jcmd IcedTea8
-jconsole IcedTea8 Sun-JDK
-jcontrol Sun-JDK Sun-JRE
-jdb IcedTea8 Sun-JDK
-jdeps IcedTea8
+jcmd IcedTea8 JDK
+jconsole IcedTea8 JDK Sun-JDK
+jcontrol JDK JRE Sun-JDK Sun-JRE
+jdb IcedTea8 JDK Sun-JDK
+jdeps IcedTea8 JDK
 jed Jed
 jed-script Jed
-jhat IcedTea8 Sun-JDK
-jinfo IcedTea8 Sun-JDK
+jemalloc-config Jemalloc
+jemalloc.sh Jemalloc
+jeprof Jemalloc
+jhat IcedTea8 JDK Sun-JDK
+jinfo IcedTea8 JDK Sun-JDK
 jiv Jasper
-jjs IcedTea8
-jmap IcedTea8 Sun-JDK
+jjs IcedTea8 JDK JRE
+jmap IcedTea8 JDK Sun-JDK
+jmc JDK
+jmc.ini JDK
+jmtpfs JMTPFS
 join CoreUtils
+jpeg2hdf HDF4
 jpeg2ktopam Netpbm
 jpegicc LCMS
 jpegorient KDE-Addons
 jpegtopnm Netpbm
-jpegtran JPEG
+jpegtran JPEG LibJPEG-Turbo
 jpgicc LCMS
-jps IcedTea8 Sun-JDK
+jps IcedTea8 JDK Sun-JDK
 jq JQ
-jrunscript IcedTea8 Sun-JDK
+jrunscript IcedTea8 JDK Sun-JDK
 js17 MozJS
 js17-config MozJS
 jsaccess KDE-Bindings
-jsadebugd IcedTea8 Sun-JDK
+jsadebugd IcedTea8 JDK Sun-JDK
 jsc WebKit
 json_pp Perl
-jstack IcedTea8 Sun-JDK
-jstat IcedTea8 Sun-JDK
-jstatd IcedTea8 Sun-JDK
+jstack IcedTea8 JDK Sun-JDK
+jstat IcedTea8 JDK Sun-JDK
+jstatd IcedTea8 JDK Sun-JDK
 juk KDE-Multimedia
-jvisualvm Sun-JDK
+jvisualvm JDK Sun-JDK
 k3b K3B
 k3bsetup K3B
 k5srvutil Kerberos
@@ -2378,6 +2966,9 @@ kalzium KDE-Edu
 kanagram KDE-Edu
 kandy KDE-PIM
 kandy_client KDE-PIM
+kanji-config-updmap TeXLive
+kanji-config-updmap-sys TeXLive
+kanji-fontmap-creator TeXLive
 kapman KDE-Games
 kappfinder KDE-Base
 kapplymousetheme KDE-Base KDE-Base-Workspace
@@ -2513,7 +3104,7 @@ keyctl KeyUtils
 keylookup Signing-Party
 keytab-lilo SYSLINUX
 keytab-lilo.pl LILO
-keytool IcedTea8 Sun-JDK Sun-JRE
+keytool IcedTea8 JDK JRE Sun-JDK Sun-JRE
 kfax KDE-Graphics
 kfaxview KDE-Graphics
 kfile KDE-Libs
@@ -2645,6 +3236,7 @@ kolabwizard KDE-PIM
 kolf KDE-Games
 kollision KDE-Games
 kolourpaint KDE-Graphics
+komkindex TeXLive
 kommander KDE-Webdev
 kompare KDE-SDK
 kompmgr KDE-Base
@@ -2690,14 +3282,14 @@ kprinter KDE-Base
 kprop Kerberos
 kpropd Kerberos
 kproplog Kerberos
-kpseaccess TeTeX
-kpsepath TeTeX
-kpsereadlink TeTeX
-kpsestat TeTeX
-kpsetool TeTeX
-kpsewhere TeTeX
-kpsewhich TeTeX
-kpsexpand TeTeX
+kpseaccess TeTeX TeXLive
+kpsepath TeTeX TeXLive
+kpsereadlink TeTeX TeXLive
+kpsestat TeTeX TeXLive
+kpsetool TeTeX TeXLive
+kpsewhere TeTeX TeXLive
+kpsewhich TeTeX TeXLive
+kpsexpand TeTeX TeXLive
 kquitapp KDE-Base-Runtime
 krandom.kss KDE-Base KDE-Base-Workspace
 krandrtray KDE-Base KDE-Base-Workspace
@@ -2794,6 +3386,7 @@ ktuberling KDE-Games
 kturtle KDE-Edu
 ktutil Kerberos
 ktux KDE-Toys
+kubectl Kubernetes
 kubrick KDE-Games
 kudesigner KOffice
 kugar KOffice
@@ -2843,17 +3436,37 @@ kxsldbg KDE-Webdev
 kxsrun KDE-Artwork
 l2ping Bluez Bluez-Utils
 l2test Bluez
+lacheck TeXLive
 lambda TeTeX
 lame Lame
-lamed TeTeX
+lamed TeTeX TeXLive
 lancelot KDE-Plasma-Addons
 laptop_mode Laptop-Mode-Tools
+las2las LASTools
+las2txt LASTools
+lasdiff LASTools
+lasindex LASTools
+lasinfo LASTools
+lasmerge LASTools
+lasprecision LASTools
 last ACCT Sysvinit
 lastb Sysvinit
 lastcomm ACCT
 lastlog Shadow
-latex TeTeX
+laszip LASTools
+latex TeTeX TeXLive
+latex-git-log TeXLive
+latex-papersize TeXLive
 latex2html LaTeX2HTML
+latex2man TeXLive
+latex2nemeth TeXLive
+latexdiff TeXLive
+latexdiff-vc TeXLive
+latexfileversion TeXLive
+latexindent TeXLive
+latexmk TeXLive
+latexpand TeXLive
+latexrevise TeXLive
 launch_instance Boto
 lazy Lazy
 lbxproxy Xorg Xorg-App
@@ -2912,9 +3525,11 @@ libnetcfg Perl
 libpala-puzzlebuilder KDE-Games
 libpng-config LibPNG
 libpng12-config LibPNG
+libpng14-config LibPNG
 libpng16-config LibPNG
 libreoffice4.2 LibreOffice
 libreoffice4.2-printeradmin LibreOffice
+libreoffice6.3 LibreOffice
 libtasn1-config LibTasn1
 libtool LibTool
 libtoolize LibTool
@@ -2926,22 +3541,102 @@ licq Licq
 lightmediascannerctl LightMediaScanner
 lightmediascannerd LightMediaScanner
 lilo LILO
+lily-glyph-commands TeXLive
+lily-image-commands TeXLive
+lily-rebuild-pdfs TeXLive
 linc-cleanup-sockets ORBit2
-line Util-Linux-NG
+line Util-Linux-NG Xorg-App
+line-clip Xorg-App
+line-cull Xorg-App
+line-flat Xorg-App
+line-smooth Xorg-App
+line-stipple-wide Xorg-App
+line-userclip Xorg-App
+line-userclip-clip Xorg-App
+line-userclip-nop Xorg-App
+line-userclip-nop-clip Xorg-App
+line-wide Xorg-App
+line-xor Xorg-App
+lineloop Xorg-App
+lineloop-clip Xorg-App
+lineloop-elts Xorg-App
+linestrip Xorg-App
+linestrip-clip Xorg-App
+linestrip-flat-stipple Xorg-App
+linestrip-stipple Xorg-App
+linestrip-stipple-wide Xorg-App
 linguist Qt
 link CoreUtils
 link-parser Link-Grammar
 linkicc LCMS
 links Links
+linktest Xorg-App
+linux-boot-prober OS-Prober
 linux32 Util-Linux-NG
 linux64 Util-Linux-NG
 lisa KDE-Network
 lispmtopgm Netpbm
 list-trash Trash
 list_instances Boto
+listbib TeXLive
 listener Listener
+listgeo LibGeoTIFF
+listings-ext.sh TeXLive
 listres Xorg Xorg-App
 lkbib Groff
+llc LLVM
+lli LLVM
+llvm-addr2line LLVM
+llvm-ar LLVM
+llvm-as LLVM
+llvm-bcanalyzer LLVM
+llvm-c-test LLVM
+llvm-cat LLVM
+llvm-cfi-verify LLVM
+llvm-config LLVM
+llvm-cov LLVM
+llvm-cvtres LLVM
+llvm-cxxdump LLVM
+llvm-cxxfilt LLVM
+llvm-cxxmap LLVM
+llvm-diff LLVM
+llvm-dis LLVM
+llvm-dlltool LLVM
+llvm-dwarfdump LLVM
+llvm-dwp LLVM
+llvm-elfabi LLVM
+llvm-exegesis LLVM
+llvm-extract LLVM
+llvm-jitlink LLVM
+llvm-lib LLVM
+llvm-link LLVM
+llvm-lipo LLVM
+llvm-lto LLVM
+llvm-lto2 LLVM
+llvm-mc LLVM
+llvm-mca LLVM
+llvm-modextract LLVM
+llvm-mt LLVM
+llvm-nm LLVM
+llvm-objcopy LLVM
+llvm-objdump LLVM
+llvm-opt-report LLVM
+llvm-pdbutil LLVM
+llvm-profdata LLVM
+llvm-ranlib LLVM
+llvm-rc LLVM
+llvm-readelf LLVM
+llvm-readobj LLVM
+llvm-rtdyld LLVM
+llvm-size LLVM
+llvm-split LLVM
+llvm-stress LLVM
+llvm-strings LLVM
+llvm-strip LLVM
+llvm-symbolizer LLVM
+llvm-tblgen LLVM
+llvm-undname LLVM
+llvm-xray LLVM
 lm-profiler Laptop-Mode-Tools
 lm-syslog-setup Laptop-Mode-Tools
 ln CoreUtils
@@ -2957,6 +3652,8 @@ loadunimap KBD
 locale Glibc
 localedef Glibc
 locate FindUtils Rlocate Slocate
+locktest Samba
+lodbias Xorg-App
 log4c-config Log4C
 logger Util-Linux-NG
 login Shadow
@@ -2966,6 +3663,8 @@ logoutd Shadow
 logresolve HTTPD
 logsave E2FSProgs
 lokalize KDE-SDK
+lollipop TeXLive
+long-fixed-func Xorg-App
 look Util-Linux-NG
 lookbib Groff
 losetup Util-Linux-NG
@@ -2992,6 +3691,8 @@ lscp NilFS-Utils
 lscpu Util-Linux-NG
 lsdev Procinfo
 lshal HAL
+lsinitcpio MkInitCpio
+lsinitrd Dracut
 lskat KDE-Games
 lskatproc KDE-Games
 lsmod Kmod Module-Init-Tools
@@ -3004,13 +3705,25 @@ lstopo Hwloc
 lstopo-no-graphics Hwloc
 lsusb USBUtils
 lsusb.py USBUtils
+ltfs LTFS
+ltfsck LTFS
 ltrace LTrace
+ltx2crossrefxml TeXLive
+ltxfileinfo TeXLive
+ltximg TeXLive
 lua LibAIO Lua
+lua2dox_filter TeXLive
 luac LibAIO Lua
 luajit LuaJIT
 luajit-2.1.0-beta2 LuaJIT
+luajit-2.1.0-beta3 LuaJIT
+luajittex TeXLive
+lualatex TeXLive
+luaotfload-tool TeXLive
 luarocks LibAIO LuaRocks
 luarocks-admin LibAIO LuaRocks
+luatex TeXLive
+luatools TeXLive
 luceneindexer Strigi
 luit Xorg Xorg-App
 lupdate Qt
@@ -3022,6 +3735,7 @@ lvdisplay LVM2
 lvextend LVM2
 lvm LVM2
 lvmchange LVM2
+lvmconfig LVM2
 lvmdiskscan LVM2
 lvmdump LVM2
 lvmsadc LVM2
@@ -3032,6 +3746,7 @@ lvrename LVM2
 lvresize LVM2
 lvs LVM2
 lvscan LVM2
+lwarpmk TeXLive
 lwp-download Perl-LWP
 lwp-mirror Perl-LWP
 lwp-request Perl-LWP
@@ -3043,11 +3758,38 @@ lx200basic KDE-Edu
 lx200classic KDE-Edu
 lx200generic KDE-Edu
 lx200gps KDE-Edu
+lxc-attach LXC
+lxc-autostart LXC
+lxc-cgroup LXC
+lxc-checkconfig LXC
+lxc-checkpoint LXC
+lxc-config LXC
+lxc-console LXC
+lxc-copy LXC
+lxc-create LXC
+lxc-destroy LXC
+lxc-device LXC
+lxc-execute LXC
+lxc-freeze LXC
+lxc-info LXC
+lxc-ls LXC
+lxc-monitor LXC
+lxc-snapshot LXC
+lxc-start LXC
+lxc-stop LXC
+lxc-top LXC
+lxc-unfreeze LXC
+lxc-unshare LXC
+lxc-usernsexec LXC
+lxc-wait LXC
 lxshortcut LibFM
 lynx Lynx
 lyx LyX Lyx
 lyxclient LyX
 lz MTools
+lz4 LZ4
+lz4c LZ4
+lz4cat LZ4
 lzcat LZMA-Utils XZ-Utils
 lzcmp LZMA-Utils XZ-Utils
 lzdiff LZMA-Utils XZ-Utils
@@ -3061,19 +3803,23 @@ lzma LZMA-Utils XZ-Utils
 lzmadec LZMA-Utils XZ-Utils
 lzmainfo LZMA-Utils XZ-Utils
 lzmore LZMA-Utils XZ-Utils
-m2.conf Apache-Maven
+m-tx TeXLive
+m2.conf Apache-Maven Maven
 m4 M4
 mac2dos Dos2Unix
 mac2unix Dos2Unix
 macpack Mono
 macptopbm Netpbm
 madplay Mad
-mag TeTeX
+mag TeTeX TeXLive
+magick ImageMagick
+magick-script ImageMagick
 mail-files SharUtils
 mail.local KDE-Network
 mailq Postfix
 mailshar SharUtils
 make Make
+make4ht TeXLive
 make_driver_db_cups KDE-Libs
 make_driver_db_lpr KDE-Libs
 makeastheme.pl AfterStep
@@ -3081,9 +3827,15 @@ makecert Mono
 makeconv LibICU4C
 makedb Glibc
 makedepend Makedepend
+makedtx TeXLive
 makeg Imake Xorg
-makeindex TeTeX
+makegeo LibGeoTIFF
+makeglossaries TeXLive
+makeglossaries-lite TeXLive
+makehrtf OpenAL
+makeindex TeTeX TeXLive
 makeinfo TeTeX Texinfo
+makejvf TeXLive
 makekdewidgets KDE-Libs
 makempx TeTeX
 makempy TeTeX
@@ -3097,14 +3849,19 @@ man Man Man-DB
 man2dvi Man
 man2html Man
 mandb Man-DB
+mandelbrot Xorg-App
 manpath Man-DB
 manweb Netpbm
+manywin Xorg-App
 mapc Neverball
 mapscrn KBD
 marble KDE-Edu
+masktest Samba
+match_parens TeXLive
 mathmlps GTKMathView
 mathmlsvg GTKMathView
 mathmlviewer GTKMathView
+mathspic TeXLive
 mattrib MTools
 mautil Mono-Addins
 mbadblocks MTools
@@ -3112,6 +3869,7 @@ mbchk Grub
 mc MC
 mcat MTools
 mcd MTools
+mcdiff MC
 mcedit MC
 mcheck MTools
 mcl MCL
@@ -3135,6 +3893,16 @@ md5sum CoreUtils
 mdadm Mdadm
 mdassembler Mono
 mdatopbm Netpbm
+mdb-array MDBTools
+mdb-export MDBTools
+mdb-header MDBTools
+mdb-hexdump MDBTools
+mdb-parsecsv MDBTools
+mdb-prop MDBTools
+mdb-schema MDBTools
+mdb-sql MDBTools
+mdb-tables MDBTools
+mdb-ver MDBTools
 mdel MTools
 mdeltree MTools
 mdir MTools
@@ -3149,23 +3917,38 @@ mdoc-validate Mono
 mdu MTools
 mdvalidater Mono
 meade_lpi KDE-Edu
+media-ctl V4L-Utils
 mednafen Mednafen
 meinproc KDE-Libs
 meinproc4 KDE-Libs
+melt MLT
+mem_image LibRaw
 memdiskfind SYSLINUX
 memprof2calltree KDE-SDK
+memusage Glibc
+memusagestat Glibc
 mencoder MPlayer
+mendex TeXLive
 mergecap Wireshark
 mergelib Imake Xorg
 mesg Sysvinit
 metaflac Flac
 mev GPM
-mf TeTeX
-mf-nowin TeTeX
+mex TeXLive
+mf TeTeX TeXLive
+mf-nowin TeTeX TeXLive
+mf2pt1 TeXLive
+mflua TeXLive
+mflua-nowin TeXLive
+mfluajit TeXLive
+mfluajit-nowin TeXLive
 mformat MTools
-mft TeTeX
+mfplain TeXLive
+mft TeTeX TeXLive
 mgnokiidev Gnokii
 mgrtopbm Netpbm
+mib2c Net-SNMP
+mib2c-update Net-SNMP
 midisend KDE-Multimedia
 midori Midori
 mii-tool Net-Tools
@@ -3180,6 +3963,7 @@ minigui Decibel
 mirage Mirage
 mjpg_streamer MJPG-Streamer
 mjs Mono
+mk4ht TeXLive
 mk_cmds E2FSProgs
 mkbootmsg GfxBoot
 mkbundle Mono
@@ -3206,6 +3990,7 @@ mkfs.ext2 E2FSProgs
 mkfs.ext3 E2FSProgs
 mkfs.ext4 E2FSProgs
 mkfs.ext4dev E2FSProgs
+mkfs.fat DosFSTools
 mkfs.minix Util-Linux-NG
 mkfs.msdos DosFSTools
 mkfs.nilfs2 NilFS-Utils
@@ -3213,38 +3998,50 @@ mkfs.ntfs NTFS-3G
 mkfs.reiserfs ProgsReiserFS ReiserFSProgs
 mkfs.vfat DosFSTools
 mkfs.xfs XFSProgs
+mkgraticule.py GDAL
+mkgrkindex TeXLive
 mkhomedir_helper Linux-PAM
 mkhtmlindex Imake Xorg
 mkhybrid CDRTools
-mkindex TeTeX
+mkindex TeTeX TeXLive
+mkinitcpio MkInitCpio
 mkinitramfs Initramfs-Tools
 mkinitramfs-kpkg Initramfs-Tools
+mkinitrd Dracut
 mkisofs CDRTools
 mkjambase Jam
+mkjobtexmf TeXLive
 mklost+found E2FSProgs
+mkltfs LTFS
 mkmanifest MTools
 mknod CoreUtils
 mkntfs NTFS-3G NTFSProgs
-mkocp TeTeX
-mkofm TeTeX
+mkocp TeTeX TeXLive
+mkofm TeTeX TeXLive
 mkpasswd Expect Whois
+mkpic TeXLive
 mkreiserfs ReiserFSProgs
 mkrescue LILO
 mksquashfs SquashFS-Tools
 mkswap Util-Linux-NG
+mkt1font TeXLive
 mktemp CoreUtils MkTemp
 mktest KSH
-mktexfmt TeTeX
-mktexlsr TeTeX
-mktexmf TeTeX
-mktexpk TeTeX
-mktextfm TeTeX
+mktexfmt TeTeX TeXLive
+mktexlsr TeTeX TeXLive
+mktexmf TeTeX TeXLive
+mktexpk TeTeX TeXLive
+mktextfm TeTeX TeXLive
 mlabel MTools
+mllatex TeXLive
+mltex TeXLive
 mm2gv Graphviz
+mmafm TeXLive
 mmc-tool LibCdio
 mmd MTools
 mmount MTools
 mmove MTools
+mmpfb TeXLive
 mmroff Groff
 moc Qt
 mod Mono
@@ -3276,6 +4073,7 @@ monop1 Mono
 monop2 Mono
 montage ImageMagick
 more Util-Linux-NG
+morph3d Xorg-App
 most Most
 motif-config Lesstif
 motv Xawtv
@@ -3287,13 +4085,16 @@ mount.encfs13 PAM-Mount
 mount.exfat ExFAT
 mount.exfat-fuse ExFAT
 mount.fuse Fuse
+mount.fuse3 Fuse
 mount.lowntfs-3g NTFS-3G
 mount.nilfs2 NilFS-Utils
 mount.ntfs-3g NTFS-3G
 mount.smbfs Samba
+mount.unionfs UnionFS-Fuse
 mountpoint Sysvinit
 mouse-test GPM
 mousepad Mousepad
+mozcerts-qt5 QCA
 mozroots Mono
 mp3gain MP3Gain
 mpartition MTools
@@ -3304,15 +4105,17 @@ mpeg2vaenc LibVA
 mpeg2vldemo LibVA
 mpeglibartsplay KDE-Multimedia
 mpg123 MPG123
+mpg123-id3dump MPG123
+mpg123-strip MPG123
 mpi_demo MbedTLS
 mpicalc LibGCrypt
 mplayer MPlayer
 mplayerthumbsconfig KDE-Multimedia
-mpost TeTeX
+mpost TeTeX TeXLive
 mpris-proxy Bluez
 mpstat Sysstat
 mpto TeTeX
-mptopdf TeTeX
+mptopdf TeTeX TeXLive
 mrd MTools
 mren MTools
 mrftopbm Netpbm
@@ -3338,39 +4141,75 @@ msiexec Wine
 msmtp MSMTP
 msntest LibMSN
 msql2mysql MySQL
+msxlint TeXLive
 msynctool Msynctool
-mt Cpio
+mt Cpio St-Mt
 mtail Mtail
 mtdev-test MtDev
 mtn Monotone
 mtnopt Monotone
 mtools MTools
 mtoolstest MTools
+mtp-albumart LibMtp
+mtp-albums LibMtp
+mtp-connect LibMtp
+mtp-delfile LibMtp
+mtp-detect LibMtp
+mtp-emptyfolders LibMtp
+mtp-files LibMtp
+mtp-filetree LibMtp
+mtp-folders LibMtp
+mtp-format LibMtp
+mtp-getfile LibMtp
+mtp-getplaylist LibMtp
+mtp-hotplug LibMtp
+mtp-newfolder LibMtp
+mtp-newplaylist LibMtp
+mtp-playlists LibMtp
+mtp-reset LibMtp
+mtp-sendfile LibMtp
+mtp-sendtr LibMtp
+mtp-thumb LibMtp
+mtp-tracks LibMtp
+mtp-trexist LibMtp
 mtr MTR
 mtrace Glibc
 mtvtoppm Netpbm
+mtxrun TeXLive
+mtxrunjit TeXLive
 mtype MTools
 mudraw MuPDF
 mujstest MuPDF
+multiarb Xorg-App
+multibibliography TeXLive
+multictx Xorg-App
 multilist OpenMotif
+multinoise Xorg-App
 multipath Multipath-Tools
 multipathd Multipath-Tools
+multirender_test LibRaw
 multisynk KDE-PIM
+multitex Xorg-App
 multixterm Expect
+mumble Mumble
+mumble-overlay Mumble
 munchlist Ispell
 mupdf-x11 MuPDF
 mupdf-x11-curl MuPDF
 mupen64plus Mupen64Plus
+musixflx TeXLive
+musixtex TeXLive
 mute Aumix
 mutool MuPDF
 mutt Mutt
 muttbug Mutt
 mv CoreUtils
-mvn Apache-Maven
-mvn.cmd Apache-Maven
-mvnDebug Apache-Maven
-mvnDebug.cmd Apache-Maven
-mvnyjp Apache-Maven
+mvn Apache-Maven Maven
+mvn.cmd Apache-Maven Maven
+mvnDebug Apache-Maven Maven
+mvnDebug.cmd Apache-Maven Maven
+mvnyjp Apache-Maven Maven
+mvxattr Samba
 mwm Lesstif OpenMotif
 mxmkmf Lesstif
 mxtar MTools
@@ -3433,6 +4272,7 @@ mythwelcome MythTV
 mzip MTools
 nBundle Nucleo
 nTest Nucleo
+nad2bin Proj
 named Bind
 named-checkconf Bind
 named-checkzone Bind
@@ -3442,7 +4282,7 @@ nameif Net-Tools
 nano Nano
 nasd NAS
 nasm Nasm
-native2ascii IcedTea8 Sun-JDK
+native2ascii IcedTea8 JDK Sun-JDK
 nautilus Nautilus
 nautilus-autorun-software Nautilus
 nautilus-cd-burner Nautilus-CD-Burner
@@ -3451,6 +4291,7 @@ nautilus-file-management-properties Nautilus
 nbd-client NBD
 nbd-server NBD
 nc Netcat
+ncdump HDF4 NetCDF
 ncftp NcFTP
 ncftpbatch NcFTP
 ncftpbookmarks NcFTP
@@ -3458,12 +4299,16 @@ ncftpget NcFTP
 ncftpls NcFTP
 ncftpput NcFTP
 ncftpspooler NcFTP
+ncgen HDF4 NetCDF
 ncurses5-config Ncurses
-ncursesw6-config NcursesW
+ncursesw6-config Ncurses NcursesW
+ncxx4-config NetCDF-CXX4
 nd ND
 ndisasm Nasm
 ndiswrapper NDISwrapper
 ndiswrapper-buginfo NDISwrapper
+ndrdump Samba
+nearblack GDAL
 neato Graphviz
 neon-config Neon
 neotoppm Netpbm
@@ -3473,23 +4318,40 @@ nepomukservicestub KDE-Base-Runtime
 neqn Groff
 nestopia Nestopia
 net Samba
+net-snmp-cert Net-SNMP
+net-snmp-config Net-SNMP
+net-snmp-create-v3-user Net-SNMP
+netcap LibCap-NG
 netcat Netcat
 nethack Nethack
+nethogs Nethogs
 netstat Net-Tools
 nettle-hash Nettle
 nettle-lfib-stream Nettle
+nettle-pbkdf2 Nettle
 networkstatustestservice KDE-PIM
 neverball Neverball
 neverputt Neverball
 newaliases Postfix
 newer TeTeX
+newgidmap Shadow
 newgrp Shadow
+newuidmap Shadow
 newusers Shadow
+nf-ct-add LibNL
+nf-ct-list LibNL
+nf-exp-add LibNL
+nf-exp-delete LibNL
+nf-exp-list LibNL
+nf-log LibNL
+nf-monitor LibNL
+nf-queue LibNL
 nfs2ac TORCS
 nfsperf TORCS
 ngettext Gettext
 nice CoreUtils
 nilfs_cleanerd NilFS-Utils
+ninja Ninja
 nisdomainname Net-Tools
 nist.pl Nist
 njb-cursesplay LibNJB
@@ -3515,6 +4377,9 @@ njb-settime LibNJB
 njb-tagtr LibNJB
 njb-tracks LibNJB
 nl CoreUtils
+nl-addr-add LibNL
+nl-addr-delete LibNL
+nl-addr-list LibNL
 nl-class-add LibNL
 nl-class-delete LibNL
 nl-class-list LibNL
@@ -3522,11 +4387,32 @@ nl-classid-lookup LibNL
 nl-cls-add LibNL
 nl-cls-delete LibNL
 nl-cls-list LibNL
+nl-fib-lookup LibNL
+nl-link-enslave LibNL
+nl-link-ifindex2name LibNL
 nl-link-list LibNL
+nl-link-name2ifindex LibNL
+nl-link-release LibNL
+nl-link-set LibNL
+nl-link-stats LibNL
+nl-list-caches LibNL
+nl-list-sockets LibNL
+nl-monitor LibNL
+nl-neigh-add LibNL
+nl-neigh-delete LibNL
+nl-neigh-list LibNL
+nl-neightbl-list LibNL
 nl-pktloc-lookup LibNL
 nl-qdisc-add LibNL
 nl-qdisc-delete LibNL
 nl-qdisc-list LibNL
+nl-route-add LibNL
+nl-route-delete LibNL
+nl-route-get LibNL
+nl-route-list LibNL
+nl-rule-list LibNL
+nl-tctree-list LibNL
+nl-util-addr LibNL
 nm BinUtils
 nm-applet Network-Manager-Applet
 nm-connection-editor Network-Manager-Applet
@@ -3541,15 +4427,21 @@ noatun KDE-Multimedia
 node Node
 nohup CoreUtils
 noip2 No-IP-DUC
+noise Xorg-App
+noise2 Xorg-App
 nologin Shadow
+nomacs Nomacs
 noncvslist KDE-SDK
 nonsvnlist KDE-SDK
 nop Graphviz
 notepad Wine
 notify-send LibNotify
 noweb2lyx Lyx
+nping NPing
 npm Node
 nproc CoreUtils
+npth-config NPth
+npx Node
 nq-fbdev QuakeForge
 nq-glx QuakeForge
 nq-sdl QuakeForge
@@ -3597,10 +4489,17 @@ numfmt CoreUtils
 numlockx NumlockX
 nunit-console Mono
 nunit-console2 Mono
-nvidia-bug-report.sh Nvidia
-nvidia-installer Nvidia
-nvidia-settings Nvidia
-nvidia-xconfig Nvidia
+nvlc VLC
+oLschema2ldif Samba
+obex-check-device OpenOBEX
+obex-folder-listing ObexPushD
+obexautofs OBEXFtp
+obexfs OBEXFtp
+obexftp OBEXFtp
+obexftpd OBEXFtp
+obexpush_atd ObexPushD
+obexpushd ObexPushD
+obj2yaml LLVM
 objcopy BinUtils
 objdump BinUtils
 objdump86 Bin86
@@ -3627,10 +4526,13 @@ ocpp OCaml
 ocs Cscope
 ocsptool GnuTLS
 od CoreUtils
-odvicopy TeTeX
+odbc_config UnixODBC
+odbcinst UnixODBC
+odvicopy TeTeX TeXLive
 odvips TeTeX
-odvitype TeTeX
-ofm2opl TeTeX
+odvitype TeTeX TeXLive
+offset Xorg-App
+ofm2opl TeTeX TeXLive
 ogg123 Vorbis-Tools
 oggdec Vorbis-Tools
 oggenc Vorbis-Tools
@@ -3649,18 +4551,32 @@ oggz-scan LibOGGZ
 oggz-sort LibOGGZ
 oggz-validate LibOGGZ
 ogonkify A2PS
+ogr2ogr GDAL
+ogrinfo GDAL
+ogrlineref GDAL
+ogrmerge.py GDAL
+ogrtindex GDAL
+oid2name PostgreSQL
 oil-bugreport LibOIL
 okteta KDE-Utils KDE-Webdev
 okular KDE-Graphics
 oldfind FindUtils
 oldfuser Psmisc
 omega TeTeX
-omfonts TeTeX
+omfonts TeTeX TeXLive
 omshell DHCP
 onto2vocabularyclass Soprano
 op2calltree KDE-SDK
 openal-config OpenAL
 openal-info OpenAL
+openconnect OpenConnect
+opencv_annotation OpenCV
+opencv_createsamples OpenCV
+opencv_haartraining OpenCV
+opencv_performance OpenCV
+opencv_traincascade OpenCV
+opencv_version OpenCV
+opencv_visualisation OpenCV
 openoffice.org2.3 OpenOffice
 openoffice.org2.3-printeradmin OpenOffice
 openoffice.org3 OpenOffice
@@ -3669,23 +4585,42 @@ openssl LibreSSL OpenSSL
 openttd OpenTTD
 openvt KBD
 opera Opera
-opl2ofm TeTeX
+opj_compress OpenJPEG
+opj_decompress OpenJPEG
+opj_dump OpenJPEG
+opl2ofm TeTeX TeXLive
+opt LLVM
 optimizegraphics KDE-SDK
 orage Orage
-orbd IcedTea8 Sun-JDK Sun-JRE
+orbd IcedTea8 JDK JRE Sun-JDK Sun-JRE
 orbit-idl-2 ORBit2
 orbit2-config ORBit2
 orc-bugreport ORC
 orcc ORC
+os-prober OS-Prober
 osage Graphviz
 osd_cat XOSD
+osdemo Xorg-App
+osdemo16 Xorg-App
+osdemo32 Xorg-App
+osg2cpp OpenSceneGraph
+osgarchive OpenSceneGraph
+osgconv OpenSceneGraph
+osgfilecache OpenSceneGraph
+osgversion OpenSceneGraph
+osgviewer OpenSceneGraph
+osirrox Xorriso
+ostra-cg Dwarves
 osyncbinary OpenSync
 osyncdump OpenSync
 osyncplugin OpenSync
 osyncstress OpenSync
 osynctest OpenSync
-otangle TeTeX
-otp2ocp TeTeX
+ot2kpx TeXLive
+otangle TeTeX TeXLive
+otfinfo TeXLive
+otftotfm TeXLive
+otp2ocp TeTeX TeXLive
 otr_mackey LibOTR
 otr_modify LibOTR
 otr_parse LibOTR
@@ -3693,30 +4628,37 @@ otr_readforge LibOTR
 otr_remac LibOTR
 otr_sesskeys LibOTR
 ots OTS
+out123 MPG123
 outb Xorg Xorg-Server
 outl Xorg Xorg-Server
 outline OpenMotif
-outocp TeTeX
+outocp TeTeX TeXLive
 outw Xorg Xorg-Server
-ovf2ovp TeTeX
-ovp2ovf TeTeX
+overlay Xorg-App
+ovf2ovp TeTeX TeXLive
+ovftool VMware-Player
+ovp2ovf TeTeX TeXLive
 ownership Dmidecode
 oxdvi TeTeX
 p11-kit P11-Kit
+p11tool GnuTLS
 pabrowse PulseAudio
 pacat PulseAudio
-pack200 IcedTea8 Sun-JDK Sun-JRE
+pack200 IcedTea8 JDK JRE Sun-JDK Sun-JRE
 pack_cis Pcmcia-CS
 package KSH
 package_crystalsvg KDE-SDK
 pacmd PulseAudio
 pactl PulseAudio
 pagein OpenOffice
+pahole Dwarves
 pak QuakeForge
 pal2rgb TIFF
 palapeli KDE-Games
 palette Icon
 palmtopnm Netpbm
+paltex Xorg-App
+paltohdf HDF4
 pam_fprint_enroll PAM-Fprint
 pam_tally Linux-PAM
 pam_tally2 Linux-PAM
@@ -3781,6 +4723,7 @@ paplay PulseAudio
 parec PulseAudio
 parley KDE-Edu
 parted Parted
+partinfo ConfigTools
 partprobe Parted
 partx Util-Linux-NG
 passmass Expect
@@ -3790,11 +4733,14 @@ pasuspender PulseAudio
 patch Patch
 patchwork Graphviz
 patchxml DiffXML
-patgen TeTeX
+patgen TeTeX TeXLive
 path_id Udev
 pathchk CoreUtils
 pavucontrol PaVuControl
 pax11publish PulseAudio
+pbdemo Xorg-App
+pbibtex TeXLive
+pbinfo Xorg-App
 pbmclean Netpbm
 pbmlife Netpbm
 pbmmake Netpbm
@@ -3851,76 +4797,140 @@ pcitweak Xorg
 pcmanfm PCManFM
 pcmcia-check-broken-cis PCMCIAUtils
 pcmcia-socket-startup PCMCIAUtils
+pcp_attach_node Pgpool-II
+pcp_detach_node Pgpool-II
+pcp_node_count Pgpool-II
+pcp_node_info Pgpool-II
+pcp_pool_status Pgpool-II
+pcp_proc_count Pgpool-II
+pcp_proc_info Pgpool-II
+pcp_promote_node Pgpool-II
+pcp_recovery_node Pgpool-II
+pcp_stop_pgpool Pgpool-II
+pcp_watchdog_info Pgpool-II
 pcprofiledump Glibc
 pcre-config PCRE
 pcregrep PCRE
 pcretest PCRE
 pcsc-spy PCSC-Lite
 pcscd PCSC-Lite
+pct2rgb.py GDAL
 pcxtoppm Netpbm
 pd PureData
 pd-gui.tcl PureData
 pdbedit Samba
+pdf180 TeXLive
+pdf270 TeXLive
 pdf2dsc ESP-Ghostscript GNU-Ghostscript Ghostscript
 pdf2ps ESP-Ghostscript GNU-Ghostscript Ghostscript
-pdf90 PDFjam
-pdfcrop TeTeX
+pdf90 PDFjam TeXLive
+pdfannotextractor TeXLive
+pdfatfi TeXLive
+pdfbook TeXLive
+pdfbook2 TeXLive
+pdfclose TeXLive
+pdfcrop TeTeX TeXLive
+pdfcslatex TeXLive
+pdfcsplain TeXLive
 pdfdetach Poppler Xpdf
-pdfetex TeTeX
+pdfetex TeTeX TeXLive
+pdfflip TeXLive
 pdffonts Poppler Xpdf
 pdfimages Poppler Xpdf
 pdfinfo Poppler Xpdf
-pdfjoin PDFjam
-pdflatex TeTeX
+pdfjadetex TeXLive
+pdfjam TeXLive
+pdfjam-pocketmod TeXLive
+pdfjam-slides3up TeXLive
+pdfjam-slides6up TeXLive
+pdfjoin PDFjam TeXLive
+pdflatex TeTeX TeXLive
+pdflatexpicscale TeXLive
+pdfmex TeXLive
 pdfmom Groff
-pdfnup PDFjam
+pdfnup PDFjam TeXLive
+pdfopen TeXLive
 pdfopt ESP-Ghostscript GNU-Ghostscript Ghostscript
+pdfpun TeXLive
 pdfroff Groff
 pdfseparate Poppler
-pdftex TeTeX
+pdftex TeTeX TeXLive
 pdftexi2dvi Texinfo
 pdftoabw Poppler
 pdftocairo Poppler
 pdftohtml Poppler
 pdftoppm Poppler Xpdf
 pdftops Poppler Xpdf
+pdftosrc TeXLive
 pdftotext Poppler Xpdf
 pdfunite Poppler
+pdfxmltex TeXLive
 pdfxtex TeTeX
+pdfxup TeXLive
 pdiff A2PS
 pdreceive PureData
 pdsend PureData
+pdvitomp TeXLive
+pdvitype TeXLive
+pdwtags Dwarves
 pear PHP
 peardev PHP
 peas-demo LibPeas
 pecl PHP
+pedigree TeXLive
 pedump Mono
 peekfd Psmisc
 pem2der MbedTLS
 periodic OpenMotif
 perl Perl
 perl5.10.0 Perl
-perl5.10.1 Perl
 perl5.20.2 Perl
 perl5.8.8 Perl
 perlbug Perl
 perlcc Perl
 perldoc Perl
 perlivp Perl
+perltex TeXLive
 perlthanks Perl
 permview Mono
 perror MySQL
 petcat VICE
 pf2afm ESP-Ghostscript GNU-Ghostscript Ghostscript
-pfb2pfa TeTeX
+pfarrei TeXLive
+pfb2pfa TeTeX TeXLive
 pfbtopfa ESP-Ghostscript GNU-Ghostscript Ghostscript
 pfbtops Groff
 pfmtopam Netpbm
+pfunct Dwarves
 pg Util-Linux-NG
+pgAdmin4 PgAdmin4
+pg_archivecleanup PostgreSQL
+pg_basebackup PostgreSQL
+pg_bulkload Pg_Bulkload
+pg_config PostgreSQL
+pg_controldata PostgreSQL
+pg_ctl PostgreSQL
+pg_dump PostgreSQL
+pg_dumpall PostgreSQL
+pg_isready PostgreSQL
+pg_md5 Pgpool-II
+pg_receivewal PostgreSQL
+pg_recvlogical PostgreSQL
+pg_resetwal PostgreSQL
+pg_restore PostgreSQL
+pg_rewind PostgreSQL
+pg_standby PostgreSQL
+pg_test_fsync PostgreSQL
+pg_test_timing PostgreSQL
+pg_upgrade PostgreSQL
+pg_waldump PostgreSQL
+pgadmin3 PgAdmin3
 pgawk Gawk
 pgawk-3.1.4 Gawk
 pgawk-3.1.5 Gawk
 pgawk-3.1.6 Gawk
+pgbench PostgreSQL
+pglobal Dwarves
 pgmabel Netpbm
 pgmbentley Netpbm
 pgmcrater Netpbm
@@ -3934,6 +4944,8 @@ pgmminkowski Netpbm
 pgmmorphconv Netpbm
 pgmnoise Netpbm
 pgmnorm Netpbm
+pgmodeler PgModeler
+pgmodeler-cli PgModeler
 pgmoil Netpbm
 pgmramp Netpbm
 pgmslice Netpbm
@@ -3943,11 +4955,17 @@ pgmtolispm Netpbm
 pgmtopbm Netpbm
 pgmtopgm Netpbm
 pgmtoppm Netpbm
+pgon-mode Xorg-App
 pgp-clean Signing-Party
 pgp-fixkey Signing-Party
 pgpewrap Mutt
+pgpool Pgpool-II
+pgpool_setup Pgpool-II
 pgpring Mutt
 pgrep Procps Procps-NG
+pgsql2shp PostGIS
+phar PHP
+phar.phar PHP
 pho Pho
 php PHP
 php-cgi PHP
@@ -3962,6 +4980,7 @@ pic2graph Groff
 piconv Perl
 picttoppm Netpbm
 pidgin Pidgin
+pidl Samba
 pidof Procps-NG Sysvinit
 pidstat Sysstat
 pigz Pigz
@@ -3982,13 +5001,16 @@ pinky CoreUtils
 pip PIP
 pip2 PIP
 pip2.7 PIP
+pip3 Python
+pip3.8 Python
 pips Scripts
 pivot_root Util-Linux-NG
+pixeltest Xorg-App
 pixeltool Qt
 pjtoppm Netpbm
 pk-example-frobnicate Polkit
 pk12util NSS
-pk2bm TeTeX
+pk2bm TeTeX TeXLive
 pk_decrypt MbedTLS
 pk_encrypt MbedTLS
 pk_sign MbedTLS
@@ -3997,13 +5019,15 @@ pkaction Polkit
 pkcheck Polkit
 pkcs1-conv Nettle
 pkexec Polkit
+pkfix TeXLive
+pkfix-helper TeXLive
 pkg-config Pkgconfig
 pkgdata LibICU4C
 pkill Procps Procps-NG
-pktogf TeTeX
+pktogf TeTeX TeXLive
 pktopbm Netpbm
 pkttyagent Polkit
-pktype TeTeX
+pktype TeTeX TeXLive
 pl SWI-Prolog
 pl2pm Perl
 plasma KDE-Base-Workspace
@@ -4014,6 +5038,7 @@ plasmaengineexplorer KDE-Base-Workspace
 plasmapkg KDE-Base-Runtime KDE-Base-Workspace
 plasmawallpaperviewer KDE-Base-Workspace
 plasmoidviewer KDE-Base-Workspace
+platex TeXLive
 playbucket NAS
 playsound SDL_sound
 playsound_simple SDL_sound
@@ -4021,18 +5046,24 @@ pldd Glibc
 plipconfig Net-Tools
 plld SWI-Prolog
 plrc SWI-Prolog
-pltotf TeTeX
+pltotf TeTeX TeXLive
 pluginviewer Cyrus-SASL
 pmap Procps Procps-NG
 pmap_dump Portmap
 pmap_set Portmap
 pmount Pmount
 pmount-hal Pmount
+pmpost TeXLive
 pmt-ehd PAM-Mount
 pmt-fd0ssh PAM-Mount
 pmt-ofl PAM-Mount
 pmvarrun PAM-Mount
+pmx2pdf TeXLive
+pmxab TeXLive
+pmxchords TeXLive
+pn2pdf TeXLive
 png-fix-itxt LibPNG
+png2icns LibICNS
 png2mng.pl KDE-SDK
 pngfix LibPNG
 pngtogd GD
@@ -4108,10 +5139,25 @@ pod2usage Perl Perl-Pod-Parser
 podchecker Perl Perl-Pod-Parser
 podselect Perl Perl-Pod-Parser
 podtohtml Perl-PodToHTML
+point Xorg-App
+point-clip Xorg-App
+point-param Xorg-App
+point-sprite Xorg-App
+point-wide Xorg-App
+point-wide-smooth Xorg-App
+pointblast Xorg-App
+pointcoord Xorg-App
+points Xorg-App
 poldi-ctrl PAM-Poldi
 policyeditor IcedTea-Web
-policytool IcedTea8 Sun-JDK Sun-JRE
-pooltype TeTeX
+policytool IcedTea8 JDK JRE Sun-JDK Sun-JRE
+poly Xorg-App
+poly-flat Xorg-App
+poly-flat-clip Xorg-App
+poly-flat-unfilled-clip Xorg-App
+poly-unfilled Xorg-App
+pommed Pommed-Light
+pooltype TeTeX TeXLive
 poppler-glib-demo Poppler
 populate-dock.sh Kiba-Dock
 portmap Portmap
@@ -4122,10 +5168,14 @@ postcat Postfix
 postconf Postfix
 postdrop Postfix
 postfix Postfix
+postgres PostgreSQL
+postgresql Pg_Bulkload
 postkick Postfix
 postlock Postfix
 postlog Postfix
 postmap Postfix
+postmaster PostgreSQL
+postprocessing_benchmark LibRaw
 postqueue Postfix
 postsuper Postfix
 poweroff Sysvinit
@@ -4138,6 +5188,7 @@ ppdi CUPS
 ppdmerge CUPS
 ppdpo CUPS
 pphs Ghostscript
+ppltotf TeXLive
 ppm2tiff TIFF
 ppm3d Netpbm
 ppmbrighten Netpbm
@@ -4219,12 +5270,17 @@ pppoe-status RP-PPPoE
 pppoe-stop RP-PPPoE
 pppstats PPP
 pprof2calltree KDE-SDK
+pptp PPTP
+pptpsetup PPTP
 pr CoreUtils
 pre-grohtml Groff
 precat Aspell
 preconv Groff
+prefcnt Dwarves
 preparetips KDE-Libs
+prepmx TeXLive
 prerr.properties NSPR
+present3D OpenSceneGraph
 preunzip Aspell
 prezip Aspell
 prezip-bin Aspell
@@ -4237,28 +5293,34 @@ procan Socat
 procinfo Procinfo
 profiles Samba
 progman Wine
+proj Proj
+projtex Xorg-App
 propwatch Xawtv
 proto KSH
 proto.old KSH
 protoc ProtoBuf
 prove Perl Perl-Test-Harness
+proxychains4 ProxyChains
 proxymngr Xorg Xorg-App
 prtstat Psmisc
 prune Graphviz
 pruneemptydirs KDE-SDK
 ps Procps Procps-NG
 ps2ascii ESP-Ghostscript GNU-Ghostscript Ghostscript
+ps2eps TeXLive
 ps2epsi ESP-Ghostscript GNU-Ghostscript Ghostscript
-ps2frag TeTeX
+ps2frag TeTeX TeXLive
 ps2pdf ESP-Ghostscript GNU-Ghostscript Ghostscript
 ps2pdf12 ESP-Ghostscript GNU-Ghostscript Ghostscript
 ps2pdf13 ESP-Ghostscript GNU-Ghostscript Ghostscript
 ps2pdf14 ESP-Ghostscript GNU-Ghostscript Ghostscript
 ps2pdfwr ESP-Ghostscript GNU-Ghostscript Ghostscript
-ps2pk TeTeX
+ps2pk TeTeX TeXLive
 ps2ps ESP-Ghostscript GNU-Ghostscript Ghostscript
 ps2ps2 Ghostscript
-ps4pdf TeTeX
+ps4pdf TeTeX TeXLive
+psbook TeXLive
+pscap LibCap-NG
 psed Perl
 psfaddtable KBD
 psfgettable KBD
@@ -4268,24 +5330,35 @@ psicc LCMS
 psiconv Psiconv
 psiconv-config Psiconv
 psidtopgm Netpbm
+psjoin TeXLive
 psktool GnuTLS Gnutls
-pslatex TeTeX
+pslatex TeTeX TeXLive
 psmandup A2PS
+psnup TeXLive
 pspell-config Aspell
+psql PostgreSQL
+psresize TeXLive
+psselect TeXLive
 psset A2PS
+pst2pdf TeXLive
 pstoimg LaTeX2HTML
 pstopnm Netpbm
+pstops TeXLive
 pstree Psmisc
 pstree.x11 Psmisc
 pstruct Perl
 ptar Perl Perl-Archive-Tar
 ptardiff Perl Perl-Archive-Tar
 ptargrep Perl
+ptex TeXLive
+ptex2pdf TeXLive
+ptftopl TeXLive
 pth-config PTH
 ptx CoreUtils
 puid LibTunepimp
 pulseaudio PulseAudio
 pumount Pmount
+purifyeps TeXLive
 purple-client-example Pidgin
 purple-remote Pidgin
 purple-send Pidgin
@@ -4295,6 +5368,7 @@ putsurface LibVA
 pv PV
 pv.sh ESP-Ghostscript GNU-Ghostscript Ghostscript
 pvchange LVM2
+pvck LVM2
 pvcreate LVM2
 pvdisplay LVM2
 pvmove LVM2
@@ -4310,8 +5384,13 @@ pwdx Procps Procps-NG
 pwmconfig LM-Sensors
 pwunconv Shadow
 pxelinux-options SYSLINUX
+pyalacarte WxPython
+pyalamode WxPython
+pycrust WxPython
 pydoc Python
 pydoc3 Python
+pydoc3.8 Python
+pygmentex TeXLive
 pygmentize Pygments
 pygtk-codegen-2.0 PyGTK
 pygtk-demo PyGTK
@@ -4320,9 +5399,12 @@ pylint-gui.bat Python
 pylint.bat Python
 pylupdate KDE-Bindings PyQt
 pylupdate4 PyQt
+pylupdate5 PyQt
 pyrcc4 PyQt
+pyrcc5 PyQt
 pyreverse.bat Python
 pyrexc Pyrex
+pyshell WxPython
 python Python
 python-config Python
 python2 Python
@@ -4337,14 +5419,20 @@ python3 Python
 python3-config Python
 python3.0 Python
 python3.0-config Python
-python3.1 Python
 python3.1-config Python
+python3.8 Python
+python3.8-config Python
+pythontex TeXLive
 pythoscope Pythoscope
 pyuic KDE-Bindings PyQt
 pyuic4 PyQt
+pyuic5 PyQt
+pywrap WxPython
+pywxrc WxPython
 qalc LibQalculate
 qalculate Qalculate-KDE
 qalculate-kde Qalculate-KDE
+qcatool-qt5 QCA
 qcatool2 QCA
 qcatool2.debug QCA
 qcollectiongenerator Qt
@@ -4408,10 +5496,12 @@ qemu-system-sh4 QEMU
 qemu-system-sh4eb QEMU
 qemu-system-sparc QEMU
 qemu-system-sparc64 QEMU
+qemu-system-tricore QEMU
 qemu-system-unicore32 QEMU
 qemu-system-x86_64 QEMU
 qemu-system-xtensa QEMU
 qemu-system-xtensaeb QEMU
+qemu-tilegx QEMU
 qemu-unicore32 QEMU
 qemu-x86_64 QEMU
 qfbsp QuakeForge
@@ -4439,7 +5529,30 @@ qtdoc KDE-SDK
 qtparted QtParted
 qttracereplay Qt
 qtv QuakeForge
+quad Xorg-App
+quad-clip Xorg-App
+quad-clip-all-vertices Xorg-App
+quad-clip-nearplane Xorg-App
+quad-degenerate Xorg-App
+quad-flat Xorg-App
+quad-offset-factor Xorg-App
+quad-offset-unfilled Xorg-App
+quad-offset-units Xorg-App
+quad-tex-2d Xorg-App
+quad-tex-3d Xorg-App
+quad-tex-alpha Xorg-App
+quad-tex-pbo Xorg-App
+quad-tex-sub Xorg-App
+quad-unfilled Xorg-App
+quad-unfilled-clip Xorg-App
+quad-unfilled-stipple Xorg-App
+quads Xorg-App
+quadstrip Xorg-App
+quadstrip-clip Xorg-App
+quadstrip-cont Xorg-App
+quadstrip-flat Xorg-App
 quvi Quvi
+qv4l2 V4L-Utils
 qvlc VLC
 qw-client-fbdev QuakeForge
 qw-client-glx QuakeForge
@@ -4450,8 +5563,10 @@ qw-client-x11 QuakeForge
 qw-master QuakeForge
 qw-server QuakeForge
 r++ KDevelop
+r8tohdf HDF4
 radeontool Radeontool
 radio Xawtv
+ragel Ragel
 rake Ruby
 ramsize Util-Linux
 randpkt Wireshark
@@ -4464,16 +5579,19 @@ rarp Net-Tools
 rarpd IPUtils
 ras2tiff TIFF
 rasqal-config Rasqal
+raster2pgsql PostGIS
 rasttopnm Netpbm
 ratz KSH
 ratz.old KSH
 raw Util-Linux
+raw-identify LibRaw
 raw2gif Giflib
 raw2tiff TIFF
 raw_mouseinfo ConfigTools
 rawshark Wireshark
 rawtopgm Netpbm
 rawtoppm Netpbm
+ray Xorg-App
 rbkconfig_compiler4 KDE-Bindings
 rbqtapi KDE-Bindings Qt4-QtRuby
 rbqtsh Qt4-QtRuby
@@ -4490,18 +5608,27 @@ rcssmodtest RCSSBase
 rcssmonitor_classic RCSSMonitor-classic
 rcssserver RCSSServer
 rctest Bluez
+rcvboxautostart-service VirtualBox
+rcvboxballoonctrl-service VirtualBox
+rcvboxdrv VirtualBox
+rcvboxweb-service VirtualBox
 rdate Rdate
 rdesktop Rdesktop
+rdesktop-vrdp VirtualBox
 rdev Util-Linux
 rdfindexer Strigi
 rdfproc Redland
 rdisc IPUtils
-rdjpgcom JPEG
+rdjpgcom JPEG LibJPEG-Turbo
 rdoc Ruby
+rds-ctl V4L-Utils
+re2c Re2c
 reLyX Lyx
 readcd CDRTools
 readelf BinUtils
 readlink CoreUtils
+readpix Xorg-App
+readpixels Xorg-App
 readprofile Util-Linux-NG
 real_install CoreUtils
 real_xmlcatalog LibXML2
@@ -4510,6 +5637,7 @@ realplay RealPlayer
 reboot Sysvinit
 recode-sr-latin Gettext
 record Xawtv
+recordmydesktop RecordMyDesktop
 red Ed
 redis-benchmark Redis
 redis-cli Redis
@@ -4517,12 +5645,18 @@ redis-server Redis
 redland-config Redland
 redland-db-upgrade Redland
 refer Groff
+reflect Xorg-App
 regcomp OpenOffice
+regdiff Samba
 regedit Wine
 regmerge OpenOffice
+regpatch Samba
 regress KSH
+regshell Samba
 regsvr32 Wine
+regtree Samba
 regview OpenOffice
+reindexdb PostgreSQL
 reiserfsck ReiserFSProgs
 reiserfstune ReiserFSProgs
 reject CUPS
@@ -4532,8 +5666,10 @@ remsync SharUtils
 rename Util-Linux-NG
 rendercheck Xorg Xorg-App
 renice Util-Linux-NG
+renormal Xorg-App
 reordercap Wireshark
 replace MySQL
+repstopdf TeXLive
 req_app MbedTLS
 request-key KeyUtils
 reset Ncurses NcursesW
@@ -4560,12 +5696,14 @@ rfcomm Bluez Bluez-Utils
 rfkill RFKill
 rftp Expect
 rgb2gif Giflib
+rgb2pct.py GDAL
 rgb2ycbcr TIFF
 rgb3toppm Netpbm
 rgrep Jed
 rgview Vim
 rgvim Vim
 ri Ruby
+ristosds HDF4
 rlatopam Netpbm
 rletopnm Netpbm
 rlocate Rlocate
@@ -4577,9 +5715,9 @@ rm CoreUtils
 rman PolyglotMan
 rmcp NilFS-Utils
 rmdir CoreUtils
-rmic IcedTea8 Sun-JDK
-rmid IcedTea8 Sun-JDK Sun-JRE
-rmiregistry IcedTea8 Sun-JDK Sun-JRE
+rmic IcedTea8 JDK Sun-JDK
+rmid IcedTea8 JDK JRE Sun-JDK Sun-JRE
+rmiregistry IcedTea8 JDK JRE Sun-JDK Sun-JRE
 rmmod Kmod Module-Init-Tools
 rmt Tar
 rnano Nano
@@ -4603,6 +5741,7 @@ routel IPRoute2
 rpcclient Samba
 rpcgen Glibc
 rpcinfo Glibc
+rpdfcrop TeXLive
 rpm RPM
 rpm2cpio RPM
 rpmbuild RPM
@@ -4637,17 +5776,20 @@ rtmon IPRoute2
 rtorrent RTorrent
 rtpr IPRoute2
 rtstat IPRoute2
-rubibtex TeTeX
+rubibtex TeTeX TeXLive
+rubikrotation TeXLive
 ruby Ruby
 rule_generator.functions Udev
-rumakeindex TeTeX
+rumakeindex TeTeX TeXLive
 run-with-aspell Aspell
+run_erl Erlang
 run_qtparted QtParted
 runant.pl Apache-Ant
 runant.py Apache-Ant
 runcon CoreUtils
 rundig HtDig
 runghc GHC GHC-Bin
+rungs TeXLive
 runhaskell GHC GHC-Bin
 runhugs Hugs
 runit Runit
@@ -4670,16 +5812,30 @@ s2disk Uswsusp
 s2p Perl
 s2ram Uswsusp
 s3backer S3Backer
+s3fs S3FS-FUSE
 s3put Boto
 s3w S3W
 sa ACCT
 sadf Sysstat
 safe_finger TCPWrappers
 safestartkde KDE-Base-Workspace
+saga_cmd SAGA
+saga_gui SAGA
+samba Samba
+samba-regedit Samba
+samba-tool Samba
+samba_dnsupdate Samba
+samba_kcc Samba
+samba_spnupdate Samba
+samba_upgradedns Samba
 sampler2_0 OpenMotif
+samplers Xorg-App
+samplers_array Xorg-App
+sancov LLVM
 sane-config Sane-Backends
 sane-find-scanner Sane-Backends
 saned Sane-Backends
+sanstats LLVM
 sar Sysstat
 sash Sash
 saslauthd Cyrus-SASL Cyrus-Sasl
@@ -4687,11 +5843,16 @@ sasldblistusers2 Cyrus-SASL Cyrus-Sasl
 saslpasswd2 Cyrus-SASL Cyrus-Sasl
 savetextmode SVGALib
 sbase LibreOffice OpenOffice
+sbcdec SBC
+sbcenc SBC
+sbcinfo SBC
 sbigccd KDE-Edu
 sbigtopgm Netpbm
 scalc LibreOffice OpenOffice
 scalixadmin KDE-PIM
 scalixwizard KDE-PIM
+scan-build Clang
+scan-view Clang
 scandeps.pl Perl-Module-ScanDeps
 scanimage Sane-Backends
 scanpci Xorg
@@ -4699,21 +5860,26 @@ sccmap Graphviz
 scdaemon GnuPG
 scgcheck CDRTools
 scgskeleton CDRTools
-schemagen IcedTea8 Sun-JDK
+schemagen IcedTea8 JDK Sun-JDK
 schematest KDE-PIM
 scim Scim
 scim-config-agent Scim
 scim-panel-kde KDE-Libs
 scim-setup Scim
 sclient Kerberos
+scmp_sys_resolver LibSeccomp
+scncopy Dwarves
 scons SCons
 scons-time SCons
 sconsign SCons
+scor2prt TeXLive
 scorched3d Scorched3D
 scorched3dc Scorched3D
 scorched3ds Scorched3D
 scp OpenSSH
+scr-bx BitchX
 screen Screen
+screen.old Screen
 script Util-Linux-NG
 scriptreplay Util-Linux-NG
 scrollkeeper-config Scrollkeeper
@@ -4732,10 +5898,13 @@ scrollkeeper-uninstall Scrollkeeper
 scrollkeeper-update Scrollkeeper
 scsi_id Udev
 scsi_info Pcmcia-CS
+sctp_darn LKSCPT-Tools
+sctp_status LKSCPT-Tools
+sctp_test LKSCPT-Tools
 sdbadmin Boto
 sdiff DiffUtils
 sdl-config SDL
-sdl2-config SDL2
+sdl2-config SDL SDL2
 sdptool Bluez Bluez-Utils
 sdraw LibreOffice OpenOffice
 secpolicy KDE-Admin
@@ -4751,14 +5920,15 @@ sensors LM-Sensors
 sensors-conf-convert LM-Sensors
 sensors-detect LM-Sensors
 seq CoreUtils
-serialver IcedTea8 Sun-JDK
-servertool IcedTea8 Sun-JDK Sun-JRE
+serialver IcedTea8 JDK Sun-JDK
+servertool IcedTea8 JDK JRE Sun-JDK Sun-JRE
 servicemenudeinstallation KDE-Base
 servicemenuinstallation KDE-Base
 sessreg Xorg Xorg-App
 setDate OpenMotif
 set_color Fish
 setarch Util-Linux-NG
+setcap LibCap
 setcifsacl CIFS-Utils
 setfacl ACL
 setfattr ATTR
@@ -4778,6 +5948,7 @@ setuprc LibreOffice
 setvtrgb KBD
 setxkbmap Xorg Xorg-App
 sexp-conv Nettle
+sfcgal-config SFCGAL
 sfconvert Audiofile
 sfddiff Fontforge
 sfdisk Util-Linux-NG
@@ -4797,7 +5968,12 @@ sha224sum CoreUtils
 sha256sum CoreUtils
 sha384sum CoreUtils
 sha512sum CoreUtils
+shadow_sampler Xorg-App
+shadowtex Xorg-App
+shape Xorg-App
 shar SharUtils
+sharedtex Xorg-App
+sharedtex_mt Xorg-App
 sharesec Samba
 shasum Perl
 shcomp KSH
@@ -4808,17 +5984,25 @@ showkey KBD
 showqt Xawtv
 showrgb Xorg Xorg-App
 showriff Xawtv
+shp2pgsql PostGIS
+shp2pgsql-gui PostGIS
 shred CoreUtils
+shtest Xorg-App
 shuf CoreUtils
 shutdown Sysvinit
 shutterbug Fox
 sig2dot Signing-Party
 signcode Mono
+sigtool Clamav
 silent KSH
 sim_client Kerberos
 sim_server Kerberos
+simpdftex TeXLive
+simple_dcraw LibRaw
 simpledrop OpenMotif
+simplex-noise Xorg-App
 simpress LibreOffice OpenOffice
+singlebuffer Xorg-App
 sip KDE-Bindings SIP
 sirtopnm Netpbm
 siteconfig WzdFTPd
@@ -4827,15 +6011,21 @@ sitewho WzdFTPd
 sithwm Sithwm
 size BinUtils
 size86 Bin86
+sjisconv TeXLive
+sjislatex TeXLive
+sjispdflatex TeXLive
 skdump LibATASmart
 skel CDRTools
 skill Procps
 skim KDE-Libs
+skinning Xorg-App
 sktest LibATASmart
 skycommander KDE-Edu
 skype Skype
 skype-action-handler KDE-Network
+skypeforlinux Skype
 slabtop Procps Procps-NG
+slack Slack-Desktop
 slapacl OpenLDAP
 slapadd OpenLDAP
 slapauth OpenLDAP
@@ -4871,6 +6061,7 @@ smbspool Samba
 smbstatus Samba
 smbta-util Samba
 smbtar Samba
+smbtorture Samba
 smbtree Samba
 smbumount Samba
 smcs Mono
@@ -4893,6 +6084,28 @@ sndfile-regtest LibSndfile
 sndfile-resample LibSamplerate
 sndfile-salvage LibSndfile
 snice Procps
+snmp-bridge-mib Net-SNMP
+snmpbulkget Net-SNMP
+snmpbulkwalk Net-SNMP
+snmpcheck Net-SNMP
+snmpconf Net-SNMP
+snmpd Net-SNMP
+snmpdelta Net-SNMP
+snmpdf Net-SNMP
+snmpget Net-SNMP
+snmpgetnext Net-SNMP
+snmpinform Net-SNMP
+snmpnetstat Net-SNMP
+snmpset Net-SNMP
+snmpstatus Net-SNMP
+snmptable Net-SNMP
+snmptest Net-SNMP
+snmptranslate Net-SNMP
+snmptrap Net-SNMP
+snmptrapd Net-SNMP
+snmpusm Net-SNMP
+snmpvacm Net-SNMP
+snmpwalk Net-SNMP
 sntp NTP
 soapsuds Mono
 socat Socat
@@ -4914,23 +6127,35 @@ soundstretch SoundTouch
 soundtoh NAS
 spadmin LibreOffice
 spctoppm Netpbm
+spd-conf Speech-Dispatcher
+spd-say Speech-Dispatcher
+spdsend Speech-Dispatcher
 speaker-test ALSA-Utils
+spectex Xorg-App
 specto Specto
+speech-dispatcher Speech-Dispatcher
 speexdec Speex
 speexenc Speex
 spell Ispell
 spicec SPICE
+spicy Spice-GTK
+spicy-screenshot Spice-GTK
+spicy-stats Spice-GTK
 splain Perl
 split CoreUtils
 split2po KDE-SDK
+splitindex TeXLive
 spotlight2kvtml KDE-Edu
 spottopgm Netpbm
 springgraph Signing-Party
+spriteblast Xorg-App
 sprof Glibc
 sputoppm Netpbm
 sqlite SQLite Sqlite
 sqlite3 SQLite Sqlite
+sqlite3_analyzer Tcl
 sqlsharp Mono
+srcredact TeXLive
 srptool GnuTLS Gnutls
 ss IPRoute2
 sserver Kerberos
@@ -4949,18 +6174,24 @@ ssl_mail_client MbedTLS
 ssl_pthread_server MbedTLS
 ssl_server MbedTLS
 ssmtp SSMTP
+stap SystemTap
+stap-merge SystemTap
+stap-report SystemTap
+stap-server SystemTap
+staprun SystemTap
+stapsh SystemTap
 start-pulseaudio-x11 PulseAudio
 startGroovy Groovy
 startGroovy.bat Groovy
 start_kdeinit KDE-Libs
 start_kdeinit_wrapper KDE-Libs
 startkde KDE-Base KDE-Base-Workspace
-startup.jar Eclipse
-startup.sh OpenOffice
 startx Xorg Xorg-App
 startxfce4 XFCE-Utils
 stat CoreUtils
 stdbuf CoreUtils
+stex3d Xorg-App
+stinit St-Mt
 strace Strace
 strace-graph Strace
 strace-log-merge Strace
@@ -4976,7 +6207,9 @@ strip BinUtils
 stty CoreUtils
 stunbdc LibNice
 stund LibNice
+sty2dtx TeXLive
 su CoreUtils Shadow
+sub-tex Xorg-App
 subtitles Xawtv
 sudo Sudo
 sudoedit Sudo
@@ -4992,13 +6225,16 @@ svlogd Runit
 svm Perl-SVN-Mirror
 svn Subversion
 svn-clean KDE-SDK
+svn-multi TeXLive
 svn2dist KDE-SDK
 svnaddcurrentdir KDE-SDK
 svnadmin Subversion
 svnbackport KDE-SDK
+svnbench Subversion
 svnchangesince KDE-SDK
 svndumpfilter Subversion
 svnforwardport KDE-SDK
+svnfsfs Subversion
 svngettags KDE-SDK
 svnintegrate KDE-SDK
 svnlastchange KDE-SDK
@@ -5012,6 +6248,7 @@ svnsync Subversion
 svnversion Subversion
 svnversions KDE-SDK
 swap-offset Uswsusp
+swapbuffers Xorg-App
 swapoff Util-Linux-NG
 swapon Util-Linux-NG
 swappo KDE-SDK
@@ -5019,6 +6256,7 @@ swat Samba
 sweeper KDE-Utils KDE-Webdev
 swig SWIG
 swriter LibreOffice OpenOffice
+sxiv SXIV
 sxpm Xorg Xorg-Lib
 symilar.bat Python
 sync CoreUtils
@@ -5026,7 +6264,9 @@ synclient Synaptics Xorg-Driver
 syncml-http-client LibSyncML
 syncml-http-server LibSyncML
 syncml-obex-client LibSyncML
+synctex TeXLive
 syndaemon Synaptics Xorg-Driver
+syscse Dwarves
 sysctl Procps Procps-NG
 syslinux SYSLINUX
 syslinux2ansi SYSLINUX
@@ -5034,6 +6274,18 @@ syslogd Sysklogd
 systemsettings KDE-Base-Workspace
 systool SysFSUtils
 sysvlp.sh GNU-Ghostscript
+t1ascii TeXLive
+t1asm TeXLive
+t1binary TeXLive
+t1disasm TeXLive
+t1dotlessj TeXLive
+t1lint TeXLive
+t1mac TeXLive
+t1rawafm TeXLive
+t1reencode TeXLive
+t1testpage TeXLive
+t1unmac TeXLive
+t4ht TeXLive
 tab2space HTML-Tidy
 tabs Ncurses NcursesW
 tabstack OpenMotif
@@ -5044,7 +6296,8 @@ tagtool AudioTagTool
 tail CoreUtils
 tailf Util-Linux-NG
 talk InetUtils
-tangle TeTeX
+tangle TeTeX TeXLive
+tapestat Sysstat
 tar Tar
 taskadmin Boto
 taskcoach.py TaskCoach
@@ -5055,24 +6308,39 @@ tc IPRoute2
 tcb_convert TCB
 tcb_unconvert TCB
 tcc TCC
+tccat Transcode
+tcdecode Transcode
+tcdemux Transcode
 tcdialog TeTeX
+tcextract Transcode
 tclsh Tcl
 tclsh8.4 Tcl
 tclsh8.5 Tcl
 tclsh8.6 Tcl
+tcmodinfo Transcode
+tcmp3cut Transcode
 tcpd TCPWrappers
 tcpdchk TCPWrappers
 tcpdmatch TCPWrappers
+tcprobe Transcode
+tcscan Transcode
+tcxmlcheck Transcode
+tcxpm2rgb Transcode
+tcyait Transcode
 tdbbackup Samba
 tdbdump Samba
 tdbrestore Samba
 tdbtool Samba
+teapot Xorg-App
+teckit_compile TeXLive
 tee CoreUtils
 telinit Sysvinit
 telnet InetUtils Kerberos Netkit-Telnet
 telnetd Kerberos
 temma KDE-Edu
 terminal Terminal
+terrain Xorg-App
+tessdemo Xorg-App
 test CoreUtils
 test-moniker LibBonoboui
 test_bitcoin Bitcoin
@@ -5081,6 +6349,7 @@ test_extdate KDE-Edu
 test_extdatepicker KDE-Edu
 test_physfs PhysicsFS
 test_xauth Xorg-App
+testepsg GDAL
 testgdbm GDBM
 testlibraw LibRaw1394
 testlibsysfs SysFSUtils
@@ -5088,42 +6357,75 @@ testparm Samba
 testpattern Gutenprint
 testrb Ruby
 testsaslauthd Cyrus-SASL
-tex TeTeX
+tex TeTeX TeXLive
+tex-quads Xorg-App
 tex2lyx LyX
-texconfig TeTeX
-texconfig-dialog TeTeX
-texconfig-sys TeTeX
-texdoc TeTeX
-texdoctk TeTeX
-texexec TeTeX
+tex2xindy TeXLive
+tex4ebook TeXLive
+tex4ht TeXLive
+texaaline Xorg-App
+texconfig TeTeX TeXLive
+texconfig-dialog TeTeX TeXLive
+texconfig-sys TeTeX TeXLive
+texcount TeXLive
+texcyl Xorg-App
+texdef TeXLive
+texdemo1 Xorg-App
+texdiff TeXLive
+texdirflatten TeXLive
+texdoc TeTeX TeXLive
+texdoctk TeTeX TeXLive
+texenv Xorg-App
+texexec TeTeX TeXLive
 texexpand LaTeX2HTML
 texfind TeTeX
 texfont TeTeX
-texhash TeTeX
+texfot TeXLive
+texhash TeTeX TeXLive
 texi2any Texinfo
 texi2dvi TeTeX Texinfo
 texi2dvi4a2ps A2PS
 texi2html TeTeX
 texi2pdf TeTeX Texinfo
+teximage Xorg-App
 texindex TeTeX Texinfo
+texindy TeXLive
 texinfo2man Indent
-texlinks TeTeX
+texlinks TeTeX TeXLive
+texliveonfly TeXLive
+texloganalyser TeXLive
+texlua TeXLive
+texluac TeXLive
+texluajit TeXLive
+texluajitc TeXLive
 texmacs TeXmacs
 texmapper TORCS
+texmfstart TeXLive
+texosquery TeXLive
+texosquery-jre5 TeXLive
+texosquery-jre8 TeXLive
 texshow TeTeX
+texsis TeXLive
 text2gif Giflib
 text2pcap Wireshark
 textmode SVGALib
+texture_from_pixmap Xorg-App
+textures Xorg-App
 texutil TeTeX
 tfmtodit Groff
-tftopl TeTeX
+tftopl TeTeX TeXLive
 tftp InetUtils TFTP-HPA
 tftpd IPUtils
 tgatoppm Netpbm
+tgt-admin TGT
+tgt-setup-lun TGT
+tgtadm TGT
+tgtd TGT
+tgtimg TGT
 tgz MTools
 thinkjettopbm Netpbm
 thumbnail TIFF
-thumbpdf TeTeX
+thumbpdf TeTeX TeXLive
 thunar Thunar
 thunar-volman Thunar-Volman
 thunderbird Thunderbird
@@ -5131,7 +6433,7 @@ thunderbird-config Thunderbird
 tic Ncurses NcursesW
 tickadj NTP
 tidy HTML-Tidy
-tie TeTeX
+tie TeTeX TeXLive
 tiff2bw TIFF
 tiff2pdf TIFF
 tiff2ps TIFF
@@ -5154,12 +6456,17 @@ timed-read Expect
 timed-run Expect
 timeout CoreUtils
 timidity TiMidity++
+tinyproxy TinyProxy
+tjbench LibJPEG-Turbo
+tkmib Net-SNMP
 tknewsbiff Expect
 tkpasswd Expect
+tlmgr TeXLive
 tload Procps Procps-NG
 tmrdemo Jasper
 tmux Tmux
-tnameserv IcedTea8 Sun-JDK Sun-JRE
+tnameserv IcedTea8 JDK JRE Sun-JDK Sun-JRE
+to_erl Erlang
 toc2cddb CDRDAO
 toc2cue CDRDAO
 toc2mp3 CDRDAO
@@ -5173,7 +6480,10 @@ tor-resolve Tor
 torcs TORCS
 torify Tor
 touch CoreUtils
+touchpad-edge-detector LibEvdev
+toyball Xorg-App
 tp_tagger LibTunepimp
+tpic2pdftex TeXLive
 tptestclient TPTest
 tput Ncurses NcursesW
 tr CoreUtils
@@ -5182,6 +6492,7 @@ tracepath6 IPUtils
 traceroute InetUtils TraceRoute
 traceroute6 IPUtils
 trackgen TORCS
+transcode Transcode
 transicc LCMS
 transmission Transmission
 transmission-cli Transmission
@@ -5192,10 +6503,84 @@ transmission-gtk Transmission
 transmission-remote Transmission
 transmission-show Transmission
 transmissioncli Transmission
+transset Xorg-App
 transxx KDE-SDK
+traptoemail Net-SNMP
 trash Trash
 tred Graphviz
 tree OpenMotif Tree
+tri Xorg-App
+tri-2101010-dlist Xorg-App
+tri-alpha Xorg-App
+tri-alpha-tex Xorg-App
+tri-array-interleaved Xorg-App
+tri-blend Xorg-App
+tri-blend-color Xorg-App
+tri-blend-max Xorg-App
+tri-blend-min Xorg-App
+tri-blend-revsub Xorg-App
+tri-blend-sub Xorg-App
+tri-clear Xorg-App
+tri-clip Xorg-App
+tri-cull Xorg-App
+tri-cull-both Xorg-App
+tri-dlist Xorg-App
+tri-edgeflag Xorg-App
+tri-edgeflag-array Xorg-App
+tri-edgeflag-pv Xorg-App
+tri-fbo Xorg-App
+tri-fbo-tex Xorg-App
+tri-fbo-tex-mip Xorg-App
+tri-flat Xorg-App
+tri-flat-clip Xorg-App
+tri-fog Xorg-App
+tri-fp Xorg-App
+tri-fp-const-imm Xorg-App
+tri-lit Xorg-App
+tri-lit-material Xorg-App
+tri-logicop-none Xorg-App
+tri-logicop-xor Xorg-App
+tri-mask-tri Xorg-App
+tri-multitex-vbo Xorg-App
+tri-orig Xorg-App
+tri-point-line-clipped Xorg-App
+tri-query Xorg-App
+tri-repeat Xorg-App
+tri-rotate Xorg-App
+tri-scissor-tri Xorg-App
+tri-square Xorg-App
+tri-stencil Xorg-App
+tri-stipple Xorg-App
+tri-tex Xorg-App
+tri-tex-1d Xorg-App
+tri-tex-3d Xorg-App
+tri-tex-stipple Xorg-App
+tri-tri Xorg-App
+tri-unfilled Xorg-App
+tri-unfilled-clip Xorg-App
+tri-unfilled-edgeflag Xorg-App
+tri-unfilled-fog Xorg-App
+tri-unfilled-point Xorg-App
+tri-unfilled-smooth Xorg-App
+tri-unfilled-tri Xorg-App
+tri-unfilled-tri-lit Xorg-App
+tri-unfilled-userclip Xorg-App
+tri-unfilled-userclip-stip Xorg-App
+tri-userclip Xorg-App
+tri-viewport Xorg-App
+tri-z Xorg-App
+tri-z-clip Xorg-App
+tri-z-eq Xorg-App
+trifan Xorg-App
+trifan-flat Xorg-App
+trifan-flat-clip Xorg-App
+trifan-flat-unfilled-clip Xorg-App
+trifan-unfilled Xorg-App
+trirast Xorg-App
+trispd Xorg-App
+tristrip Xorg-App
+tristrip-clip Xorg-App
+tristrip-flat Xorg-App
 trm LibTunepimp
 troff Groff
 true CoreUtils
@@ -5213,14 +6598,21 @@ tshark Wireshark
 tsocks Tsocks
 tsort CoreUtils
 tt++ TinTin++
-ttf2afm TeTeX
+ttf2afm TeTeX TeXLive
+ttf2kotexfont TeXLive
+ttf2pk TeXLive
+ttf2tfm TeXLive
+ttfdump TeXLive
 ttfread CUPS-Filters
+ttftotype42 TeXLive
 ttv Xawtv
 tty CoreUtils
 tunctl UML-Utilities
 tune2fs E2FSProgs
 tunefs.reiserfs ProgsReiserFS ReiserFSProgs
 tunelp Util-Linux-NG
+tunnel Xorg-App
+tunnel2 Xorg-App
 tuxpuck TuxPuck
 tv_cat Perl-XMLTV
 tv_extractinfo_ar Perl-XMLTV
@@ -5240,14 +6632,19 @@ tv_validate_grabber Perl-XMLTV
 twm Xorg Xorg-App
 twopi Graphviz
 tworld TileWorld
+twoside Xorg-App
+txt2las LASTools
 type1afm T1Lib
 typelib-dump ORBit2
+typeoutfileinfo TeXLive
+typer Erlang
 tzselect Glibc
+ubuntu-core-launcher Snapd
 uconv LibICU4C
 ucs2any Xorg Xorg-Font
-udevadm Udev
+udevadm Eudev Udev
 udevcontrol Udev
-udevd Udev
+udevd Eudev Udev
 udevinfo Udev
 udevmonitor Udev
 udevsettle Udev
@@ -5261,6 +6658,7 @@ uics KDE-Bindings
 uil Lesstif OpenMotif
 ul Util-Linux-NG
 ulockmgr_server Fuse
+ulqda TeXLive
 umbodoc KDE-SDK
 umbrello KDE-SDK
 uml_mconsole UML-Utilities
@@ -5285,6 +6683,7 @@ unicode_start KBD
 unicode_stop KBD
 uninstaller Wine
 unionfs UnionFS-Fuse
+unionfsctl UnionFS-Fuse
 uniq CoreUtils
 uniqleaf TeTeX
 units Units
@@ -5294,11 +6693,13 @@ unix2mac Dos2Unix
 unix_chkpwd Linux-PAM
 unix_update Linux-PAM
 unlink CoreUtils
+unlz4 LZ4
 unlzma LZMA-Utils XZ-Utils
 uno OpenOffice
 unopkg OpenOffice
-unpack200 IcedTea8 Sun-JDK Sun-JRE
+unpack200 IcedTea8 JDK JRE Sun-JDK Sun-JRE
 unpigz Pigz
+unprocessed_raw LibRaw
 unrar Unrar
 unshar SharUtils
 unsquashfs SquashFS-Tools
@@ -5306,22 +6707,34 @@ unxz XZ-Utils
 unzip Unzip
 unzip-mem ZzipLib
 unzipsfx Unzip
+unzstd Zstd
 unzzip ZzipLib
 unzzipcat ZzipLib
 unzzipcat-mem ZzipLib
 unzzipcat-seeko ZzipLib
 unzzipdir ZzipLib
 unzzipdir-mem ZzipLib
+upbibtex TeXLive
 update-desktop-database Desktop-File-Utils
 update-mime-database Shared-MIME-info
 update-pciids PCIUtils
 update-usbids.sh USBUtils
 updatedb FindUtils Rlocate Slocate
-updmap TeTeX
-updmap-sys TeTeX
+updmap TeTeX TeXLive
+updmap-sys TeTeX TeXLive
+updvitomp TeXLive
+updvitype TeXLive
+uplatex TeXLive
+upmendex TeXLive
+upmpost TeXLive
 upower UPower
+uppltotf TeXLive
+uptex TeXLive
+uptftopl TeXLive
 uptime CoreUtils Procps Procps-NG
 upx UPX
+uriparse LibURIParser
+urlbst TeXLive
 urunner Urunner
 urunnerd Urunner
 urxvt RXVT-Unicode
@@ -5330,11 +6743,13 @@ urxvtd RXVT-Unicode
 usb-devices USBUtils
 usb_id Udev
 usbhid-dump USBUtils
+usbredirserver USBRedir
 useradd Shadow
 userdel Shadow
 usermod Shadow
 users CoreUtils
 usleep Scripts
+utf8mex TeXLive
 utf8trans Docbook2X
 utmpdump Sysvinit
 uuclient Kerberos
@@ -5351,10 +6766,16 @@ uxterm XTerm
 uz MTools
 v4l-conf Xawtv
 v4l-info Xawtv
+v4l2-compliance V4L-Utils
+v4l2-ctl V4L-Utils
+v4l2-dbg V4L-Utils
+v4l2-sysfs-path V4L-Utils
 v4lctl Xawtv
 v4ldriver KDE-Edu
 v4lphilips KDE-Edu
 v4rcp Kerberos
+vacuumdb PostgreSQL
+vacuumlo PostgreSQL
 vainfo LibVA
 vala Vala
 vala-gen-introspect Vala
@@ -5362,15 +6783,36 @@ valac Vala
 valgrind Valgrind
 valgrind-di-server Valgrind
 valgrind-listener Valgrind
+vao_demo Xorg-App
 vapicheck Vala
 vapigen Vala
+varicad-view VariCAD_Viewer
 vbam VBAM
+vbo Xorg-App
+vbo-drawarrays Xorg-App
+vbo-drawelements Xorg-App
+vbo-drawrange Xorg-App
+vbo-noninterleaved Xorg-App
+vbo-tri Xorg-App
+vbox-img VirtualBox
+vboxbugreport VirtualBox
+vboxconfig VirtualBox
+vboxdtrace VirtualBox
+vboxheadless VirtualBox
+vboxmanage VirtualBox
+vboxsdl VirtualBox
+vboxwebsrv VirtualBox
 vcp Perl-VCP-Autrijus
 vcut Vorbis-Tools
 vdir CoreUtils
 vdltodmx Xorg Xorg-Server
+verify-uselistorder LLVM
+veritysetup CryptSetup
 versionrc OpenOffice
-vftovp TeTeX
+vert-or-frag-only Xorg-App
+vert-tex Xorg-App
+vertexrate Xorg-App
+vftovp TeTeX TeXLive
 vgcfgbackup LVM2
 vgcfgrestore LVM2
 vgchange LVM2
@@ -5382,6 +6824,7 @@ vgdisplay LVM2
 vgexport LVM2
 vgextend LVM2
 vgimport LVM2
+vgimportclone LVM2
 vgmerge LVM2
 vgmknodes LVM2
 vgreduce LVM2
@@ -5396,6 +6839,7 @@ videoClient Nucleo
 videoServer Nucleo
 vidmode Util-Linux
 view Vim
+viewer-SFCGAL SFCGAL-viewer
 viewres Xorg Xorg-App
 viewurl-lynx.sh Licq
 viewurl-mozilla.sh Licq
@@ -5410,23 +6854,68 @@ vimdot Graphviz
 vimtutor Vim
 vipw Shadow
 virt_mail Virtuoso
+virtfs-proxy-helper QEMU
+virtualbox VirtualBox
 virtuoso-t Virtuoso
 visudo Sudo
 vkeybd VKeybd
 vlc VLC
 vlc-wrapper VLC
+vlna TeXLive
+vmake HDF4
 vmmouse_detect Xorg-Driver
+vmnet-bridge VMware-Player
+vmnet-dhcpd VMware-Player
+vmnet-natd VMware-Player
+vmnet-netifup VMware-Player
+vmnet-sniffer VMware-Player
+vmplayer VMware-Player
 vmstat Procps Procps-NG
+vmware-authd VMware-Player
+vmware-authdlauncher VMware-Player
+vmware-collect-host-support-info VMware-Player
+vmware-fuseUI VMware-Player
+vmware-gksu VMware-Player
+vmware-installer VMware-Player
+vmware-license-check.sh VMware-Player
+vmware-license-enter.sh VMware-Player
+vmware-load_drivers VMware-Player
+vmware-modconfig VMware-Player
+vmware-mount VMware-Player
+vmware-networks VMware-Player
+vmware-ping VMware-Player
+vmware-uninstall VMware-Player
+vmware-usbarbitrator VMware-Player
+vncconfig TigerVNC
 vncconnect TightVNC
-vncpasswd TightVNC
-vncserver TightVNC
-vncviewer TightVNC
+vncpasswd TigerVNC TightVNC
+vncserver TigerVNC TightVNC
+vncviewer TigerVNC TightVNC
 vol_id Udev
 volname Eject
 vorbiscomment Vorbis-Tools
+vp-array Xorg-App
+vp-array-hf Xorg-App
+vp-array-int Xorg-App
+vp-clip Xorg-App
+vp-line-clip Xorg-App
+vp-tri Xorg-App
+vp-tri-cb Xorg-App
+vp-tri-cb-pos Xorg-App
+vp-tri-cb-tex Xorg-App
+vp-tri-imm Xorg-App
+vp-tri-invariant Xorg-App
+vp-tri-swap Xorg-App
+vp-tri-tex Xorg-App
+vp-unfilled Xorg-App
 vpddecode Dmidecode
-vptovf TeTeX
+vpe TeXLive
+vpl2ovp TeXLive
+vpl2vpl TeXLive
+vptovf TeTeX TeXLive
+vshow HDF4
 vsid VICE
+vsraytrace Xorg-App
 vsyasm Yasm
 vte VTE
 vumeter Gnome-Media
@@ -5437,6 +6926,7 @@ wacomcpl-exec Linuxwacom
 wad QuakeForge
 wall Sysvinit Util-Linux-NG
 watch Procps Procps-NG
+watchdog_setup Pgpool-II
 watchgnupg GnuPG
 wbar Wbar
 wbinfo Samba
@@ -5449,7 +6939,7 @@ wdmLogin WDM
 wdread WindowMaker
 wdwrite WindowMaker
 weather Expect
-weave TeTeX
+weave TeTeX TeXLive
 webcam Xawtv
 webpng GD
 wevents Icon
@@ -5463,7 +6953,9 @@ whoami CoreUtils
 whob LFT
 whois Whois
 widl Wine
+wifi-radar WiFi-Radar
 winbindd Samba
+wincopy Xorg-App
 wine Wine
 wine-kthread Wine
 wine-preloader Wine
@@ -5492,12 +6984,14 @@ winpopup-install KDE-Network
 winpopup-install.sh KDE-Network
 winpopup-send KDE-Network
 winpopup-send.sh KDE-Network
+winpos Xorg-App
 wireshark Wireshark
 wireshark-gtk Wireshark
 wish Tk
 wish8.4 Tk
 wish8.5 Tk
 wish8.6 Tk
+withsctp LKSCPT-Tools
 wkdemenu.pl WindowMaker
 wlanconfig Madwifi
 wm-oldmenu2new WindowMaker
@@ -5512,13 +7006,20 @@ wmf2fig LibWMF
 wmf2gd LibWMF
 wmf2svg LibWMF
 wmf2x LibWMF
+wmgenmenu WindowMaker
+wmiv WindowMaker
+wmmenugen WindowMaker
 wmsetbg WindowMaker
 wmsetup WindowMaker
 wmxmms XMMS
 wnck-urgency-monitor LibWNCK
 wnckprop LibWNCK
+wofm2opl TeXLive
+wopl2ofm TeXLive
 word-list-compress Aspell
 workman2cddb.pl KDE-Multimedia
+wovf2ovp TeXLive
+wovp2ovf TeXLive
 wpa_cli WPA_Supplicant
 wpa_gui WPA_Supplicant
 wpa_passphrase WPA_Supplicant
@@ -5537,12 +7038,12 @@ write Util-Linux-NG
 write_attr SysFSUtils
 write_cd_rules Udev
 write_net_rules Udev
-wrjpgcom JPEG
+wrjpgcom JPEG LibJPEG-Turbo
 wsdl Mono
 wsdl1 Mono
 wsdl2 Mono
-wsgen IcedTea8 Sun-JDK
-wsimport IcedTea8 Sun-JDK
+wsgen IcedTea8 JDK Sun-JDK
+wsimport IcedTea8 JDK Sun-JDK
 wsm OpenMotif
 wtpt LCMS
 wv2-config WV2
@@ -5563,12 +7064,14 @@ wvVersion WV
 wvWare WV
 wvWml WV
 wx-config WxBase WxGTK WxPython WxWidgets
+wx-config.orig WxPython
 wxcopy WindowMaker
 wxpaste WindowMaker
 wxrc WxGTK WxPython WxWidgets
 wxtest_physfs PhysicsFS
 wzd-config WzdFTPd
 wzdftpd WzdFTPd
+x0vncserver TigerVNC
 x11-touchscreen-calibrator X11-Touchscreen-Calibrator
 x11perf Xorg Xorg-App
 x11perfcomp Xorg Xorg-App
@@ -5577,9 +7080,18 @@ x128 VICE
 x264 X264
 x64 VICE
 x64dtv VICE
+x86_64-pc-linux-gnu-c++ GCC
+x86_64-pc-linux-gnu-g++ GCC
+x86_64-pc-linux-gnu-gcc GCC GCC-Fortran
+x86_64-pc-linux-gnu-gcc-ar GCC GCC-Fortran
+x86_64-pc-linux-gnu-gcc-nm GCC GCC-Fortran
+x86_64-pc-linux-gnu-gcc-ranlib GCC GCC-Fortran
+x86_64-pc-linux-gnu-gfortran GCC-Fortran
 x86info X86Info
+xar XAR
 xarchiver Xarchiver
 xargs FindUtils
+xasy TeXLive
 xaumix Aumix
 xauth Xorg Xorg-App
 xauth_switch_to_sun-des-1 Xorg Xorg-App
@@ -5630,9 +7142,13 @@ xdpr Xorg Xorg-App
 xdpyinfo Xorg Xorg-App
 xdriinfo Xorg Xorg-App
 xdt-autogen XFCE4-Dev-Tools
-xdvi TeTeX
+xdvi TeTeX TeXLive
+xdvi-xaw TeXLive
+xdvipdfmx TeXLive
 xdvizilla TeTeX
 xedit Xorg Xorg-App
+xelatex TeXLive
+xetex TeXLive
 xev Xorg Xorg-App
 xeyes Xorg Xorg-App
 xf86gammacfg KDE-Graphics
@@ -5653,6 +7169,7 @@ xfce4-session XFCE4-Session
 xfce4-session-logout XFCE4-Session
 xfce4-taskmanager XFCE4-Taskmanager
 xfce4-tips XFCE4-Session
+xfconf-query XFConf
 xfd Xorg Xorg-App
 xfdesktop XFDesktop
 xfe XFE
@@ -5661,6 +7178,7 @@ xfi XFE
 xfindproxy Xorg Xorg-App
 xflock4 XFCE-Utils
 xfmountdev4 XFCE-Utils
+xfont Xorg-App
 xfontsel Xorg Xorg-App
 xfprint4 XFPrint
 xfprint4-manager XFPrint
@@ -5672,7 +7190,9 @@ xfs_bmap XFSProgs
 xfs_check XFSProgs
 xfs_copy XFSProgs
 xfs_db XFSProgs
+xfs_estimate XFSProgs
 xfs_freeze XFSProgs
+xfs_fsr XFSProgs
 xfs_growfs XFSProgs
 xfs_info XFSProgs
 xfs_io XFSProgs
@@ -5698,9 +7218,13 @@ xgettext.pl Perl-Locale-Maketext-Lexicon
 xglock Xlockmore
 xglyph T1Lib
 xgnokii Gnokii
+xhlatex TeXLive
 xhost Xorg Xorg-App
 xidump Linuxwacom
 ximtoppm Netpbm
+xindy TeXLive
+xindy.mem TeXLive
+xindy.run TeXLive
 xine Xine-UI
 xine-bugreport Xine-UI
 xine-check Xine-UI
@@ -5709,7 +7233,7 @@ xine-remote Xine-UI
 xinit Xorg Xorg-App
 xinput Xorg-App
 xinput_calibrator XInput_Calibrator
-xjc IcedTea8 Sun-JDK
+xjc IcedTea8 JDK Sun-JDK
 xjump XJump
 xkbbell Xorg Xorg-App
 xkbcomp Xorg Xorg-App
@@ -5745,6 +7269,7 @@ xml_spellcheck Perl-XML-Twig
 xml_split Perl-XML-Twig
 xmlcatalog LibXML2 Scripts
 xmlif XMLTO
+xmlindent XMLIndent
 xmlindexer Strigi
 xmllint LibXML2
 xmlock Xlockmore
@@ -5752,6 +7277,7 @@ xmlpatterns Qt
 xmlpatternsvalidator Qt
 xmlproc_parse PyXML
 xmlproc_val PyXML
+xmltex TeXLive
 xmlto XMLTO
 xmlwf Expat
 xmms XMMS
@@ -5765,6 +7291,10 @@ xmore Xorg Xorg-App
 xon Xorg Xorg-App
 xorgcfg Xorg Xorg-Server
 xorgconfig Xorg Xorg-Server
+xorrecord Xorriso
+xorriso Xorriso
+xorriso-tcltk Xorriso
+xorrisofs Xorriso
 xosd-config XOSD
 xpdf Xpdf
 xpet VICE
@@ -5781,10 +7311,13 @@ xpstat Expect
 xpxthelloworld Xorg-App
 xql.pl Perl-XML-XQL
 xrandr Xorg Xorg-App
+xrced WxPython
 xrdb Xorg Xorg-App
 xrefresh Xorg Xorg-App
+xrotfontdemo Xorg-App
 xrx Xorg
 xsane XSane
+xscope Xorg-App
 xscorch-server Xscorch
 xscreensaver XScreenSaver
 xscreensaver-command XScreenSaver
@@ -5852,11 +7385,13 @@ yaf-tplay KDE-Multimedia
 yaf-vorbis KDE-Multimedia
 yaf-yuv KDE-Multimedia
 yafc YAFC
+yaml2obj LLVM
 yapp Perl-Parse-Yapp
 yasm Yasm
 ybmtopbm Netpbm
 yes CoreUtils
 ypdomainname Net-Tools
+yplan TeXLive
 ysh Perl-YAML
 ytasm Yasm
 yuvsplittoppm Netpbm
@@ -5889,8 +7424,14 @@ znew Gzip
 zonetab2pot.py KDE-SDK
 zpak QuakeForge
 zsh ZSH
+zsh.old ZSH
 zsnes ZSNES
 zsoelim Groff Man-DB
+zstd Zstd
+zstdcat Zstd
+zstdgrep Zstd
+zstdless Zstd
+zstdmt Zstd
 zzcat ZzipLib
 zzdir ZzipLib
 zzxorcat ZzipLib
