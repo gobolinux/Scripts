@@ -1,11 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # (C) 2004 Andre Detsch. Released under the GNU GPL.
 
 # GuessLatest
 # Try to guess the most recent package version based on the version number
 
-import types, sys
+import sys
+import types
+import itertools
 from PythonUtils import *
 
 def GuessLatest(versions, stableOnly=0, returnList=0) :
@@ -16,7 +18,7 @@ def GuessLatest(versions, stableOnly=0, returnList=0) :
 			return ""
 
 	def extractVersion(s):
-		if type(parameter) == types.TupleType:
+		if type(parameter) == tuple:
 			l = parameter[0].split("/")
 		else:
 			l = parameter.split("/")
@@ -62,13 +64,13 @@ def GuessLatest(versions, stableOnly=0, returnList=0) :
 				try:
 					internalminors.append(int(i))
 				except:
-					if i in unstable_dict.keys() and minors:
+					if i in list(unstable_dict.keys()) and minors:
 						unstable = 1
 						minors[-1][-1] -= unstable_dict[i]
 					else:
 						internalminors.append(i)
 			if internalminors:
-				minors.append(internalminors)
+				minors += internalminors
 		return minors, unstable
 
 	def splitVersionAndRevision(version_with_revision):
@@ -98,8 +100,8 @@ def GuessLatest(versions, stableOnly=0, returnList=0) :
 		built_versions.append((weight,revision,param_order,parameter))
 		param_order -= 1
 
-	built_versions_stable.sort()
-	built_versions.sort()
+	built_versions_stable = sorted(built_versions_stable)
+	built_versions = sorted(built_versions)
 
 	bv  = [ i[-1] for i in built_versions        ]
 	sbv = [ i[-1] for i in built_versions_stable ]
@@ -139,13 +141,13 @@ if __name__ == '__main__':
 
 	if len(args) < 1:
 		Log_Error("Please pass at least one version number","GuessLatest")
-                sys.exit(1)
+		sys.exit(1)
 
 	r =  GuessLatest(args, just_stable, options.return_list)
 	if options.return_list:
 		r.reverse()
 		for i in r:
-			print i
+			print(i)
 	else:
-		print r
+		print(r)
 

@@ -1,5 +1,5 @@
 
-PYTHON_VERSION=2.7
+PYTHON_VERSION=3.8
 PYTHON_LIBS=FindPackage GetAvailable GuessLatest CheckDependencies DescribeProgram UseFlags Corrections
 PYTHON_SITE=lib/python$(PYTHON_VERSION)/site-packages
 PROGRAM=Scripts
@@ -23,7 +23,7 @@ python:
 	done
 	cd $(PYTHON_SITE) && \
 	for f in *.py; \
-	do python -c "import `basename $$f .py`"; \
+	do python3 -c "import `basename $$f .py`"; \
 	done
 
 clean:

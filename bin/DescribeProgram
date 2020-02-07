@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # (C) 2004 Andre Detsch. Released under the GNU GPL.
 
@@ -63,7 +63,7 @@ def DescribeProgram(p, vr='', descriptionsPaths=[], mode='terminal', updateall=F
 			url = string.join(urls[j].split('/')[:-1], '/') + '/'+ "AllDescriptions.tar.bz2"
 			ret = bash('wget '+url+' -O "/tmp/AllDescriptions.tar.bz2"', 'v')
 			if ret != 0:
-				print 'Failed to download '+url
+				print('Failed to download '+url)
 				continue
 			bash('cd '+localpath+'; tar xvfj /tmp/AllDescriptions.tar.bz2; rm /tmp/AllDescriptions.tar.bz2')
 		return ''
@@ -118,7 +118,7 @@ def DescribeProgram(p, vr='', descriptionsPaths=[], mode='terminal', updateall=F
 				except:
 				    continue
 
-				availableDescriptions = map(string.strip, lines)
+				availableDescriptions = list(map(string.strip, lines))
 				if not updateall:
 					if p in availableDescriptions:
 						programsList = [p]
@@ -135,7 +135,7 @@ def DescribeProgram(p, vr='', descriptionsPaths=[], mode='terminal', updateall=F
 						os.chmod(localpath, os.S_IWOTH)
 
 					base_url = string.join(url.split('/')[:-1], '/')
-					import urllib
+					import urllib.request, urllib.parse, urllib.error
 					try:
 						if os.access(localpath+'/'+name, os.R_OK):
 							os.unlink(localpath+'/'+name)
@@ -144,10 +144,10 @@ def DescribeProgram(p, vr='', descriptionsPaths=[], mode='terminal', updateall=F
 							timeout = 5
 							cmd = 'wget --timeout=%d --quiet %s -O %s && touch %s'%(timeout, base_url+'/'+name, localpath+'/'+name, localpath+'/'+name)
 							os.popen(cmd)
-							print 'has',cmd
+							print('has',cmd)
 						else:
 							try:
-								urllib.urlretrieve(base_url+'/'+name, localpath+'/'+name)
+								urllib.request.urlretrieve(base_url+'/'+name, localpath+'/'+name)
 							except:
 								sys.stderr.write('Timeout\n')
 					except:
@@ -200,8 +200,8 @@ if __name__ == '__main__':
 
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], 'm:aWh', ['mode=', 'update-all', 'no-web', 'help'])
-	except getopt.GetoptError, detail:
-		print sys.argv[0].split('/')[-1]+': '+str(detail)
+	except getopt.GetoptError as detail:
+		print(sys.argv[0].split('/')[-1]+': '+str(detail))
 		sys.exit(1)
 
 	mode = 'terminal'
@@ -215,7 +215,7 @@ if __name__ == '__main__':
 		elif o in ['--no-web', '-W']:
 			noWeb = True
 		elif o in [ '--help', '-h' ]:
-			print """
+			print("""
 DescribeProgram
  Returns the description of the program, if available.
 
@@ -233,7 +233,7 @@ Examples of usage:
  DescribeProgram gimp
  DescribeProgram -W gimp
  DescribeProgram -a
- """
+ """)
 			sys.exit(0)
 	if len (args) >= 2:
 		v = args[1]
@@ -249,4 +249,4 @@ Examples of usage:
 	ret = DescribeProgram(p, v, [], mode, updateall, noWeb)
 	if ret == '':
 		sys.exit(1)
-	print ret
+	print(ret)

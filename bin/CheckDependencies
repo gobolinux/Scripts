@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -39,7 +39,7 @@ for i in ['recipe', 'official_package', 'contrib_package', 'local_package']:
 
 def add_compatible_dependencies(rule):
 	program_name = rule['program'].lower()
-	if program_name in global_compatibility_list.keys():
+	if program_name in list(global_compatibility_list.keys()):
 		for option in global_compatibility_list[program_name]:
 			# compatible_rule could also be set to something more related to
 			# rule itself (using the same version range, for example).
@@ -67,7 +67,7 @@ def get_rules_of_files(depfiles, t=None, no_compatlist=False):
 				for o in options:
 					try:
 						rule = interpret_dependency_line(o,t, flags=flags)
-					except ParseError, e:
+					except ParseError as e:
 						Log_Terse("At file '%s': "%depfile + e.args[0], 'CheckDependencies')
 					if rule:
 						# Precedence is left-right. Save this to return later.
@@ -268,7 +268,7 @@ def find_matching_package(rule, acceptable_types, noWeb=False, goboPrograms=None
 	global global_matches_cache
 
 	string_rule = rule_to_string(rule) + str(acceptable_types)
-	if global_matches_cache.has_key(string_rule):
+	if string_rule in global_matches_cache:
 		return global_matches_cache[string_rule]
 
 	available_options = FindPackage(rule['program'], types=acceptable_types, availables=availables, accessWeb=not noWeb, fulllist=True, goboPrograms=goboPrograms, localdirs=localdirs)
@@ -283,7 +283,7 @@ def find_matching_package(rule, acceptable_types, noWeb=False, goboPrograms=None
 		to_return = ((rule['program'], None, '', None, "NO_PROGRAM"))
 
 	# if we got here, no matching program/version was found.
-	if rule.has_key('option'):
+	if 'option' in rule:
 		ret = find_matching_package(rule['option'], acceptable_types, noWeb, goboPrograms=goboPrograms, localdirs=localdirs, availables=availables)
 		if ret and ret[3]: # ret[3] corresponds to 'type'
 			global_matches_cache[string_rule] = ret
@@ -635,8 +635,8 @@ if __name__ == '__main__':
 			if not sys.argv[1:]:
 				sys.argv[1:] = [ '--help' ]
 			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:l:p:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'blacklist=', 'quiet-progress', 'no-compatlist', 'file=', 'help', 'local-dirs=', 'gobo-programs=', 'no-prompt'])
-		except getopt.GetoptError, detail:
-			print sys.argv[0].split('/')[-1]+': '+str(detail)
+		except getopt.GetoptError as detail:
+			print(sys.argv[0].split('/')[-1]+': '+str(detail))
 			sys.exit(1)
 
 		validTypes = ['installed', 'local_package', 'official_package', 'recipe', 'contrib_package', 'all']
@@ -696,7 +696,7 @@ if __name__ == '__main__':
 			elif o in ['--gobo-programs', '-p']:
 				goboPrograms = a
 			elif o in ['--help', '-h']:
-				print """
+				print("""
 CheckDependencies
  Check dependencies. No decent help yet.
 
@@ -763,7 +763,7 @@ Examples of usage:
  CheckDependencies kde-libs 3.5.0 recipe
  CheckDependencies -t official_package,recipe kde-libs 3.5.0 recipe
  CheckDependencies -t official_package,recipe kde-libs 3.5.0 recipe
- """
+ """)
 				sys.exit(0)
 
 		if len(args) >= 1: p = args[0]
@@ -784,9 +784,9 @@ Examples of usage:
 		else:
 			v,r = '',''
 		if mode == 'list':
-			print ListDependencies(p,v,r,t,u,types=types,recursive=recursive,hook=progress_hook,noWeb=noWeb,depfile=depfile, goboPrograms=goboPrograms, localdirs=localdirs)
+			print(ListDependencies(p,v,r,t,u,types=types,recursive=recursive,hook=progress_hook,noWeb=noWeb,depfile=depfile, goboPrograms=goboPrograms, localdirs=localdirs))
 		elif mode == 'convert':
-			print ConvertRecipeToBinary(p, v, r, t, u, depfile=depfile),
+			print(ConvertRecipeToBinary(p, v, r, t, u, depfile=depfile), end=' ')
 		else:
 			rules, matches = get_all_dependencies_and_matches_for(p, v, r, t, u, types, mode=mode, recursive=recursive,
 			                     noWeb=noWeb, hook=progress_hook, add_self=add_self, ask_hook=ask_if_install,
@@ -795,9 +795,9 @@ Examples of usage:
 			if rules:
 				for rule,match in zip(rules,matches):
 					pp,vv,rr,tt,uu=match
-					print pp, Join_Version_Revision(vv,rr), tt, uu
+					print(pp, Join_Version_Revision(vv,rr), tt, uu)
 			sys.exit(0)
-	except ParseError, e:
+	except ParseError as e:
 		Log_Error(e.message, 'CheckDependencies')
 		sys.exit(1)
 	except KeyboardInterrupt:

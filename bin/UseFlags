@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -149,8 +149,7 @@ class UseFlagEngine(object):
 
 	def generic_remove(self, generic, *args):
 		if generic in self._generic_flags:
-			self._generic_flags[generic] = list(filter(lambda x: x not in args,
-				self._generic_flags[generic]))
+			self._generic_flags[generic] = list([x for x in self._generic_flags[generic] if x not in args])
 
 	def generic_pop(self, generic, *args):
 		if generic in self._generic_flags:
@@ -247,7 +246,7 @@ class UseFlagEngine(object):
 				self._leave_scope(True)
 				return ret
 		else:
-			print "Error: invalid command", cmd
+			print("Error: invalid command", cmd)
 
 	def execute_file(self, path, name=None):
 		f = None
@@ -357,9 +356,9 @@ class UseFlagEngine(object):
 	debug_on = False
 	def debug(self, line):
 		if self.debug_on:
-			print 'with line:', line
-			print ' flags:', ', '.join(sorted(self._flags))
-			print ' generics:', self._generic_flags
+			print('with line:', line)
+			print(' flags:', ', '.join(sorted(self._flags)))
+			print(' generics:', self._generic_flags)
 
 def UseFlags(program=None, return_engine=False):
 	"""Return the set of flags enabled for program"""
@@ -487,8 +486,8 @@ def installed_programs():
 		installed_programs.cache = set()
 		for oprog in os.listdir(goboPrograms):
 			prog = oprog.lower().replace('-', '_')
-			prog = filter(lambda p: p.isalpha() or p.isdigit() or
-				      p=='_', prog)
+			prog = "".join([p for p in prog if p.isalpha() or p.isdigit() or
+				      p=='_'])
 			if prog in ('qt', 'gtk'):
 				for ver in os.listdir(os.path.join(
 						goboPrograms, oprog)):

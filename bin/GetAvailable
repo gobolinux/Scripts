@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 # GetAvailable
@@ -7,7 +7,7 @@
 # (C) 2004 Andre Detsch. Released under the GNU GPL.
 #
 
-import os, os.path, sys, string, time, thread, threading
+import os, os.path, sys, string, time, threading
 
 from PythonUtils import *
 
@@ -20,7 +20,7 @@ listdir_cache = {}
 
 def cached_listdir(name):
 	name = os.path.realpath(name)
-	if listdir_cache.has_key(name):
+	if name in listdir_cache:
 		return listdir_cache[name]
 	entries = os.listdir(name)
 	listdir_cache[name] = entries
@@ -57,15 +57,15 @@ def loadConfig():
 		except:
 			tr[listType] = []
 
-	tr['defaultLocalPackagesPaths'] = map(os.path.abspath, tr['defaultLocalPackagesPaths'])
-	tr['defaultLocalPackagesPaths'] = map(os.path.expanduser, tr['defaultLocalPackagesPaths'])
+	tr['defaultLocalPackagesPaths'] = list(map(os.path.abspath, tr['defaultLocalPackagesPaths']))
+	tr['defaultLocalPackagesPaths'] = list(map(os.path.expanduser, tr['defaultLocalPackagesPaths']))
 
 	return tr
 
 globalSettings = loadConfig()
 
 downloadedCount = 0
-downloadedLock = thread.allocate_lock()
+downloadedLock = threading.Lock()
 
 def downloadFiles(files, force=False, hook=None, message='', verify=True):
 	global downloadedCount
@@ -82,7 +82,7 @@ def downloadFiles(files, force=False, hook=None, message='', verify=True):
 			bash(cmd, 'v')
 		else:
 			try:
-				urllib.urlretrieve(url, localfile)
+				urllib.request.urlretrieve(url, localfile)
 			except:
 				sys.stderr.write('Timeout\n')
 
@@ -114,7 +114,7 @@ def downloadFiles(files, force=False, hook=None, message='', verify=True):
 
 	for url, filename in files:
 		if force or not os.access(cacheDir+filename, os.R_OK):
-			import urllib
+			import urllib.request, urllib.parse, urllib.error
 			t = threading.Thread(target=doDownload, args=(url, cacheDir+filename, timeout))
 			t.setDaemon(True) # program exits on long timeout
 			threads.append(t)
@@ -125,7 +125,7 @@ def downloadFiles(files, force=False, hook=None, message='', verify=True):
 		hook(message, downloadedCount, len(files))
 
 	for thread in threads:
-		thread.start();
+		thread.start()
 
 	begin = time.time()
 	try:
@@ -158,12 +158,12 @@ def UpdateCache(types, force=True, hook=None, verify=True):
 	files = []
 
 	if 'official_package' in types:
-		for url, file in globalSettings['officialPackagesLists']:
-			files.append((url, file))
+		for url, fname in globalSettings['officialPackagesLists']:
+			files.append((url, fname))
 
 	if 'contrib_package' in types:
-		for url, file in globalSettings['contribPackagesLists']:
-			files.append((url, file))
+		for url, fname in globalSettings['contribPackagesLists']:
+			files.append((url, fname))
 
 	if 'recipe' in types:
 		compileRecipeDirs, getRecipeStores = getCompileOptions()
@@ -180,11 +180,11 @@ def UpdateCache(types, force=True, hook=None, verify=True):
 	return ret
 
 def addToDict(d, p, v, r, u):
-	if not d.has_key(p):
+	if p not in d:
 		d[p] = {}
-	if not d[p].has_key(v):
+	if v not in d[p]:
 		d[p][v] = {}
-	if not d[p][v].has_key(r):
+	if r not in d[p][v]:
 		d[p][v][r] = []
 	d[p][v][r].append(u)
 
@@ -276,54 +276,23 @@ def getPackedLocalPackages(directory, d = None, default_revision=''):
 		return d
 
 	files = cached_listdir(directory)
-	for file in files:
-		l = file.split('--')
+	for fname in files:
+		l = fname.split('--')
 		if len(l) > 2:
 			p = l[0]
 			v,r = Split_Version_Revision(l[1])
 			if not r:
 				r=default_revision
-			addToDict(d, p,v,r,directory+file)
+			addToDict(d, p,v,r,directory+fname)
 	return d
 
-def getVersionsFromList(file, url, d = None):
-	if not os.access(file, os.R_OK):
+def getVersionsFromPackagesList(fname, url, path_prefix = '', d = None):
+	if not os.access(fname, os.R_OK):
 		return d
 
-	if os.path.getsize(file) == 0:
+	if os.path.getsize(fname) == 0:
 		Log_Terse("Timed out downloading %s"%(url),"GetAvailable")
-		os.remove(file)
-		return d
-
-	try:
-		if file[-4:] == '.bz2':
-			import bz2
-			f = bz2.BZ2File(file)
-		elif file[-3:] == '.gz':
-			import gzip
-			f = gzip.GzipFile(file)
-		else:
-			f = open(file)
-
-		lines = f.readlines()
-		f.close()
-
-		if d == None:
-			d = KeyInsensitiveDict()
-	except Exception, e:
-		Log_Terse("Cannot open %s - %s\nRemoving..."%(file,str(e)),"GetAvailable")
-		os.remove(file)
-		return d
-
-	return d
-
-def getVersionsFromPackagesList(file, url, path_prefix = '', d = None):
-	if not os.access(file, os.R_OK):
-		return d
-
-	if os.path.getsize(file) == 0:
-		Log_Terse("Timed out downloading %s"%(url),"GetAvailable")
-		os.remove(file)
+		os.remove(fname)
 		return d
 
 	if path_prefix and path_prefix[-1] != '/':
@@ -333,28 +302,29 @@ def getVersionsFromPackagesList(file, url, path_prefix = '', d = None):
 		d = KeyInsensitiveDict()
 
 	try:
-		if file[-4:] == '.bz2':
+		if fname[-4:] == '.bz2':
 			import bz2
-			f = bz2.BZ2File(file)
-		elif file[-3:] == '.gz':
+			f = bz2.BZ2File(fname)
+		elif fname[-3:] == '.gz':
 			import gzip
-			f = gzip.GzipFile(file)
+			f = gzip.GzipFile(fname)
 		else:
-			f = open(file)
+			f = open(fname)
 
 		lines = f.readlines()
 		f.close()
 
 		for line in lines:
+			line = line.decode("utf-8")
 			l = line.split('--')
 			if len(l) > 2:
 				p = l[0]
 				v,r = Split_Version_Revision(l[1])
 				addToDict(d, p,v,r, path_prefix+line.strip())
 		return d
-	except Exception, e:
-		Log_Terse("Cannot open %s - %s\nRemoving...."%(file,str(e)),"GetAvailable")
-		os.remove(file)
+	except Exception as e:
+		Log_Terse("Cannot open %s - %s\nRemoving...."%(fname,str(e)),"GetAvailable")
+		os.remove(fname)
 		return d
 
 
@@ -372,9 +342,9 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 			path= goboPrograms
 		else:
 			path = getGoboVariable('goboPrograms')
-		if not availables.has_key('installed') or not availables['installed']:
+		if 'installed' not in availables or not availables['installed']:
 			availables['installed'] = {}
-		if not availables['installed'].has_key('programs') or not availables['installed']['programs']:
+		if 'programs' not in availables['installed'] or not availables['installed']['programs']:
 			availables['installed']['programs'] = KeyInsensitiveDict()
 		getUnpackedLocalPackagesOrRecipes(path, True, availables['installed']['programs'], default_revision= 'r1', filtering=filtering)
 
@@ -383,17 +353,17 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 			path= goboPrograms
 		else:
 			path = getGoboVariable('goboPrograms')
-		if not availables.has_key('current') or not availables['current']:
+		if 'current' not in availables or not availables['current']:
 			availables['current'] = {}
-		if not availables['current'].has_key('programs') or not availables['current']['programs']:
+		if 'programs' not in availables['current'] or not availables['current']['programs']:
 			availables['current']['programs'] = KeyInsensitiveDict()
 		getUnpackedLocalPackagesOrRecipes(path, True, availables['current']['programs'], default_revision= 'r1', current_only=True, filtering=filtering)
 
 	if 'local_package' in types:
-		if not availables.has_key('local_package') or not availables['local_package']:
+		if 'local_package' not in availables or not availables['local_package']:
 			availables['local_package'] = {}
 
-		if not availables['local_package'].has_key('programs') or not availables['local_package']['programs']:
+		if 'programs' not in availables['local_package'] or not availables['local_package']['programs']:
 			availables['local_package']['programs'] = KeyInsensitiveDict()
 
 		if not localdirs:
@@ -401,7 +371,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 
 		import os
 		# Placing local_packages in par with local recipes
-		default_revision='r'+str(sys.maxint)
+		default_revision='r'+str(sys.maxsize)
 		for directory in localdirs:
 			getPackedLocalPackages(os.path.expanduser(directory.strip()), availables['local_package']['programs'], default_revision=default_revision)
 			getUnpackedLocalPackagesOrRecipes(os.path.expanduser(directory.strip()), True, availables['local_package']['programs'], default_revision=default_revision, filtering=filtering)
@@ -414,35 +384,35 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 
 
 	if 'official_package' in types:
-		if not availables.has_key('official_package') or not availables['official_package']:
+		if 'official_package' not in availables or not availables['official_package']:
 			availables['official_package'] = {}
 		availables['official_package']['programs']= KeyInsensitiveDict()
-		for url, file in globalSettings['officialPackagesLists']:
-			availables['official_package']['programs'] = getVersionsFromPackagesList(cacheDir+file, url, string.join(url.split('/')[:-1], '/'), availables['official_package']['programs'])
+		for url, fname in globalSettings['officialPackagesLists']:
+			availables['official_package']['programs'] = getVersionsFromPackagesList(cacheDir+fname, url, "/".join(url.split('/')[:-1]), availables['official_package']['programs'])
 
 	if hook:
 		hook('Loading lists', 1, 4)
 
 	if 'contrib_package' in types:
-		if not availables.has_key('contrib_package') or not availables['contrib_package']:
+		if 'contrib_package' not in availables or not availables['contrib_package']:
 			availables['contrib_package'] = {}
 
 		availables['contrib_package']['programs']= KeyInsensitiveDict()
-		for url, file in globalSettings['contribPackagesLists']:
-			availables['contrib_package']['programs'] = getVersionsFromPackagesList(cacheDir+file, url, string.join(url.split('/')[:-1], '/'), availables['contrib_package']['programs'])
+		for url, fname in globalSettings['contribPackagesLists']:
+			availables['contrib_package']['programs'] = getVersionsFromPackagesList(cacheDir+fname, url, "/".join(url.split('/')[:-1]), availables['contrib_package']['programs'])
 
 	if hook:
 		hook('Loading lists', 2, 4)
 
 	if 'recipe' in types:
-		if not availables.has_key('recipe') or not availables['recipe']:
+		if 'recipe' not in availables or not availables['recipe']:
 			availables['recipe'] = {}
 
-		if not availables['recipe'].has_key('programs') or not availables['recipe']['programs']:
+		if 'programs' not in availables['recipe'] or not availables['recipe']['programs']:
 			availables['recipe']['programs'] = KeyInsensitiveDict()
 
 		# searches local recipes first
-		default_revision='r'+str(sys.maxint)
+		default_revision='r'+str(sys.maxsize)
 		for compileRecipeDir in compileRecipeDirs:
 			availables['recipe']['programs'] = getUnpackedLocalPackagesOrRecipes(compileRecipeDir, False, availables['recipe']['programs'], default_revision=default_revision, filtering=filtering)
 			default_revision = ''
@@ -461,12 +431,12 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 def updatedTypesList(types, validTypes):
 	for i in range(len(types)):
 		if len (types[i]) == 1:
-			for t in validTypes.keys():
+			for t in list(validTypes.keys()):
 				if types[i][0] == t:
 					types[i] = validTypes[t]
 					break
 	if 'all' in types:
-		types = validTypes.values()
+		types = list(validTypes.values())
 		types.remove('all')
 	return types
 
@@ -482,8 +452,8 @@ if __name__ == '__main__':
 		opts, args = getopt.getopt(sys.argv[1:], 't:Whp:', [
 			'type=', 'types=', 'local-dirs=', 'full-list', 'force-update',
 			'no-web', 'gobo-programs=', 'help', 'no-check-certificate', 'filtering='])
-	except getopt.GetoptError, detail:
-		print sys.argv[0].split('/')[-1]+': '+str(detail)
+	except getopt.GetoptError as detail:
+		print(sys.argv[0].split('/')[-1]+': '+str(detail))
 		sys.exit(1)
 
 	validTypes = {'i':'installed', 'T':'current', 'l':'local_package', 'o':'official_package', 'r':'recipe', 'c':'contrib_package', 'a':'all'}
@@ -515,7 +485,7 @@ if __name__ == '__main__':
 		elif o in ['--filtering']:
 			filtering = a
 		elif o in ['--help', '-h']:
-			print """
+			print("""
 GetAvailable
  Get available package and recipe versions.
 
@@ -553,7 +523,7 @@ Options:
 Examples of usage:
  GetAvailable --types=recipe
 
- """
+ """)
 			sys.exit(0)
 
 
@@ -562,10 +532,10 @@ Examples of usage:
 	availables = GetAvailable(types, localdirs, forceupdate, accessWeb=not noWeb,
 			hook=hook, goboPrograms=goboPrograms, verify=verify, filtering=filtering)
 
-	for t in availables.keys():
-		for p in caseinsensitive_sort(availables[t]['programs'].keys()):
-			for v in availables[t]['programs'][p].keys():
-				print t,p,v,availables[t]['programs'][p][v]
+	for t in list(availables.keys()):
+		for p in caseinsensitive_sort(list(availables[t]['programs'].keys())):
+			for v in list(availables[t]['programs'][p].keys()):
+				print(t,p,v,availables[t]['programs'][p][v])
 
-	#print availables
+	#sys.stderr.write(f"{availables}\n")
 

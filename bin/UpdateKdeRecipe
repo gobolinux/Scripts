@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 # Generates new versions of the KDE recipes
@@ -8,7 +8,7 @@
 
 import os
 import glob
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 
 class NameDictionary :
@@ -108,7 +108,7 @@ class NameDictionary :
 		}
 
 	def guessName(self, name) :
-		if self.names.has_key(name) :
+		if name in self.names :
 			return self.names[name]
 		name = name.replace("kde", "KDE")
 		if len(name) > 3 and name[0:3] == "KDE" and name[3] != '-' :
@@ -198,8 +198,8 @@ class KDERepository :
 		return self.filteredFiles
 
 	def parse(self) :
-		print "Parsing the URL for KDE at %s" %self.baseuri
-		result = urllib.urlopen(self.baseuri)
+		print("Parsing the URL for KDE at %s" %self.baseuri)
+		result = urllib.request.urlopen(self.baseuri)
 		for line in result.readlines() :
 			href = line.split()[-1].strip('\r\n')
 			if len(href) == 0 :
@@ -226,11 +226,11 @@ class KDERepository :
 				recipe.update()
 	
 	def dump(self) :
-		print "-- %s dump --" %self.baseuri
+		print("-- %s dump --" %self.baseuri)
 		for entry in self.filteredFiles :
-			print entry + " ",
-			print self.filteredFiles[entry]
-		print ""
+			print(entry + " ", end=' ')
+			print(self.filteredFiles[entry])
+		print("")
 
 	def getRecipeList(self) :
 		return self.filteredFiles
@@ -253,7 +253,7 @@ class Recipe :
 			if rname.lower() == self.name.lower() :
 				recipedir = r + "/" + self.version
 				if os.path.exists(recipedir) :
-					print "There's already a recipe for %s at %s" %(rname, recipedir)
+					print("There's already a recipe for %s at %s" %(rname, recipedir))
 					return True
 				return False
 		return False
@@ -284,7 +284,7 @@ class MetaRecipe :
 	def checkout(self) :
 		url = self.repository.getBaseUri() + "/kde-baseapps-4.8.1.tar.xz".replace("4.8.1", self.version)
 		filteredFiles = self.repository.getRecipeList()
-		if filteredFiles.has_key("kde-baseapps") :
+		if "kde-baseapps" in filteredFiles :
 			url = filteredFiles["kde-baseapps"][2]
 		cmd = "NewVersion %s %s %s" %(self.name, self.version, url)
 		return os.system(cmd)
@@ -297,7 +297,7 @@ class MetaRecipe :
 			self._updateRecipe(recipe)
 
 	def _updateRecipe(self, recipe) :
-		print "Updating %s" %recipe
+		print("Updating %s" %recipe)
 		f = open(recipe, "w")
 		filteredFiles = self.repository.getRecipeList()
 		# Write all libs first
@@ -314,9 +314,9 @@ class MetaRecipe :
 
 if __name__ == '__main__' :
 	if len(os.sys.argv) != 2 :
-		print "Syntax:  %s <KDE version>" %os.sys.argv[0]
-		print ""
-		print "Example: %s 4.8.1" %os.sys.argv[0]
+		print("Syntax:  %s <KDE version>" %os.sys.argv[0])
+		print("")
+		print("Example: %s 4.8.1" %os.sys.argv[0])
 		os.sys.exit(1)
 
 	kdeVersion = os.sys.argv[1]

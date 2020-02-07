@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 # FindPackage
@@ -8,7 +8,7 @@
 #
 # (C) 2004 Andre Detsch. Released under the GNU GPL.
 
-import os, os.path, sys, urllib
+import os, os.path, sys, urllib.request, urllib.parse, urllib.error
 from GetAvailable import *
 
 def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, localdirs=None, forceupdate=False, accessWeb=True, hook=None, availables=None, goboPrograms=None):
@@ -29,11 +29,11 @@ def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, 
 	#######################################################################
 	relevant_items = []
 	for t in types:
-		if not t in availables.keys():
+		if not t in list(availables.keys()):
 			continue
 
 		matched_programs = [] # programs that match
-		for pname in availables[t]['programs'].keys():
+		for pname in list(availables[t]['programs'].keys()):
 			if substring:
 				if pname.lower().find(p.lower()) > -1:
 					matched_programs.append(pname)
@@ -45,9 +45,9 @@ def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, 
 		d = availables[t]['programs']
 		for mp in matched_programs :
 			if v:
-				if d[mp].has_key(v):
+				if v in d[mp]:
 					if r:
-						if d[mp][v].has_key(r):
+						if r in d[mp][v]:
 							for u in d[mp][v][r]:
 								relevant_items.append((mp,v,r,t,u))
 					else:
@@ -55,7 +55,7 @@ def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, 
 							for u in d[mp][v][fr]:
 								relevant_items.append((mp,v,fr,t,u))
 			else:
-				for fv in d[mp].keys():
+				for fv in list(d[mp].keys()):
 					for fr in d[mp][fv]:
 						for u in d[mp][fv][fr]:
 							relevant_items.append((mp,fv,fr,t,u))
@@ -94,12 +94,12 @@ returnedResults = 0
 
 def byNewestOnServer(x, y):
 	for i in (x, y):
-		if datehash.has_key(i): continue
+		if i in datehash: continue
 		try:
 			if i[3][0] == '/':
 				datehash[i] = os.path.getmtime(i[3])
 			else:
-				u = urllib.urlopen(i[3])
+				u = urllib.request.urlopen(i[3])
 				datehash[i] = time.mktime(u.headers.getdate('Last-Modified'))
 		except:
 			Log_Terse("Failed to get date for %s."% i[3])
@@ -119,8 +119,8 @@ if __name__ == '__main__':
 		if not sys.argv[1:]:
 			sys.argv[1:] = [ '--help' ]
 		opts, args = getopt.gnu_getopt(sys.argv, 't:Wslhnp:', ['types=', 'type=', 'local-dirs=', 'full-list', 'force-update', 'substring', 'no-web', 'help', 'newest-on-server', 'gobo-programs='])
-	except getopt.GetoptError, detail:
-		print sys.argv[0].split('/')[-1]+': '+str(detail)
+	except getopt.GetoptError as detail:
+		print(sys.argv[0].split('/')[-1]+': '+str(detail))
 		sys.exit(1)
 	validTypes = {'i':'installed', 'T':'current', 'l':'local_package', 'o':'official_package', 'r':'recipe', 'c':'contrib_package', 'a':'all'}
 	types = None
@@ -152,7 +152,7 @@ if __name__ == '__main__':
 			if not types:
 				types =  [ 'local_package' ]
 		elif o in ['--help', '-h']:
-			print """
+			print("""
 FindPackage
  Searches, chooses an occurence and prints where some package (or recipe) can
  be found, based only on the program name (case insesitive) or on the
@@ -209,7 +209,7 @@ Examples of usage:
  FindPackage --types=recipe kde-base 3.2.3
  FindPackage --types=recipe --substring kd 3.2.3
  FindPackage --types=installed gcc
- """
+ """)
 			sys.exit(0)
 
 	if len (args) >= 2:
@@ -251,7 +251,7 @@ Examples of usage:
 					continue
 				else:
 					listed_programs.append(rp)
-			print site
+			print(site)
 		sys.exit(0)
 	else:
 		sys.exit(1)

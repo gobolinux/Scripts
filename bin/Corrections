@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # Corrections - suggest similar words to mistaken input
 # Copyright (C) 2009 Michael Homer
 #
@@ -51,13 +51,13 @@ def dameraulevenshtein(seq1, seq2):
     # However, only the current and two previous rows are needed at once,
     # so we only store those.
     oneago = None
-    thisrow = range(1, len(seq2) + 1) + [0]
-    for x in xrange(len(seq1)):
+    thisrow = list(range(1, len(seq2) + 1)) + [0]
+    for x in range(len(seq1)):
         # Python lists wrap around for negative indices, so put the
         # leftmost column at the *end* of the list. This matches with
         # the zero-indexed strings and saves extra calculation.
         twoago, oneago, thisrow = oneago, thisrow, [0] * len(seq2) + [x + 1]
-        for y in xrange(len(seq2)):
+        for y in range(len(seq2)):
             delcost = oneago[y] + 1
             addcost = thisrow[y - 1] + 1
             subcost = oneago[y - 1] + (seq1[x] != seq2[y])
@@ -97,7 +97,7 @@ if __name__ == '__main__':
     options, args = parser.parse_args()
     alternatives = args[1:]
     if options.stdin:
-        alternatives = map(str.strip, sys.stdin.xreadlines())
+        alternatives = list(map(str.strip, sys.stdin))
     corrections = Corrections(args[0], dir=options.dir,
                               alternatives=alternatives,
                               threshold=options.threshold)
@@ -107,4 +107,4 @@ if __name__ == '__main__':
         else:
             Log_Normal("Did you mean one of these?", options.log_name)
     for cor in corrections:
-        print " " + cor
+        print(" " + cor)
