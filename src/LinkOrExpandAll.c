@@ -394,8 +394,8 @@ static void Link_Or_Expand(char* new) {
       char* i;
       while ((i = os_listdir(&dir))) {
          char* oldbn = strdup(basename(i));
-         char realold_i[PATH_MAX+1];
-         snprintf(realold_i, PATH_MAX, "%s%s/%s", relative ? "../" : "", realold, i);
+         char realold_i[PATH_MAX+21];
+         snprintf(realold_i, sizeof(realold_i)-1, "%s%s/%s", relative ? "../" : "", realold, i);
          create_single_link(realold_i, oldbn);
          free(oldbn);
          free(i);
