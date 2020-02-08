@@ -35,23 +35,20 @@ function Has_Uppercase() {
 }
 
 function Capitalize() {
-   python -c "
-
+   python3 -c "
 import sys,string
-
 word = sys.argv[1]
 
 def breakWord(word):
     for ch in ['-', '_']:
-        pos = string.find(word, ch)
+        pos = word.find(ch)
         if pos != -1:
-            return [ word[:pos], ch ] + breakWord(word[pos+1:])
-    return [ word ]
+            return [word[:pos], ch] + breakWord(word[pos+1:])
+    return [word]
 
 parts = breakWord(word)
 for part in parts:
-    sys.stdout.write(string.capitalize(part))
-
+    sys.stdout.write(str.capitalize(part))
 " "$1"
 }
 
@@ -80,16 +77,6 @@ function Split_String {
    echo -n "\"${string}\""
    echo ")"
 }
-
-# obsolete?
-#function Split() {
-#   python -c "
-#
-#import sys,string
-#sys.stdout.write(string.split(sys.argv[1]))
-#
-#" "$1"
-#}
 
 #detsch, 23/08/2004
 # shell/sed/awk/cut implementation is welcome, but don't forget 

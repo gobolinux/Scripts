@@ -26,16 +26,16 @@ getversion() {
 
 getinstallversion() {
    module="$1"
-   python -c '
-import urllib
-import xml.dom.minidom
-url = urllib.urlopen("http://search.cpan.org/search?mode=module&format=xml&query='$module'")
-dom = xml.dom.minidom.parseString(url.read())
-for mod in dom.getElementsByTagName("module"):
-   name = mod.getElementsByTagName("name")[0].childNodes[0].data
-   if name.lower() == "'$module'".lower():
-      print mod.getElementsByTagName("version")[0].childNodes[0].data
-      break
+   python3 -c '
+from urllib import request
+import json
+url = request.urlopen("https://fastapi.metacpan.org/module/'$module'")
+data = json.loads(url.read())
+if "module" in data:
+    for mod in data["module"]:
+        if "name" in mod and "version" in mod and mod["name"].lower() == "'$module'".lower():
+            print(mod["version"])
+            break
 url.close()
    '
 }
