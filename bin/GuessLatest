@@ -51,6 +51,8 @@ def GuessLatest(versions, stableOnly=0, returnList=0) :
 			return [],  0
 
 		# if the version is cvs/svn, must be the last choice.
+		if version.lower().endswith('-git'):
+			version = 'git'
 		if version.lower() in ('svn', 'cvs', 'git', 'bzr', 'hg'):
 			minors.append(-1)
 
