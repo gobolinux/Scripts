@@ -144,19 +144,19 @@ function Gen_FileHash() {
    # Below may seem odd.  We can't just Verify_Superuser script because
    # gpg must run as normal user.
    Quiet pushd "$file_prefix"
-   $sudo_exec env SUDO_OK=1 ListProgramFiles --files --links "$file_prefix" | $sudo_exec python -c """#
+   $sudo_exec env SUDO_OK=1 ListProgramFiles --files --links "$file_prefix" | $sudo_exec python3 -c """#
 import sys, os, os.path, hashlib
 
 def sha1sum_string(data):
    return hashlib.sha1(data).hexdigest()
 
 def sha1sum_file(filename):
-   f = open(filename, 'r')
+   f = open(filename, 'rb')
    data = f.read()
    f.close()
    return sha1sum_string(data)
 
-print 'GoboLinux FileHash, version 2.1, SHA-1'
+print('GoboLinux FileHash, version 2.1, SHA-1')
 
 for line in sys.stdin:
    line = line.split('\n')[0]
@@ -166,7 +166,7 @@ for line in sys.stdin:
       sum = sha1sum_string(os.readlink(line))
    else:
       sum = sha1sum_file(line)
-   print '%s %s' % (sum, line)
+   print(f'{sum} {line}')
 
 """ | $sudo_exec tee -a "$hashfile" >&$verboseFD
    Quiet popd
