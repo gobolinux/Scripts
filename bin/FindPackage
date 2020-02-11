@@ -9,6 +9,7 @@
 # (C) 2004 Andre Detsch. Released under the GNU GPL.
 
 import os, os.path, sys, urllib.request, urllib.parse, urllib.error
+import functools
 from GetAvailable import *
 
 def FindPackage(p, v=None, r=None, fulllist=False, substring=False, types=None, localdirs=None, forceupdate=False, accessWeb=True, hook=None, availables=None, goboPrograms=None):
@@ -99,15 +100,17 @@ def byNewestOnServer(x, y):
 			if i[3][0] == '/':
 				datehash[i] = os.path.getmtime(i[3])
 			else:
-				u = urllib.request.urlopen(i[3])
+				u = urllib.request.urlopen(i[-1])
 				datehash[i] = time.mktime(u.headers.getdate('Last-Modified'))
 		except:
+			raise
 			Log_Terse("Failed to get date for %s."% i[3])
 			datehash[i] = '\1'
 
 		if hook: hook('Sorting by date', len(datehash), returnedResults, False)
 
-	return cmp(datehash[y], datehash[x])
+	# Python3 doesn't have a cmp() built-in, so we roll our own implementation
+	return (datehash[y] > datehash[x]) - (datehash[y] < datehash[x])
 
 
 
@@ -241,7 +244,7 @@ Examples of usage:
 	if returned:
 		if newestOnServer:
 			returnedResults = len(returned)
-			returned.sort(byNewestOnServer)
+			returned.sort(key=functools.cmp_to_key(byNewestOnServer))
 
 		if (substring and not fulllist):
 			listed_programs = []
