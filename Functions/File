@@ -163,7 +163,7 @@ for line in sys.stdin:
    if line == 'Resources/FileHash':
       continue
    if os.path.islink(line):
-      sum = sha1sum_string(os.readlink(line))
+      sum = sha1sum_string(os.readlink(line.encode('utf-8')))
    else:
       sum = sha1sum_file(line)
    print(f'{sum} {line}')
