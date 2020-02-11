@@ -7,8 +7,52 @@
 
 import sys
 import types
+import functools
 import itertools
 from PythonUtils import *
+
+def multitype_comparison(a, b):
+    try:
+        return a < b
+    except TypeError:
+        if len(a) != len(b):
+            # Unexpected. Assume a < b
+            return True
+
+        new_a, new_b = [], []
+        for i in range(len(a)):
+            # Check which of the tuple elements is failing the comparison
+            try:
+                res = a[i] < b[i]
+                new_a.append(a[i])
+                new_b.append(b[i])
+            except TypeError:
+                # Elements found. This is where we try to fix things.
+                if type(a[i]) == list and type(b[i]) == list:
+                    new_ai = list(a[i])
+                    new_bi = list(b[i])
+                    length = len(new_ai) if len(new_ai) < len(new_bi) else len(new_bi)
+                    for j in range(length):
+                        if type(new_ai[j]) == type(new_bi[j]):
+                            pass
+                        elif type(new_ai[j]) == str:
+                            new_ai.insert(j, 0)
+                        elif type(new_bi[j]) == str:
+                            new_bi.insert(j, 0)
+                    new_a.append(new_ai)
+                    new_b.append(new_bi)
+                else:
+                    # Convert both elements to str
+                    new_a.append(str(ai))
+                    new_b.append(str(bi))
+        return new_a < new_b
+
+def cmp_to_key(mycmp):
+    class K(object):
+        def __init__(self, obj, *args):
+            self.obj = obj
+        def __lt__(self, other):
+            return mycmp(self.obj, other.obj) < 0
 
 def GuessLatest(versions, stableOnly=0, returnList=0) :
 	if not versions:
@@ -102,8 +146,8 @@ def GuessLatest(versions, stableOnly=0, returnList=0) :
 		built_versions.append((weight,revision,param_order,parameter))
 		param_order -= 1
 
-	built_versions_stable = sorted(built_versions_stable)
-	built_versions = sorted(built_versions)
+	built_versions_stable = sorted(built_versions_stable, key=functools.cmp_to_key(multitype_comparison))
+	built_versions = sorted(built_versions, key=functools.cmp_to_key(multitype_comparison))
 
 	bv  = [ i[-1] for i in built_versions        ]
 	sbv = [ i[-1] for i in built_versions_stable ]
