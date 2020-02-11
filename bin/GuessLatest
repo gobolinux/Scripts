@@ -10,15 +10,22 @@ import types
 import functools
 import itertools
 from PythonUtils import *
+from operator import itemgetter
+
+def multitype_cmp(a, b):
+    try:
+        return (a > b) - (a < b)
+    except TypeError:
+        sys.stderr.write(f"Failed to compare {a} with {b}")
+        raise
 
 def multitype_comparison(a, b):
     try:
-        return a < b
+        return multitype_cmp(a, b)
     except TypeError:
         if len(a) != len(b):
             # Unexpected. Assume a < b
-            return True
-
+            return -1
         new_a, new_b = [], []
         for i in range(len(a)):
             # Check which of the tuple elements is failing the comparison
@@ -45,14 +52,7 @@ def multitype_comparison(a, b):
                     # Convert both elements to str
                     new_a.append(str(ai))
                     new_b.append(str(bi))
-        return new_a < new_b
-
-def cmp_to_key(mycmp):
-    class K(object):
-        def __init__(self, obj, *args):
-            self.obj = obj
-        def __lt__(self, other):
-            return mycmp(self.obj, other.obj) < 0
+        return multitype_cmp(new_a, new_b)
 
 def GuessLatest(versions, stableOnly=0, returnList=0) :
 	if not versions:
@@ -146,8 +146,8 @@ def GuessLatest(versions, stableOnly=0, returnList=0) :
 		built_versions.append((weight,revision,param_order,parameter))
 		param_order -= 1
 
-	built_versions_stable = sorted(built_versions_stable, key=functools.cmp_to_key(multitype_comparison))
-	built_versions = sorted(built_versions, key=functools.cmp_to_key(multitype_comparison))
+	built_versions_stable.sort(key=functools.cmp_to_key(multitype_comparison))
+	built_versions.sort(key=functools.cmp_to_key(multitype_comparison))
 
 	bv  = [ i[-1] for i in built_versions        ]
 	sbv = [ i[-1] for i in built_versions_stable ]
