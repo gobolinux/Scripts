@@ -131,7 +131,7 @@ class TranslationTable:
 	def __init__(self):
 		# Meta-recipes associated to directories in the freedesktop.org server
 		self.table = { 
-			"proto":   [], 
+			"proto":   ["Xorg-Proto"], 
 			"lib":     ["Xorg-Lib"], 
 			"xcb":     ["Xorg-Proto", "Xorg-Lib"],
 			"xserver": [],
@@ -251,7 +251,7 @@ class Recipe:
 	def checkout(self):
 		cmd = "GetRecipe %s" %self.name
 		p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		recipedir = p.stdout.readline().strip("\n")
+		recipedir = p.stdout.readline().decode("utf-8").strip("\n")
 		p.wait()
 		if len(recipedir) > 0 and os.path.exists(recipedir):
 			self.currentVersion = os.path.basename(recipedir)
@@ -261,7 +261,7 @@ class Recipe:
 
 		cmd = "EditRecipe --no-edit %s" %self.name
 		p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		recipedir = p.stdout.readline().strip("\n")
+		recipedir = p.stdout.readline().decode("utf-8").strip("\n")
 		p.wait()
 		if len(recipedir) > 0 and os.path.exists(recipedir):
 			self.currentVersion = os.path.basename(recipedir)
