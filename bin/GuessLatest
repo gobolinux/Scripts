@@ -9,15 +9,51 @@ import sys
 import types
 import functools
 import itertools
+import operator
 from PythonUtils import *
-from operator import itemgetter
+
+def debug(msg):
+    #sys.stderr.write(msg)
+    pass
 
 def multitype_cmp(a, b):
     try:
         return (a > b) - (a < b)
     except TypeError:
-        sys.stderr.write(f"Failed to compare {a} with {b}")
         raise
+
+def multitype_list_handler(ai, bi):
+    new_ai = list(ai)
+    new_bi = list(bi)
+    length = len(new_ai) if len(new_ai) < len(new_bi) else len(new_bi)
+
+    # Unpack inner lists if needed
+    for j in range(length):
+        if type(new_ai[j]) == list:
+            for k,entry in enumerate(new_ai[j]):
+                new_ai.insert(j+k, entry)
+            del new_ai[j+k+1]
+        if type(new_bi[j]) == list:
+            for k,entry in enumerate(new_bi[j]):
+                new_bi.insert(j+k, entry)
+            del new_bi[j+k+1]
+
+    debug("-> unpack(a): {} => {}\n".format(ai, new_ai))
+    debug("-> unpack(b): {} => {}\n".format(bi, new_bi))
+    length = len(new_ai) if len(new_ai) < len(new_bi) else len(new_bi)
+
+    # Pad with zeros if needed
+    for j in range(length):
+        if type(new_ai[j]) == type(new_bi[j]):
+            pass
+        elif type(new_ai[j]) == str:
+            new_ai.insert(j, 0)
+        elif type(new_bi[j]) == str:
+            new_bi.insert(j, 0)
+
+    debug("-> final(a): {}\n".format(new_ai))
+    debug("-> final(b): {}\n".format(new_bi))
+    return new_ai, new_bi
 
 def multitype_comparison(a, b):
     try:
@@ -36,22 +72,24 @@ def multitype_comparison(a, b):
             except TypeError:
                 # Elements found. This is where we try to fix things.
                 if type(a[i]) == list and type(b[i]) == list:
-                    new_ai = list(a[i])
-                    new_bi = list(b[i])
-                    length = len(new_ai) if len(new_ai) < len(new_bi) else len(new_bi)
-                    for j in range(length):
-                        if type(new_ai[j]) == type(new_bi[j]):
-                            pass
-                        elif type(new_ai[j]) == str:
-                            new_ai.insert(j, 0)
-                        elif type(new_bi[j]) == str:
-                            new_bi.insert(j, 0)
+                    new_ai, new_bi = multitype_list_handler(a[i], b[i])
+                    new_a.append(new_ai)
+                    new_b.append(new_bi)
+                elif type(a[i]) == list:
+                    # Convert b[i] to list, too
+                    new_ai, new_bi = multitype_list_handler(a[i], [b[i]])
+                    new_a.append(new_ai)
+                    new_b.append(new_bi)
+                elif type(b[i]) == list:
+                    # Convert a[i] to list, too
+                    new_ai, new_bi = multitype_list_handler([a[i]], b[i])
                     new_a.append(new_ai)
                     new_b.append(new_bi)
                 else:
                     # Convert both elements to str
                     new_a.append(str(ai))
                     new_b.append(str(bi))
+        debug("{} < {}?\n".format(new_a, new_b))
         return multitype_cmp(new_a, new_b)
 
 def GuessLatest(versions, stableOnly=0, returnList=0) :
@@ -116,7 +154,7 @@ def GuessLatest(versions, stableOnly=0, returnList=0) :
 					else:
 						internalminors.append(i)
 			if internalminors:
-				minors += internalminors
+				minors.append(internalminors)
 		return minors, unstable
 
 	def splitVersionAndRevision(version_with_revision):
