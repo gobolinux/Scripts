@@ -223,16 +223,15 @@ function Check_FileHash() {
    local rtn
    Quiet pushd "$prefix"
    $sudo_validate || sudo_exec=""
-   $sudo_exec ListProgramFiles --files --links "$prefix" | grep -v "$cleanhashfilename" | $sudo_exec python -c """#
+   $sudo_exec ListProgramFiles --files --links "$prefix" | grep -v "$cleanhashfilename" | $sudo_exec python3 -c """#
 import re, os, string, os.path, sys
-
 import hashlib
 
 def sha1sum_string(data):
    return hashlib.sha1(data).hexdigest()
 
 def sha1sum_file(filename):
-   f = open(filename, 'r')
+   f = open(filename, 'rb')
    data = f.read()
    f.close()
    return sha1sum_string(data)
@@ -242,8 +241,8 @@ hashfile='$hash_file'
 file_checksums={}
 errors=0
 
-hashes = file(hashfile, 'r')
-lines = hashes.readlines()
+with open(hashfile, 'r') as hashes:
+   lines = hashes.readlines()
 
 version = 1
 if lines[0] == 'GoboLinux FileHash, version 2.1, SHA-1\n':
@@ -254,13 +253,13 @@ elif lines[0] == 'GoboLinux FileHash, version 2.0, SHA-1\n':
    lines = lines[1:]
 elif lines[0].startswith('GoboLinux FileHash'):
    format = lines[0].split('\n')[0]
-   print 'Unsupported FileHash format (%s), please upgrade Scripts.' % format
+   print('Unsupported FileHash format (%s), please upgrade Scripts.' % format)
    sys.exit(-1)
 
 for line in lines:
    fields = re.split('\s+', line)
    key = fields[1]
-   for i in xrange(2, len(fields)):
+   for i in range(2, len(fields)):
       if len(fields[i]) > 0:
           key = key +' ' +fields[i]
    file_checksums[key]=fields[0]
@@ -276,20 +275,21 @@ for line in sys.stdin:
          test_sum = sha1sum_file(line)
       elif version >= 2:
          if os.path.islink(line):
-            test_sum = sha1sum_string(os.readlink(line))
+            test_sum = sha1sum_string(os.readlink(line.encode('utf-8')))
          else:
             test_sum = sha1sum_file(line)
       del file_checksums[line]
       if good_sum != test_sum:
-         print line, 'has been modified!'
+         print('{} has been modified!'.format(line))
          errors+=1
    except:
+      raise
       if version == 2.1 or not os.path.islink(line):
-         print line, 'not found in hashfile'
+         print('{} not found in hashfile'.format(line))
          errors+=1
 
 for missing in file_checksums:
-   print missing, 'is missing'
+   print('{} is missing'.format(missing))
    errors+=1
 
 sys.exit(errors)
