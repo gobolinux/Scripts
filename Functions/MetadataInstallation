@@ -58,7 +58,10 @@ function Uninstall_Unmanaged_Files() {
 function Rebuild_GDK_Pixbuf_Loaders() {
 if Executable_Exists_In_Path "gdk-pixbuf-query-loaders"
 then
-   loadersfile="${goboSettings}/gtk-2.0/gdk-pixbuf.loaders"
+   if [ "$GDK_PIXBUF_MODULEDIR" ]
+   then loadersfile="$GDK_PIXBUF_MODULEDIR/loaders.cache"
+   else loadersfile="$(gdk-pixbuf-query-loaders | grep LoaderDir | awk {'print $NF'})/loaders.cache"
+   fi
    gdk-pixbuf-query-loaders | $sudo_exec dd of=${loadersfile} 2> /dev/null
 fi
 }
@@ -121,6 +124,7 @@ if Executable_Exists_In_Path "glib-compile-schemas"
 then
    Log_Normal "Updating GLib schemas..."
    glib-compile-schemas ${goboShared}/glib-2.0/schemas &>/dev/null
+   glib-compile-schemas ${goboShared}/glib-3.0/schemas &>/dev/null
 fi
 }
 

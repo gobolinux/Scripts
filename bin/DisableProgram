@@ -114,7 +114,9 @@ Is_Real_Nonempty_Directory "${disabled}/share/mime/packages" && Rebuild_MIME_Dat
 Is_Real_Nonempty_Directory "${disabled}/share/fonts" && Rebuild_Font_Cache
 Is_Real_Nonempty_Directory "${disabled}/share/omf" && Update_Scrollkeeper_Database
 Is_Real_Nonempty_Directory "${disabled}/share/glib-2.0/schemas" && Update_GLib_Schemas
+Is_Real_Nonempty_Directory "${disabled}/share/glib-3.0/schemas" && Update_GLib_Schemas
 Is_Real_Nonempty_Directory "${disabled}/lib/gtk-2.0" && Rebuild_GDK_Pixbuf_Loaders
+Is_Real_Nonempty_Directory "${disabled}/lib/gtk-3.0" && Rebuild_GDK_Pixbuf_Loaders
 [ -f "${disabled}/Resources/XmlCatalogData" ] && Remove_From_XML_Catalog "${disabled}"
 Gen_Env_Cache
 
