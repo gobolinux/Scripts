@@ -547,7 +547,18 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
          }
 
          if (S_ISCHR(status.st_mode) || S_ISBLK(status.st_mode)) {
-            fprintf(stdout, "%s%02d/%02d %02d:%02d %s%s %" PRIu64 ":%3" PRIu64 "\033[%sm%s\n",
+            char major_minor[64], tmp[64];
+            memset(major_minor, 0, sizeof(major_minor));
+            sprintf(major_minor, "%" PRIu64 ":%-" PRIu64, MAJOR(status.st_rdev), MINOR(status.st_rdev));
+            if (strlen(major_minor) < 7) {
+               size_t padding = 7 - strlen(major_minor);
+               memset(tmp, 0, sizeof(tmp));
+               for (size_t i=0; i<padding; ++i)
+                  tmp[i] = ' ';
+               strncat(tmp, major_minor, sizeof(tmp)-padding-1);
+               sprintf(major_minor, tmp);
+            }
+            fprintf(stdout, "%s%02d/%02d %02d:%02d %s%s    %s\033[%sm %s\n",
                COLOR_WHITE_CODE,
                time_info->tm_mday,
                time_info->tm_mon + 1,
@@ -555,8 +566,7 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
                time_info->tm_min,
                final_mask,
                COLOR_WHITE_CODE,
-               MAJOR(status.st_rdev),
-               MINOR(status.st_rdev),
+               major_minor,
                color_code,
                namelist[i]->d_name);
          } else {
