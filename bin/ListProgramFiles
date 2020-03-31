@@ -63,6 +63,8 @@ Boolean "null" && printcommand="-print0" || printcommand="-print"
 find ${programpath} \( -path "CVS" \
       -or -path "*/CVS" \
       -or -path ".svn" \
+      -or -path ".git" \
       -or -path "*/.svn" \
+      -or -path "*/__pycache__" \
       -or -path "${programpath}Resources/SettingsBackup*" \) -prune \
       ${noresources:+${noresources}} -or ${type} ${printcommand}
