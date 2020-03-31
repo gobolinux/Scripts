@@ -172,14 +172,30 @@ for line in sys.stdin:
    Quiet popd
 }
 
-# Verifies gpg is installed and user has private key
-function Can_Sign() {
-   gpg=`(which gpg2 || which gpg) 2> /dev/null`
+# gpg expects $TTY to be owned by $UID, but that causes problems when
+# invoking gpg with sudo. This helper function executes gpg with a
+# temporary owner of the terminal device file.
+function Exec_GnuPG() {
+   local ttyfile=$(tty)
+   if [ -n "$ttyfile" ] && [ $(stat -c '%u' "$ttyfile") != "$UID" ]
+   then ttyowner=$(stat -c '%u' "$ttyfile")
+   else ttyowner="$UID"
+   fi
+   local gpg=`(which gpg2 || which gpg) 2> /dev/null`
    [ "$gpg" ] || {
       Log_Verbose "gpg not found."
       return 1
    }
-   secretkeys=$($gpg -n --list-secret-keys 2>/dev/null)
+   [ "$ttyowner" != "$UID" ] && Quiet chown "$UID" "$ttyfile"
+   $gpg "$@"
+   exitcode=$?
+   [ "$ttyowner" != "$UID" ] && Quiet chown "$ttyowner" "$ttyfile"
+   return $exitcode
+}
+
+# Verifies gpg is installed and user has private key
+function Can_Sign() {
+   secretkeys=$(Exec_GnuPG -n --list-secret-keys)
    exitcode=$?
    [ -n "${secretkeys}" -a ${exitcode} -eq 0 ]
 }
@@ -190,8 +206,8 @@ function Sign_File() {
    if echo "$file" | grep -q "\$.*$"
    then file=`echo $file | sed 's,\$,\\$,g'`
    fi
-   gpg=`(which gpg2 || which gpg) 2> /dev/null`
-   output="`$gpg ${GPG_opts} --armor --output - --detach-sig "$file"`"
+
+   output="$(Exec_GnuPG ${GPG_opts} --armor --output - --detach-sig "$file")"
    result="$?"
 
    Quiet $sudo_exec rm -f "$sig"
