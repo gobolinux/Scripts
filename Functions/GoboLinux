@@ -490,7 +490,7 @@ function Get_System_Paths () {
    while read path
    do
       Programs_To_System_Path "${path}"
-   done < <(cd "${programpath}"; find *)
+   done < <(cd "${programpath}"; find * 2> /dev/null)
 }
 
 # Inspect to which package a linked file points to
