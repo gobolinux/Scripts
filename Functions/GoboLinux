@@ -145,7 +145,7 @@ function Pre_Installation_Preparation() {
    local linkedfiles=()
    local progprefix="${goboPrograms}/${appname}/${appver}"
    
-   if [ -e "$progprefix" ]
+   if [ -e "$progprefix" ] && [ $(ls "${progprefix}/" | wc -l) -gt 0 ]
    then
       Progress_Start "Making a safe copy of installed version"
       programfiles=($(ListProgramFiles --no-resources "$progprefix"))
