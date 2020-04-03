@@ -114,7 +114,7 @@ then
       then
          Boolean "no-web" || {
             tempkeyfile="$(Temporary_File)"
-            gpg=$(which gpg2 || which gpg) 2> /dev/null
+            gpg=$(which gpg2 2> /dev/null || which gpg 2> /dev/null)
             $quiet $gpg --no-default-keyring --keyring "${tempkeyfile}" --recv-keys "$($gpgv "${FileHash_sig}" 2>&1 | awk '{ print $15 }')"
             if [ $? -eq 0 -a -s "${tempkeyfile}" ]
             then
