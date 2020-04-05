@@ -22,6 +22,12 @@ then
    Die
 fi
 
+if ! Exists "$current"
+then
+   youngestdir=`ls --sort=time "$packageDir" | grep -v -e "Settings" -e "Variable" -e "Current" | head -n 1`
+   version="$youngestdir"
+fi
+
 if [ "$(Arg 2)" ]
 then
    vdir="$goboPrograms/$package/$(Arg 2)"
@@ -30,12 +36,6 @@ then
       Die "There is no version $(Arg 2) for package $(Arg 1). Available versions are:\n$(All_Versions $package)"
    fi
    version="$(Arg 2)"
-fi
-
-if ! Exists "$current"
-then
-   youngestdir=`ls --sort=time "$packageDir" | grep -v -e "Settings" -e "Variable" -e "Current" | head -n 1`
-   version="$youngestdir"
 fi
 
 versionDir="$packageDir/$version"
