@@ -1,5 +1,3 @@
-Glibc: UClibc Rootless
-GLib: Rootless
 Sendmail: Qmail Postfix
 Qmail: Sendmail Postfix
 Postfix: Qmail Sendmail

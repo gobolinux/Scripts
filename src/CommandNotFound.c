@@ -16,8 +16,7 @@
 #include <stdlib.h>
 
 #define BUFLEN 512
-// For possible Rootless support, or hardwiring each CNF to its own version's
-// data, make the data file configurable.
+// To hardwire each CNF to its own version's data, make the data file configurable.
 #ifndef DATAFILE
 #define DATAFILE "/Programs/Scripts/Current/Data/CommandNotFound.data"
 #endif

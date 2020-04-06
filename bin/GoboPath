@@ -36,11 +36,3 @@ export goboBoot="${goboKernel}/Boot"
 
 export goboVariable="${goboData}/Variable"
 export goboTemp="${goboVariable}/tmp"
-
-if [ "$ROOTLESS_GOBOLINUX" -a ! -e "/Programs" ]
-then
-   export goboUsers=/home
-   export goboMount=/mnt
-   export goboTemp=/tmp
-   export goboStatus=/proc
-fi

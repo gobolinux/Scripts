@@ -34,14 +34,6 @@ Add_Option_Boolean "" "no-check-certificate" "Do not verify certificate when dow
 
 Parse_Options "$@"
 
-if [ -z "$ROOTLESS_GOBOLINUX" ] && ! $sudo_validate
-then
-   Ask "You are trying to install $(Arg 1) as normal user without privileges.\n\
-Should a rootless environment be set up instead?" && {
-      CreateRootlessEnvironment && . ~/Programs/Rootless/Current/bin/StartRootless
-   }
-fi
-
 ### Operation #################################################################
 
 if [ "$goboInstall" = "" ]
@@ -345,15 +337,12 @@ else
 fi
 
 # Hack for updating Glibc
-if [ -z "$ROOTLESS_GOBOLINUX" ]
+glibcinstalledversion=`Get_Version Glibc Current`
+glibcrequiredversion=`grep -w Glibc "${goboPrograms}/$packagename/$packageversion/Resources/BuildInformation" 2> /dev/null | cut -f2 -d' '`
+if [ -n "$glibcrequiredversion" -a "`GuessLatest $glibcrequiredversion $glibcinstalledversion`" != "$glibcinstalledversion" ]
 then
-   glibcinstalledversion=`Get_Version Glibc Current`
-   glibcrequiredversion=`grep -w Glibc "${goboPrograms}/$packagename/$packageversion/Resources/BuildInformation" 2> /dev/null | cut -f2 -d' '`
-   if [ -n "$glibcrequiredversion" -a "`GuessLatest $glibcrequiredversion $glibcinstalledversion`" != "$glibcinstalledversion" ]
-   then
-      Log_Question "Installed package was built using a newer Glibc ($glibcrequiredversion)."
-      Ask "Install an updated Glibc?" && InstallPackage ${nocheckcertificate} Glibc
-   fi
+   Log_Question "Installed package was built using a newer Glibc ($glibcrequiredversion)."
+   Ask "Install an updated Glibc?" && InstallPackage ${nocheckcertificate} Glibc
 fi
 
 cd "${goboPrograms}/$packagename"

@@ -2,7 +2,7 @@ Bash
 Bzip2 # Archive
 CoreUtils
 DiffUtils # UpdateSettings
-File # Archive and CreateRootlessEnvironment
+File # Archive
 FindUtils
 Fuse # UnionSandbox with FUSE
 Gawk
