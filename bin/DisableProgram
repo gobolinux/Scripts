@@ -24,7 +24,7 @@ Parse_Options "$@"
 
 ### Operation #################################################################
 
-Is_Writable "${goboPrograms}" || Verify_Superuser
+Is_Writable "${goboPrograms}" || Die "Needs write access to ${goboPrograms}"
 
 programname=`GuessProgramCase $(Arg 1) $(Arg 2)`
 if [ "$(Arg 2)" ]

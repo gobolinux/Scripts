@@ -54,7 +54,7 @@ function Run_PostInstall() {
       Log_Normal "Postprocessing PostInstall changes."
       local leftovers=`(cd "/$rw_dest"; find *) 2>/dev/null`
       [ "$leftovers" ] && Log_Normal "PostInstall tried to change:\n$leftovers" 
-      Quiet $sudo_exec rmdir "/$rw_dest"
+      Quiet rmdir "/$rw_dest"
    else
       target="$program_dir" settings_target="$program_set" \
          ${chroot_cmd} ${program_dir}/Resources/PostInstall

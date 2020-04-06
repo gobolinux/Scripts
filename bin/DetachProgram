@@ -24,8 +24,6 @@ Parse_Options "$@"
 
 ### Operation #################################################################
 
-Is_Writable "${goboPrograms}" || Verify_Superuser
-
 programname=`GuessProgramCase $(Arg 1) $(Arg 2)`
 tmpval="$2"
 if [ "$tmpval" ]
@@ -56,7 +54,7 @@ Is_Real_Directory "$prefix" || Pass_Away $error_msg
 
 Is_Directory "$goboInstall" || Die "Unable to detach to ${goboInstall}: not a valid directory"
 
-Is_Writable "${goboInstall}" || Verify_Superuser
+Is_Writable "${goboInstall}" || Die "Needs write access to ${goboInstall}"
 
 Log_Normal "Detaching ${programname}, version ${versionnumber} to ${goboInstall}."
 

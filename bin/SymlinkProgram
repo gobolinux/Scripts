@@ -42,7 +42,7 @@ Add_Option_Boolean "t" "rootfs" "Copy program to rootfs if a symlink."
 Parse_Options "$@"
 Parse_Conf "VersionExecutables.conf"
 
-Is_Writable "$goboExecutables" || Verify_Superuser
+Is_Writable "${goboPrograms}" || Die "Needs write access to ${goboPrograms}"
 
 linksettings=`Entry "settings"`
 linklibraries=`Entry "libraries"`

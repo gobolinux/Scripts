@@ -17,7 +17,7 @@ Parse_Options "$@"
 
 ### Operation #################################################################
 
-Verify_Superuser
+Is_Writable "${goboPrograms}" || Die "Needs write access to ${goboPrograms}"
 
 cd "$goboTemp"
 rm UpgradeScript

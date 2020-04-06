@@ -27,7 +27,6 @@ Add_Option_Entry "s" "same" "What to do when unpackaging over the same version."
 Add_Option_Entry "o" "old" "What to do with a previously existing
         version of a package if found." "keep" "keep remove ask cancel"
 Add_Option_Entry "u" "unmanaged" "Defines what to do with unmanaged files from package." "ask" "ask install skip"
-Add_Option_Boolean "C" "no-sign-check" "Do not check the signature."
 Add_Option_Boolean "U" "no-updatesettings" "Do not update settings for the package"
 Add_Option_Boolean "W" "no-web" "Do not check remote site for packages, and bypass fetching of archives."
 Add_Option_Boolean "" "no-check-certificate" "Do not verify certificate when downloading packages (potentially dangerous!)"
@@ -51,10 +50,10 @@ Boolean "no-symlink" && symlink="no"
 Boolean "no-install" && noinstall="--no-install" && keep="--keep"
 Boolean "no-updatesettings" && noupdatesettings="--no-updatesettings"
 Boolean "use-contrib"&& contrib="contrib_package" && usecontrib="--use-contrib"
-Boolean "no-sign-check" && nosigncheck="--no-sign-check"
 Boolean "no-check-certificate" && nocheckcertificate="--no-check-certificate"
-Is_Writable "${goboPrograms}" || Verify_Superuser
-Is_Writable "${goboInstall}"  || Verify_Superuser
+
+Is_Writable "${goboPrograms}" || Die "Needs write access to ${goboPrograms}"
+Is_Writable "${goboInstall}" || Die "Needs write access to ${goboInstall}"
 
 # if $1 is an url: 
 #  1 - Download; 
@@ -83,13 +82,13 @@ then
 
       if mv "${goboTemp}/${filename}" "${defaultLocalPackagesPaths[0]}/${filename}"
       then 
-         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} ${nocheckcertificate} "${defaultLocalPackagesPaths[0]}/${filename}"
+         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${keep} ${batch} ${nocheckcertificate} "${defaultLocalPackagesPaths[0]}/${filename}"
       else
          Log_Error "Could not move package."
-         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} ${nocheckcertificate} "${goboTemp}/${filename}"
+         InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${keep} ${batch} ${nocheckcertificate} "${goboTemp}/${filename}"
       fi
    else
-      InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} ${nocheckcertificate} "${goboTemp}/${filename}"
+      InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${keep} ${batch} ${nocheckcertificate} "${goboTemp}/${filename}"
       Log_Normal "Removing downloaded package ${goboTemp}/${filename}."
       rm -f -- "${goboTemp}/${filename}"
    fi
@@ -138,7 +137,7 @@ then
          if [ "${found}" ]
          then 
             Log_Normal "Found package for ${name} ${version}: ${found}"
-            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} ${nocheckcertificate} "${found}"
+            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${keep} ${batch} ${nocheckcertificate} "${found}"
          else
             Die_With $errorNotFound "Package for ${name} ${version} not found."
          fi
@@ -147,7 +146,7 @@ then
          if [ "${found}" ]
          then
             [ ! "$batch" ] && Ask_Continue "Installing ${found}"
-            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} ${nocheckcertificate} "${found}"
+            InstallPackage ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${keep} ${batch} ${nocheckcertificate} "${found}"
          else
             Log_Error "Package for $name not found."
             GetAvailable -t official_package|cut -d' ' -f2|uniq|Corrections --stdin --log-name InstallPackage "$name"
@@ -292,50 +291,6 @@ then
    Log_Terse "No Revision file exists in ${goboPrograms}/$packagename/$packageversion/Resources. Cannot validate package revision."
 fi
 
-if [ -n "${nosigncheck}" ]
-then
-   Log_Normal "Skipping package's signature verification."
-   package_verified="true"
-else
-   verify_opts="--quiet"
-   package_verified="false"
-   Boolean "verbose" && verify_opts="--verbose"
-   Boolean "no-web" && verify_opts="${verify_opts} --no-web"
-   VerifyProgram $verify_opts "$packagename" "$packageversion"
-   result="$?"
-   if [ $result -eq 0 ]
-   then
-      Log_Normal "Package Signature Verified"
-      package_verified="true"
-   elif [ $result -eq 2 ]
-   then
-      Log_Question "GnuPG not installed. Unable to verify signature"
-      Ask_Continue "Continue install?"
-   elif [ $result -eq 4 ] || [ $result -eq 5 ] 
-   then
-      Log_Question "No signature. Unable to verify package"
-      Ask_Continue "Continue install?"
-   elif [ $result -eq 6 ] 
-   then
-      Log_Question "Package signed with unknown signature. Unable to verify package"
-      Ask_Continue "Continue install?"
-   elif [ $result -eq 7 ]
-   then
-      Log_Question "Package file hash generate with incompatible version of Scripts. Unable to verify package"
-      Ask_Continue "Continue install?"
-   elif [ $result -eq 3 ] 
-   then
-      Log_Error "Invalid signature. FileHash could not be verified."
-      Log_Error "Suspect package in ${goboPrograms}/$packagename/$packageversion"
-      installation_failed
-   elif [ $result -eq 1 ]
-   then
-      Log_Error "Invalid FileHash. Package has been modified"
-      Log_Error "Suspect package in ${goboPrograms}/$packagename/$packageversion"
-      installation_failed
-   fi
-fi
-
 # Hack for updating Glibc
 glibcinstalledversion=`Get_Version Glibc Current`
 glibcrequiredversion=`grep -w Glibc "${goboPrograms}/$packagename/$packageversion/Resources/BuildInformation" 2> /dev/null | cut -f2 -d' '`
@@ -408,7 +363,7 @@ then
       set +o pipefail
       for d_url in $selecteddeps
       do
-         InstallPackage --no-dependencies ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${nosigncheck} ${keep} ${batch} ${nocheckcertificate} $d_url || {
+         InstallPackage --no-dependencies ${unmanaged} ${usecontrib} ${noinstall} ${noupdatesettings} ${symlink:+--symlink=${symlink}} ${same} ${old} ${keep} ${batch} ${nocheckcertificate} $d_url || {
             ret=$?
             exit $ret
          }

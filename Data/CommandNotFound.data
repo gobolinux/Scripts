@@ -114,7 +114,6 @@ GuessLatest Scripts
 GuessProgramCase Scripts
 HandBrakeCLI HandBrake
 HasCompatiblePackage Scripts
-Hashes Scripts
 HtmlConverter Sun-JDK
 Ident AfterStep
 InstallPackage Scripts
@@ -188,7 +187,6 @@ ScriptFunctions Scripts
 SearchAvailable Scripts
 SetupChrootEnv ChrootCompile
 ShowPackages Manager
-SignProgram Scripts
 StartTask BootScripts
 StdInParse Xerces-C++
 StopTask BootScripts
@@ -221,7 +219,6 @@ VBoxHeadless VirtualBox
 VBoxManage VirtualBox
 VBoxSDL VirtualBox
 VBoxVRDP VirtualBox
-VerifyProgram Scripts
 VersionExecutables Scripts
 VirtualBox VirtualBox
 Wand-config ImageMagick
