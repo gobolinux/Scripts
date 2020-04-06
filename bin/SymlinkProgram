@@ -277,54 +277,9 @@ fi
 
 if [ "$linkshared" != "no" ]
 then
-   if [ "$goboIndex" ]
-   then
-      Log_Normal "Symlinking shared..."
-      Link_Directory "$current/share" "$goboShared" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
-   else
-      Log_Normal "Symlinking shared..."
-      cd "$current"
-      Quiet rmdir "share"
-      Quiet rmdir "Shared"
-      if Is_Real_Directory "share"
-      then
-         [ ! -d "Shared" ] && mv share Shared
-      fi
-      if Is_Real_Directory "Shared"
-      then
-         link=`readlink -f share` 
-         if ! [ "$link" = "$goboShared" ]
-         then
-            Quiet rm "share"
-            [ "`echo ${goboShared:${#goboPrefix}:${#goboShared}} | cut -b1`" != "/" ] && slash="/"
-            if Boolean "relative" && [ -d "../../..${slash}${goboShared:${#goboPrefix}:${#goboShared}}" ]
-            then
-               Quiet ln -snf "../../..${slash}${goboShared:${#goboPrefix}:${#goboShared}}" share
-            else
-               Quiet ln -snf "$goboShared" share
-            fi
-         fi
-         Link_Directory "$current/Shared" "$goboShared" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
-      fi
-      if ! Is_Real_Directory "Shared" && Is_Link "share"
-      then
-         rm "share"
-      fi
-      if Is_Real_Directory "Shared"
-      then
-         if [ "$(find Shared -name '*.cmake' | wc -l)" != "0" ]
-         then
-            Log_Normal "Correcting directory references..."
-            find Shared -name '*.cmake' | xargs FixDirReferences
-         fi
-      fi
-      Quiet cd -
-   fi
-   currentshare="${current}/Shared" 
-   if Is_Real_Directory "${current}/share" 
-   then
-      currentshare="${current}/share" 
-   fi
+   Log_Normal "Symlinking shared..."
+   Link_Directory "$current/share" "$goboShared" "${symlinkrelative}" "${symlinkoverwrite}" "${symlinknofollow}"
+   currentshare="${current}/share" 
      
    Is_Real_Nonempty_Directory "${currentshare}/mime/packages" && Rebuild_MIME_Database
    Is_Real_Nonempty_Directory "${currentshare}/applications" && Rebuild_Desktop_Database

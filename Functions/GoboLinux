@@ -251,54 +251,17 @@ function Traverse_Program_Tree() {
    $dirop "$prefix/Resources"
    $dirop "$prefix/Resources/Defaults/Settings"
    $dirop "$prefix/Resources/Tasks"
-   if Dir_Set Manuals && [ ! "$goboIndex" ]
-   then
-      $dirop "$prefix/man/man1"
-      $dirop "$prefix/man/man2"
-      $dirop "$prefix/man/man3"
-      $dirop "$prefix/man/man4"
-      $dirop "$prefix/man/man5"
-      $dirop "$prefix/man/man6"
-      $dirop "$prefix/man/man7"
-      $dirop "$prefix/man/man8"
-      $dirop "$prefix/man/man9"
-      $dirop "$prefix/man"
-      if ! Boolean "tree"
-      then
-         if Dir_Set Shared && [ ! "$goboIndex" ]
-         then Is_Directory "$prefix/man" || Quiet rm -- "$prefix/Shared/man"
-         else Is_Directory "$prefix/man" || Quiet rm -- "$prefix/share/man"
-	 fi
-      fi
-   else if [ ! "$goboIndex" ]
-   then
-      $dirop "$prefix/Shared/man/man1"
-      $dirop "$prefix/Shared/man/man2"
-      $dirop "$prefix/Shared/man/man3"
-      $dirop "$prefix/Shared/man/man4"
-      $dirop "$prefix/Shared/man/man5"
-      $dirop "$prefix/Shared/man/man6"
-      $dirop "$prefix/Shared/man/man7"
-      $dirop "$prefix/Shared/man/man8"
-      $dirop "$prefix/Shared/man/man9"
-      $dirop "$prefix/Shared/man"
-   else
-      $dirop "$prefix/share/man/man1"
-      $dirop "$prefix/share/man/man2"
-      $dirop "$prefix/share/man/man3"
-      $dirop "$prefix/share/man/man4"
-      $dirop "$prefix/share/man/man5"
-      $dirop "$prefix/share/man/man6"
-      $dirop "$prefix/share/man/man7"
-      $dirop "$prefix/share/man/man8"
-      $dirop "$prefix/share/man/man9"
-      $dirop "$prefix/share/man"
-   fi
-   fi
-   if Dir_Set Shared && [ ! "$goboIndex" ]
-   then $dirop "$prefix/Shared"
-   else $dirop "$prefix/share"
-   fi
+   $dirop "$prefix/share/man/man1"
+   $dirop "$prefix/share/man/man2"
+   $dirop "$prefix/share/man/man3"
+   $dirop "$prefix/share/man/man4"
+   $dirop "$prefix/share/man/man5"
+   $dirop "$prefix/share/man/man6"
+   $dirop "$prefix/share/man/man7"
+   $dirop "$prefix/share/man/man8"
+   $dirop "$prefix/share/man/man9"
+   $dirop "$prefix/share/man"
+   $dirop "$prefix/share"
    $dirop "$prefix/sbin"
    $dirop "$prefix/bin"
    $dirop "$prefix/lib"
@@ -313,25 +276,9 @@ function Traverse_Program_Tree() {
       $linkop `Get_Dir installVariable "$programname" "$versionnumber"`
    fi
 
-   if Dir_Set Shared && [ ! "$goboIndex" ]
-   then
-      if Boolean "tree"
-      then
-         [ -L "$prefix/share" ] && rm -- "$prefix/share"
-         ln -nfs "$prefix/Shared" "$prefix/share"
-      else
-         Is_Real_Directory "$prefix/Shared" || Quiet rm -- "$prefix/share"
-      fi
-   fi
-
    if Dir_Set Manuals && Boolean "tree"
    then
-      if [ ! "$goboIndex" ] 
-      then
-         ln -nfs "$prefix/man" "$prefix/share/man"
-      else
-         ln -nfs "$prefix/share/man" "$prefix/man"
-      fi
+      ln -nfs "$prefix/share/man" "$prefix/man"
    fi
 }
 
@@ -372,17 +319,6 @@ function Create_Program_Tree() {
       fi
    fi
 
-   if Dir_Set Shared && [ ! "$goboIndex" ]
-   then
-      [ -L "$prefix/share" ]  && $sudo_exec rm -- "$prefix/share"
-      [ -d "$prefix/Shared" ] && $sudo_exec ln -nsf "$prefix/Shared" "$prefix/share"
-   fi
-
-   if Dir_Set Manuals && [ ! "$goboIndex" ]
-   then
-      [ -d "$prefix/man" ] && $sudo_exec ln -nsf "$prefix/man" "$prefix/Shared/man"
-   fi
-
    Traverse_Program_Tree "$sudo_exec mkdir -p" "$sudo_exec ln -s" "$prefix"
 }
 
@@ -399,90 +335,36 @@ function echo_replacing_prefix() {
 }
 
 function Programs_To_System_Path() {
-   if [[ -n "$goboIndex" ]]
+   path="$1"
+   if Starts_With "Resources/Wrappers" "$path"
    then
-      path="$1"
-      if Starts_With "Resources/Wrappers" "$path"
-      then
-      	 echo_replacing_prefix "$path" "Resources/Wrappers" "$goboExecutables/"
-      elif Starts_With "Resources/Tasks/" "$path"
-      then
-      	 echo_replacing_prefix "$path" "Resources/Tasks" "$goboTasks/"
-      elif Starts_With "Resources/Environment/" "$path"
-      then
-      	 echo_replacing_prefix "$path" "Resources/Environment" "$goboEnvironment/"
-      else
-         echo "$goboIndex/$path"
-      fi
-      return 0
+   	 echo_replacing_prefix "$path" "Resources/Wrappers" "$goboExecutables/"
+   elif Starts_With "Resources/Tasks/" "$path"
+   then
+   	 echo_replacing_prefix "$path" "Resources/Tasks" "$goboTasks/"
+   elif Starts_With "Resources/Environment/" "$path"
+   then
+   	 echo_replacing_prefix "$path" "Resources/Environment" "$goboEnvironment/"
    else
-      # Old version.
-      programpath="$1"
-      newpath="$(echo "$programpath" | Strip_Gobo_Programs | sed -e 's,/*[^/]*/*[^/]*/*\(.*\),\1,' \
-      -e "s,/*lib/\(.*\),${goboLibraries}/\1,g" \
-      -e "s,/*sbin/\(.*\),${goboExecutables}/\1,g" \
-      -e "s,/*bin/\(.*\),${goboExecutables}/\1,g" \
-      -e "s,/*man/\(.*\),${goboManuals}/\1,g" \
-      -e "s,/*include/\(.*\),${goboHeaders}/\1,g" \
-      -e "s,/*Shared/\(.*\),${goboShared}/\1,g" \
-      -e "s,/*info/\(.*\),${goboManuals}/info/\1,g" \
-      -e "/^\/*doc\/.*/d" \
-      -e "s,/*Resources/Wrappers/\(.*\),${goboExecutables}/\1,g" \
-      -e "s,/*Resources/Tasks/\(.*\),${goboTasks}/\1,g" \
-      -e "s,/*Resources/Environment/\(.*\),${goboEnvironment}/\1,g")"
-      [ "${programpath}" == "${newpath}" ] && return 1
-      [ -n "${newpath}" ] && echo "${newpath}"
-      return 0
+      echo "$goboIndex/$path"
    fi
+   return 0
 }
 
 System_To_Programs_Path() {
-   if [[ -n "$goboIndex" ]]
+   path="$1"
+   programprefix="$2"
+   if Starts_With "$goboIndex" "$path"
    then
-      path="$1"
-      programprefix="$2"
-      if Starts_With "$goboIndex" "$path"
-      then
-         echo_replacing_prefix "$path" "$goboIndex" "$programprefix/"
-      elif Starts_With "$goboTasks" "$path"
-      then
-         echo_replacing_prefix "$path" "$goboTasks" "$programprefix/Resources/Tasks"
-      elif Starts_With "$goboEnvironment" "$path"
-      then
-         echo_replacing_prefix "$path" "$goboEnvironment" "$programprefix/Resources/Environment"
-      fi
-      return 0
-   else
-      # Old version.
-      systempath="$1"
-      programprefix="$2"
-      if [ -L "$systempath" ]
-      then
-         olddir="$(readlink -f "${systempath}" | Strip_Gobo_Programs | cut -d/ -f3)" #sed -e 's,/*[^/]*/*[^/]*/*\([^/]*\)/.*,\1,')"
-         newpath="$(echo "$systempath" | sed \
-         -e "s,${goboLibraries}/\(.*\),${programprefix}/${olddir}/\1,g" \
-         -e "s,${goboExecutables}/\(.*\),${programprefix}/${olddir}/\1,g" \
-         -e "s,${goboManuals}/info/\(.*\),${programprefix}/info/\1,g" \
-         -e "s,${goboManuals}/\(.*\),${programprefix}/${olddir}/\1,g" \
-         -e "s,${goboHeaders}/\(.*\),${programprefix}/${olddir}/\1,g" \
-         -e "s,${goboShared}/\(.*\),${programprefix}/${olddir}/\1,g" \
-         -e "s,${goboTasks}/\(.*\),${programprefix}/Resources/Tasks/\1,g" \
-         -e "s,${goboEnvironment}/\(.*\),${programprefix}/Resources/Environment/\1,g")"
-      else
-         newpath="$(echo "$systempath" | sed \
-         -e "s,${goboLibraries}/\(.*\),${programprefix}/lib/\1,g" \
-         -e "s,${goboExecutables}/\(.*\),${programprefix}/bin/\1,g" \
-         -e "s,${goboManuals}/info/\(.*\),${programprefix}/info/\1,g" \
-         -e "s,${goboManuals}/\(.*\),${programprefix}/man/\1,g" \
-         -e "s,${goboHeaders}/\(.*\),${programprefix}/include/\1,g" \
-         -e "s,${goboShared}/\(.*\),${programprefix}/Shared/\1,g" \
-         -e "s,${goboTasks}/\(.*\),${programprefix}/Resources/Tasks/\1,g" \
-         -e "s,${goboEnvironment}/\(.*\),${programprefix}/Resources/Environment/\1,g")"
-      fi
-      [ "${systempath}" == "${newpath}" ] && return 1
-      [ -n "${newpath}" ] && echo "${newpath}"
-      return 0
+      echo_replacing_prefix "$path" "$goboIndex" "$programprefix/"
+   elif Starts_With "$goboTasks" "$path"
+   then
+      echo_replacing_prefix "$path" "$goboTasks" "$programprefix/Resources/Tasks"
+   elif Starts_With "$goboEnvironment" "$path"
+   then
+      echo_replacing_prefix "$path" "$goboEnvironment" "$programprefix/Resources/Environment"
    fi
+   return 0
 }
 
 function Get_System_Paths () {
