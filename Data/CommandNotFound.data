@@ -82,7 +82,6 @@ EthInterfaces ConfigTools
 Etsearch Eterm
 Ettable Eterm
 FetchArchive Compile
-FiboSandbox Compile Scripts
 FilterColors Scripts
 FilterLines Scripts
 FindDependencies Scripts
