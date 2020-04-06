@@ -165,13 +165,6 @@ def UpdateCache(types, force=True, hook=None, verify=True):
 		for url, fname in globalSettings['contribPackagesLists']:
 			files.append((url, fname))
 
-	if 'recipe' in types:
-		compileRecipeDirs, getRecipeStores = getCompileOptions()
-		i=0
-		for getRecipeStore in getRecipeStores:
-			files.append((getRecipeStore+'/MANIFEST.bz2', 'RecipeList'+str(i)+'.bz2'))
-			i = i + 1
-
 	if not files:
 		return
 
@@ -332,7 +325,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 		availables=None, accessWeb=True, doNotUpdate=False, goboPrograms=None,
 		verify=True, filtering=None):
 	if 'recipe' in types:
-		compileRecipeDirs, getRecipeStores = getCompileOptions()
+		compileRecipesDir = getCompileOptions()
 
 	if availables == None:
 		availables = {}
@@ -413,14 +406,7 @@ def GetAvailable(types, localdirs=None, forceupdate=False, hook=None,
 
 		# searches local recipes first
 		default_revision='r'+str(sys.maxsize)
-		for compileRecipeDir in compileRecipeDirs:
-			availables['recipe']['programs'] = getUnpackedLocalPackagesOrRecipes(compileRecipeDir, False, availables['recipe']['programs'], default_revision=default_revision, filtering=filtering)
-			default_revision = ''
-		if accessWeb:
-			i=0
-			for getRecipeStore in getRecipeStores:
-				availables['recipe']['programs'] = getVersionsFromPackagesList(cacheDir+'RecipeList'+str(i)+'.bz2', getRecipeStore, getRecipeStore, availables['recipe']['programs'])
-				i = i + 1
+		availables['recipe']['programs'] = getUnpackedLocalPackagesOrRecipes(compileRecipesDir, False, availables['recipe']['programs'], default_revision=default_revision, filtering=filtering)
 
 	if hook:
 		hook('Loading lists', 3, 4)

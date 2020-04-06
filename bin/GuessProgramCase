@@ -90,10 +90,7 @@ look_in "$goboPrograms" && exit 0
 # to break the GoboLinux module into smaller pieces.
 Import GoboLinux
 Parse_Conf Compile/Compile.conf
-for dir in "${compileRecipeDirs[@]}"
-do
-   look_in "$dir" && exit 0
-done
+look_in "${compileRecipesDir}" && exit 0
 
 # Give up, return unchanged.
 echo "$program"
