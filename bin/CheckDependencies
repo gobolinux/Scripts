@@ -61,7 +61,7 @@ def get_rules_of_files(depfiles, t=None, no_compatlist=False):
 		if depfile and os.access(depfile, os.R_OK):
 			f = open(depfile)
 			for line in f.readlines():
-				options=line.split("|")
+				options=line.strip("\n").split("|")
 				prev_rule = None
 				first_rule = None
 				for o in options:
@@ -172,7 +172,8 @@ def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False,
 	return []
 
 def interpret_dependency_line(whole_line, t=None, flags=None):
-
+	if type(whole_line) == bytes:
+	    whole_line = whole_line.decode("utf-8")
 	line = whole_line.split('#')[0].strip()
 	if not line:
 		return
