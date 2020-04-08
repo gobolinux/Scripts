@@ -112,7 +112,7 @@ case "$command" in
 	  In_Version_Range "$lower" "$ver" "$upper"
       ;;
    --have-manager)
-      which $pip >/dev/null 2>&1 || exit 1
+      which pip${python_major}>/dev/null 2>&1 || exit 1
       ;;
    --get-manager-rule)
       if [ "$python_major" = 2 ]
