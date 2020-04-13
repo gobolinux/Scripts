@@ -488,8 +488,7 @@ Options:
                       Default types are:
                       - local_package, official_package
                       Notice that when "recipe" type is used, Compile.conf is
-                      read to set recipe-store locations and local recipes
-                      locations.
+                      read to set local recipes locations.
 
  --local-dirs=[d1,..]    where to look for local binary packages. By default,
                          uses the paths defined at GetAvailable.conf
@@ -498,8 +497,8 @@ Options:
                          local copy (cached in """+cacheDir+""") newer than one hour.
 
  -W, --no-web            do not try to download anything and don't lists
-                         remote recipes and packages (if not explicitly listed
-                         in '--types='). Overrides '--force-update'
+                         remote packages (if not explicitly listed in '--types=').
+                         Overrides '--force-update'
 
  -p
  --gobo-programs         Override default """+getGoboVariable("goboPrograms")+""" as path of installed packages
