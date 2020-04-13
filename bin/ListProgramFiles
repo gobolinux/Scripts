@@ -66,5 +66,5 @@ find ${programpath} \( -path "CVS" \
       -or -path ".git" \
       -or -path "*/.svn" \
       -or -path "*/__pycache__" \
-      -prune \
+      -prune \) \
       ${noresources:+${noresources}} -or ${type} ${printcommand}
