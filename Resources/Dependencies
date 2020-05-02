@@ -16,7 +16,6 @@ Perl # mkinitrd.pl
 Procps # UnionSandbox (ps)
 Python >= 3,0, < 4.0
 Sed
-Sudo
 Tar # Archive
 Udev # UnionSandbox with FUSE
 UnionFS-Fuse # UnionSandbox with FUSE

@@ -62,7 +62,7 @@ then
    then loadersfile="$GDK_PIXBUF_MODULEDIR/loaders.cache"
    else loadersfile="$(gdk-pixbuf-query-loaders | grep LoaderDir | awk {'print $NF'})/loaders.cache"
    fi
-   gdk-pixbuf-query-loaders | $sudo_exec dd of=${loadersfile} 2> /dev/null
+   gdk-pixbuf-query-loaders | dd of=${loadersfile} 2> /dev/null
 fi
 }
 
@@ -70,13 +70,13 @@ function Rebuild_MIME_Database() {
 if Executable_Exists_In_Path "update-mime-database"
 then
    mimedirectory="${goboVariable}/lib/xdg/mime"
-   if ! $sudo_exec mkdir -p ${mimedirectory} && ! $sudo_exec test -w ${mimedirectory}
+   if ! mkdir -p ${mimedirectory} && ! test -w ${mimedirectory}
    then [ -n "${XDG_DATA_HOME}" ] && mimedirectory="${XDG_DATA_HOME}/mime" || mimedirectory="$HOME/.local/share/mime"
    fi
    Assert_Dir ${mimedirectory}
-   Is_Directory ${mimedirectory}/packages || $sudo_exec ln -s ${goboShared}/mime/packages ${mimedirectory}
+   Is_Directory ${mimedirectory}/packages || ln -s ${goboShared}/mime/packages ${mimedirectory}
    Log_Normal "Rebuilding MIME database..."
-   $sudo_exec update-mime-database ${mimedirectory} &>/dev/null
+   update-mime-database ${mimedirectory} &>/dev/null
 fi
 }
 
@@ -84,7 +84,7 @@ function Rebuild_Desktop_Database() {
 if Executable_Exists_In_Path "update-desktop-database"
 then
    desktopdirectory="${goboVariable}/lib/xdg"
-   if ! $sudo_exec mkdir -p $desktopdirectory && ! $sudo_exec test -w ${desktopdirectory}
+   if ! mkdir -p $desktopdirectory && ! test -w ${desktopdirectory}
    then [ -n "${XGD_DATA_HOME}" ] && desktopdirectory="${XDG_DATA_HOME}" || desktopdirectory="$HOME/.local/share"
    fi
    Assert_Dir ${desktopdirectory}

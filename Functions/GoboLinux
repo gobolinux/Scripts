@@ -150,8 +150,8 @@ function Pre_Installation_Preparation() {
       Progress_Start "Making a safe copy of installed version"
       programfiles=($(ListProgramFiles --no-resources "$progprefix"))
       local safeprefix="${goboPrograms}/${appname}/${appver}-safelinking"
-      $sudo_exec mkdir -p "$safeprefix"
-      $sudo_exec cp -a "$progprefix"/* "$safeprefix"
+      mkdir -p "$safeprefix"
+      cp -a "$progprefix"/* "$safeprefix"
       for f in ${programfiles[@]}
       do
          systempath="$(Programs_To_System_Path "${f}")"
@@ -160,12 +160,12 @@ function Pre_Installation_Preparation() {
          [ -n "${systempath}" ] && {
             Progress_Move
             Log_Verbose "$progprefix/$f"
-            $sudo_exec ln -sf "$(System_To_Programs_Path "${systempath}" "$safeprefix")" "$(dirname ${systempath})"
+            ln -sf "$(System_To_Programs_Path "${systempath}" "$safeprefix")" "$(dirname ${systempath})"
          }
       done
       Progress_End
-      $sudo_exec rm -rf "$progprefix"/*
-      $sudo_exec ldconfig
+      rm -rf "$progprefix"/*
+      ldconfig
    fi
 }
 
@@ -179,10 +179,10 @@ function Post_Installation_Clean_Up() {
    fi
    if [ "${failedinstallation}" = "failed" ]
    then
-      [ -d "${goboPrograms}/${appname}/${appver}-failed" ] && $sudo_exec rm -rf "${goboPrograms}/${appname}/${appver}-failed"
+      [ -d "${goboPrograms}/${appname}/${appver}-failed" ] && rm -rf "${goboPrograms}/${appname}/${appver}-failed"
       if [ -e "${goboPrograms}/${appname}/${appver}" -a "$(readlink -f ${goboPrograms}/${appname}/Current)" != "${goboPrograms}/${appname}/${appver}" ]
       then
-         $sudo_exec mv "${goboPrograms}/${appname}/${appver}" "${goboPrograms}/${appname}/${appver}-failed"
+         mv "${goboPrograms}/${appname}/${appver}" "${goboPrograms}/${appname}/${appver}-failed"
          Log_Terse "Installation was moved to ${goboPrograms}/${appname}/${appver}-failed"
       fi
       
@@ -190,8 +190,8 @@ function Post_Installation_Clean_Up() {
       then
          Progress_Start "Restoring safe copy"
          programfiles=$(ListProgramFiles --no-resources "${goboPrograms}/${appname}/${appver}-safelinking")
-         $sudo_exec mkdir -p "${goboPrograms}/${appname}/${appver}"
-         $sudo_exec cp -a "${goboPrograms}/${appname}/${appver}-safelinking"/* "${goboPrograms}/${appname}/${appver}"
+         mkdir -p "${goboPrograms}/${appname}/${appver}"
+         cp -a "${goboPrograms}/${appname}/${appver}-safelinking"/* "${goboPrograms}/${appname}/${appver}"
          for f in ${programfiles[@]}
          do
             f="${goboPrograms}/${appname}/${appver}/${f}"
@@ -201,14 +201,14 @@ function Post_Installation_Clean_Up() {
    
             [ -n "${systempath}" ] && {
                Progress_Move
-               $sudo_exec ln -sf "$(System_To_Programs_Path "${systempath}" "${goboPrograms}/${appname}/${appver}")" "$(dirname ${systempath})"
+               ln -sf "$(System_To_Programs_Path "${systempath}" "${goboPrograms}/${appname}/${appver}")" "$(dirname ${systempath})"
             }
          done
          Progress_End
       fi
    fi
-   $sudo_exec rm -rf "${goboPrograms}/${appname}/${appver}-safelinking"
-   $sudo_exec ldconfig
+   rm -rf "${goboPrograms}/${appname}/${appver}-safelinking"
+   ldconfig
 }
 
 function Dependencies_File() {
@@ -309,22 +309,22 @@ function Create_Program_Tree() {
    then
       if [ -e "$prefix" ]
       then 
-         $sudo_exec rm -rf -- "$prefix"/*
-         $sudo_exec rmdir "$prefix" 2> /dev/null
+         rm -rf -- "$prefix"/*
+         rmdir "$prefix" 2> /dev/null
       fi
       if Dir_Set Install
       then
-         $sudo_exec Make_Directory `Get_Dir install "$programname"`
-         ( cd "$baseprogramdir" ; $sudo_exec ln -s "$installdir" "$versionnumber")
+         Make_Directory `Get_Dir install "$programname"`
+         ( cd "$baseprogramdir" ; ln -s "$installdir" "$versionnumber")
       fi
    fi
 
-   Traverse_Program_Tree "$sudo_exec mkdir -p" "$sudo_exec ln -s" "$prefix"
+   Traverse_Program_Tree "mkdir -p" "$sudo_exec ln -s" "$prefix"
 }
 
 function Clean_Program_Tree() {
    prefix=$1
-   Traverse_Program_Tree "Quiet $sudo_exec rmdir -p" "$sudo_exec remove_symlink" "$prefix"
+   Traverse_Program_Tree "Quiet rmdir -p" "remove_symlink" "$prefix"
 }
 
 function echo_replacing_prefix() {
@@ -448,39 +448,4 @@ function Parse_Conf() {
       Die "Could not find required configuration file $1."
    fi
    return 1
-}
-
-Verify_Superuser() {
-   Verify_Superuser_ "${savedOptions[@]}"
-}
-
-# Respawn the script with normal permissions.
-function Release_Superuser() {
-   if [ -n "$SUDO_USER" -a "$SUDO_USER" != "$USER" ] && [ "$UID" = "0" ]
-   then
-      Log_Verbose "Running as $SUDO_USER..."
-      # Revalidate password for another 5 mins.
-      $sudo_validate
-      # Run with superuser's HOME.
-      exec $sudo_exec -u "$SUDO_USER" -H env $0 "${savedOptions[@]}"
-   fi
-}
-
-
-# Respawn the script, asking for root privileges
-function Try_Superuser() {
-   if [ $UID != 0 ]
-   then
-      echo "You may run this with superuser privileges (press Enter to skip)..."
-      sudo -u "#0" $0 "$@" && exit
-   fi
-}
-
-
-function Find_Superusername() {
-   /usr/bin/python3 -c '
-import pwd
-entry=pwd.getpwuid(0)
-print entry[0]
-'
 }

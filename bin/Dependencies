@@ -282,8 +282,7 @@ Boolean "dependencies-file" && Die "--dependencies-file requires --check or --li
 
 if Boolean "write"
 then
-   $sudo_validate
-   writer="$sudo_exec tee $prefix/$deps_file"
+   writer="tee $prefix/$deps_file"
 else
    writer="cat"
 fi

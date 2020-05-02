@@ -69,7 +69,7 @@ dependenciesfile=$(Dependencies_File "$package" "$version")
 if Boolean "store"
 then
    store="$prefix/Resources/BuildInformation"
-   [ -w $store ] || Verify_Superuser
+   Is_Writable "${store}" || Die "Needs write access to ${store}"
    mkdir -p "$prefix/Resources/"
    exec >$store
 fi

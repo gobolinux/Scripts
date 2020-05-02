@@ -30,7 +30,7 @@ Add_Option_Boolean "a" "all-versions" "Remove links for all versions of a progra
 
 Parse_Options "$@"
 
-Is_Writable "$goboExecutables" || Verify_Superuser
+Is_Writable "${goboExecutables}" || Die "Needs write access to ${goboExecutables}"
 
 removeprogramlinks() {
    package=$1

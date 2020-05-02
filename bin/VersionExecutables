@@ -30,7 +30,7 @@ Add_Option_Boolean "a" "all-versions" "Create links for all versions of a progra
 
 Parse_Options "$@"
 
-Is_Writable "$goboExecutables" || Verify_Superuser
+Is_Writable "${goboExecutables}" || Die "Needs write access to ${goboExecutables}"
 
 package=`GuessProgramCase "$(Arg 1)" "$(Arg 2)"`
 packageDir="$goboPrograms/$package"

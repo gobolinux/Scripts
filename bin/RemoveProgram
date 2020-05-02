@@ -22,7 +22,8 @@ Parse_Options "$@"
 
 ### Operation #################################################################
 
-Verify_Superuser
+Is_Writable "${goboPrograms}" || Die "Needs write access to ${goboPrograms}"
+
 appname=$(Arg 1)
 appver=$(Arg 2)
 [ "${appname}" ] || Die "Argument missing: specify the program name."

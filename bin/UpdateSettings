@@ -111,7 +111,7 @@ Is_Directory "$pdir" || Die "$pdir not found or is not a directory"
 Is_Directory "$pdir/$version" || Die "$pdir/$version not found"
 
 if Boolean "update" && ! Is_Writable "$pdir/Settings"; then
-   Verify_Superuser
+   Die "Needs write access to ${pdir}"
 fi
 
 # Try to guess the previously installed version of the program being updated,
