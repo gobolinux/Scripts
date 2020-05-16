@@ -83,6 +83,9 @@ then
    export VENDOR=pc
 fi
 
+# Select 'emacs' keymaps
+bindkey -e
+
 if [[ -e ${goboShared}/zsh/zkbd-$TERM-$VENDOR-$OSTYPE ]]
 then
    . ${goboShared}/zsh/zkbd-$TERM-$VENDOR-$OSTYPE
