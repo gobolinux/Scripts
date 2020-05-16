@@ -101,6 +101,9 @@ then
    bindkey "${key[PageUp]}" undo
    bindkey "${key[PageDown]}" redo
 
+   # Alt-Backspace: delete word backwards
+   bindkey '^[^?' backward-kill-word
+
    # How about this: context-sensitive help on the shell :)
    bindkey "${key[F1]}" run-help
 fi
