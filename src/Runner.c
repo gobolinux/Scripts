@@ -113,6 +113,8 @@ struct runner_args {
 };
 static struct runner_args args;
 
+static char *
+open_program_file(const char *programdir, const char *path);
 
 /**
  * compare_kernel_versions:
@@ -490,7 +492,7 @@ program_inlist(const char *programname, const char *currdeps)
 
 static char *
 prepare_merge_string(const char *callerprogram, const char *dependencies,
-	const char *mergedirs_program, const char *mergedirs_user)
+	const char *mergedirs_program, const char *mergedirs_user, bool *needs_wrapper)
 {
 	struct search_options options;
 	struct list_data *entry;
@@ -535,9 +537,14 @@ prepare_merge_string(const char *callerprogram, const char *dependencies,
 			!program_inlist(entry->path, mergedirs_program) &&
 			!program_inlist(entry->path, mergedirs_user) &&
 			!program_inlist(entry->path, mergedirs)) {
-			verbose_printf("adding dependency at %s\n", entry->path);
+			verbose_printf("adding dependency %s\n", entry->path);
 			strcat(mergedirs, entry->path);
 			strcat(mergedirs, ":");
+			if (needs_wrapper && *needs_wrapper == false) {
+				char *path = open_program_file(entry->path, "/Resources/Environment");
+				*needs_wrapper = path != NULL;
+				free(path);
+			}
 		}
 	}
 	if (callerprogram &&
@@ -546,6 +553,11 @@ prepare_merge_string(const char *callerprogram, const char *dependencies,
 		!program_inlist(callerprogram, mergedirs)) {
 		strcat(mergedirs, callerprogram);
 		strcat(mergedirs, ":");
+		if (needs_wrapper && *needs_wrapper == false) {
+			char *path = open_program_file(callerprogram, "/Resources/Environment");
+			*needs_wrapper = path != NULL;
+			free(path);
+		}
 	}
 out_free:
 	if (deps)
@@ -937,13 +949,13 @@ parse_architecture_file(const char *archfile)
 }
 
 static char *
-open_dependencies_file(const char *programdir, const char *depfile)
+open_program_file(const char *programdir, const char *path)
 {
 	struct stat statbuf;
 	char *fname = NULL;
 	int res;
 
-	if (asprintf(&fname, "%s%s", programdir, depfile) <= 0) {
+	if (asprintf(&fname, "%s%s", programdir, path) <= 0) {
 		fprintf(stderr, "Not enough memory\n");
 		return NULL;
 	}
@@ -965,6 +977,7 @@ mount_overlay()
 {
 	struct stat statbuf;
 	int i, res = -1;
+	bool needs_wrapper = false;
 	char *programdir = NULL, *callerprogram;
 	char *archfile = NULL, *fname = NULL, *tmpstr;
 	char *mergedirs_user = NULL, *mergedirs_program = NULL, *mergedirs = NULL;
@@ -978,10 +991,10 @@ mount_overlay()
 	programdir = get_program_dir(args.executable, false);
 	if (programdir) {
 		/* check if the software's Resources/Dependencies file exists */
-		fname = open_dependencies_file(programdir, "/Resources/Dependencies");
+		fname = open_program_file(programdir, "/Resources/Dependencies");
 		if (fname == NULL) {
 			/* try again with Resources/BuildInformation */
-			fname = open_dependencies_file(programdir, "/Resources/BuildInformation");
+			fname = open_program_file(programdir, "/Resources/BuildInformation");
 		}
 		if (args.architecture == NULL) {
 			/* Try to determine architecture based on the Resources/Architecture metadata file */
@@ -993,7 +1006,8 @@ mount_overlay()
 			args.architecture = parse_architecture_file(archfile);
 		}
 		callerprogram = program_blacklisted(programdir) ? NULL : programdir;
-		mergedirs_program = fname ? prepare_merge_string(callerprogram, fname, NULL, NULL) : NULL;
+		mergedirs_program =
+			fname ? prepare_merge_string(callerprogram, fname, NULL, NULL, &needs_wrapper) : NULL;
 		if (! mergedirs_program) {
 			/* For some reason the Dependencies file could not be parsed. Still,
 			 * we want to make sure that the callerprogram's directory is included
@@ -1004,6 +1018,7 @@ mount_overlay()
 		}
 		free(fname);
 		fname = NULL;
+
 	}
 
 	for (i=0; args.dependencies[i]; ++i) {
@@ -1018,10 +1033,33 @@ mount_overlay()
 			perror(fname);
 			goto out_free;
 		}
-		tmpstr = prepare_merge_string(NULL, fname, mergedirs_program, mergedirs_user);
+		tmpstr = prepare_merge_string(NULL, fname, mergedirs_program, mergedirs_user, &needs_wrapper);
 		free(fname);
 		fname = NULL;
 
+		/* concatenate */
+		if (mergedirs_user == NULL)
+			mergedirs_user = tmpstr;
+		else if (tmpstr) {
+			char *newstr;
+			res = asprintf(&newstr, "%s%s", mergedirs_user, tmpstr);
+			if (res < 0) {
+				perror("asprintf");
+				free(tmpstr);
+				goto out_free;
+			}
+			free(mergedirs_user);
+			mergedirs_user = newstr;
+			res = 0;
+		}
+	}
+
+	if (args.pure && needs_wrapper && ! strstr(mergedirs, "/Bash/")) {
+		/* the wrapper needs Bash to run, so it must be added to the
+		 * overlay to avoid running into exec errors.
+		 */
+		const char *bash = "/Programs/Bash/Current/Resources/Dependencies";
+		tmpstr = prepare_merge_string(NULL, bash, mergedirs_program, mergedirs_user, NULL);
 		/* concatenate */
 		if (mergedirs_user == NULL)
 			mergedirs_user = tmpstr;
@@ -1046,6 +1084,8 @@ mount_overlay()
 		perror("asprintf");
 		goto out_free;
 	}
+
+
 	res = mount_overlay_dirs(mergedirs, GOBO_INDEX_DIR);
 
 out_free:
