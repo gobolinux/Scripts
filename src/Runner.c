@@ -1054,7 +1054,9 @@ mount_overlay()
 		}
 	}
 
-	if (args.pure && needs_wrapper && ! strstr(mergedirs, "/Bash/")) {
+	if (args.pure && needs_wrapper &&
+		((mergedirs_user && !strstr(mergedirs_user, "/Bash/")) ||
+		 (mergedirs_program && !strstr(mergedirs_program, "/Bash/")))) {
 		/* the wrapper needs Bash to run, so it must be added to the
 		 * overlay to avoid running into exec errors.
 		 */
