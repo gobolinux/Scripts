@@ -466,18 +466,12 @@ destroy_namespace()
 }
 
 static bool
-program_blacklisted(const char *programname)
+program_in_ignorelist(const char *programname)
 {
 	/*
-	 * Don't let GoboLinux tools be overlay-mounted on /System/Index.
-	 * The reason is that many of our scripts expect to find contents
-	 * under $(readlink -f $argv[0])/../Functions, and we don't have
-	 * a Functions directory under /System/Index.
+	 * We no longer ignore any programs, but it's still useful to have this
+	 * placeholder around.
 	 */
-	if (strstr(programname, "/Scripts/") ||
-		strstr(programname, "/Compile/") ||
-		strstr(programname, "/DevelScripts/"))
-		return true;
 	return false;
 }
 
@@ -533,7 +527,7 @@ prepare_merge_string(const char *callerprogram, const char *dependencies,
 	}
 	list_for_each_entry(entry, deps, list) {
 		if (stat(entry->path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode) &&
-			!program_blacklisted(entry->path) &&
+			!program_in_ignorelist(entry->path) &&
 			!program_inlist(entry->path, mergedirs_program) &&
 			!program_inlist(entry->path, mergedirs_user) &&
 			!program_inlist(entry->path, mergedirs)) {
@@ -575,7 +569,7 @@ make_path(const char *namestart, const char *subdir, char *out, bool *found)
 	/* non-empty strings returned by prepare_merge_string() always terminate with ":" */
 	nameend = strchr(namestart, ':');
 	sprintf(out, "%.*s/%s", (int)(nameend-namestart), namestart, subdir);
-	if (stat(out, &statbuf) != 0 || program_blacklisted(out)) {
+	if (stat(out, &statbuf) != 0 || program_in_ignorelist(out)) {
 		*out = '\0';
 		return 0;
 	}
@@ -1005,7 +999,7 @@ mount_overlay()
 			/* TODO: args.architecture is never freed */
 			args.architecture = parse_architecture_file(archfile);
 		}
-		callerprogram = program_blacklisted(programdir) ? NULL : programdir;
+		callerprogram = program_in_ignorelist(programdir) ? NULL : programdir;
 		mergedirs_program =
 			fname ? prepare_merge_string(callerprogram, fname, NULL, NULL, &needs_wrapper) : NULL;
 		if (! mergedirs_program) {
@@ -1054,12 +1048,8 @@ mount_overlay()
 		}
 	}
 
-	if (args.pure && needs_wrapper &&
-		((mergedirs_user && !strstr(mergedirs_user, "/Bash/")) ||
-		 (mergedirs_program && !strstr(mergedirs_program, "/Bash/")))) {
-		/* the wrapper needs Bash to run, so it must be added to the
-		 * overlay to avoid running into exec errors.
-		 */
+	if (args.pure) {
+		/* Make sure that all of Bash dependencies are part of the overlay */
 		const char *bash = "/Programs/Bash/Current/Resources/Dependencies";
 		tmpstr = prepare_merge_string(NULL, bash, mergedirs_program, mergedirs_user, NULL);
 		/* concatenate */
