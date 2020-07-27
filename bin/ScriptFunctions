@@ -14,7 +14,7 @@ then
    # We have to figure if the executable came from an overlayfs mount. If
    # that's the case we have to update scriptPath to reflect the directory
    # where it's currently found.
-   overlay_dirs="$(grep "^overlay $goboSystem/Index/bin") /proc/self/mounts | sed 's/.*lowerdir=\(.*\),upperdir=.*/\1/g'"
+   overlay_dirs="$(cat /proc/self/mounts | grep "^overlay $goboSystem/Index/bin" | sed 's/.*lowerdir=\(.*\),upperdir=.*/\1/g')"
    for overlay_dir in $(echo "$overlay_dirs" | tr -s ":" "\n" | grep -v "$goboSystem/Index/bin")
    do
       if [ -e "$overlay_dir/$scriptName" ]
