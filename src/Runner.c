@@ -468,10 +468,8 @@ destroy_namespace()
 static bool
 program_in_ignorelist(const char *programname)
 {
-	/*
-	 * We no longer ignore any programs, but it's still useful to have this
-	 * placeholder around.
-	 */
+	if (strstr(programname, "/Scripts/") || strstr(programname, "/Compile/"))
+		return true;
 	return false;
 }
 
