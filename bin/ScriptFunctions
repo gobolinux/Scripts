@@ -2,30 +2,25 @@
 
 . GoboPath
 
-#not sure why we add "." to PATH. causes problems with busybox.
-#export PATH=.:$PATH
+# OverlayFS-aware executable path finder.
+# This function is used to define "scriptPath" below and also by our "which" wrapper.
+ExecutablePath() {
+   local execpath="$(readlink -f "$1")"
+   if [ "$(dirname "$execpath")" = "$goboSystem/Index/bin" ]
+   then
+      base="$(basename $execpath)"
+      overlay_dirs="$(grep "^overlay $goboSystem/Index/bin" /proc/self/mounts | sed 's/.*lowerdir=\(.*\),upperdir=.*/\1/g')"
+      for lower_dir in $(echo "$overlay_dirs" | tr -s ":" "\n" | grep -v "$goboSystem/Index/bin")
+      do
+         [ -e "$lower_dir/$base" ] && execpath="$lower_dir/$base" && break
+      done
+   fi
+   echo "$execpath"
+}
 
 export PATH=$PATH:$goboExecutables
-
 export scriptName=`basename "$0"`
-export scriptPath="$(dirname "$(readlink -f "$0")" 2> /dev/null)"
-if [ "$scriptPath" = "$goboSystem/Index/bin" ] && [ ! -z "$GOBOLINUX_RUNNER" ]
-then
-   # We have to figure if the executable came from an overlayfs mount. If
-   # that's the case we have to update scriptPath to reflect the directory
-   # where it's currently found.
-   overlay_dirs="$(cat /proc/self/mounts | grep "^overlay $goboSystem/Index/bin" | sed 's/.*lowerdir=\(.*\),upperdir=.*/\1/g')"
-   for overlay_dir in $(echo "$overlay_dirs" | tr -s ":" "\n" | grep -v "$goboSystem/Index/bin")
-   do
-      if [ -e "$overlay_dir/$scriptName" ]
-      then
-         # Success!
-         scriptPath="$(dirname $overlay_dir)"
-         break
-      fi
-   done
-fi
-#export scriptVersion=$(basename $(dirname $(readlink -f $(readlink -f $0)/..)))
+export scriptPath="$(dirname "$(ExecutablePath "$0")" 2> /dev/null)"
 export scriptVersion="$(basename "$(readlink -f "$scriptPath/..")")"
 
 # Find_Conf is not available yet
