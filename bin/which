@@ -35,6 +35,22 @@ then
    exit 1
 fi
 
-readlink -f "$fakepath"
+target="$(readlink -f "$fakepath")"
+
+# Resolve executable names mounted on overlayfs
+if [ "$(dirname "$target")" = "$goboSystem/Index/bin" ] && [ ! -z "$GOBOLINUX_RUNNER" ]
+then
+   overlay_dirs="$(grep "^overlay $goboSystem/Index/bin" /proc/self/mounts | sed 's/.*lowerdir=\(.*\),upperdir=.*/\1/g')"
+   for overlay_dir in $(echo "$overlay_dirs" | tr -s ":" "\n" | grep -v "$goboSystem/Index/bin")
+   do
+      if [ -e "$overlay_dir/$(Arg 1)" ]
+      then
+         target="$(readlink -f "$overlay_dir/$(Arg 1)")"
+         break
+      fi
+   done
+fi
+
+echo "$target"
 
 exit 0
