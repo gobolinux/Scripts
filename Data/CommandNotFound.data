@@ -150,7 +150,6 @@ NewVersion Compile
 NoRecipe Compile Scripts
 PParse Xerces-C++
 PSVIWriter Xerces-C++
-PackRecipe Compile
 Pager AfterStep
 PathFinder Fox
 PerlMagick GraphicsMagick
