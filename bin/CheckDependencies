@@ -361,7 +361,7 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	                                    noWeb=False, add_self='if_required', install_optional='ask', ask_hook=None,
 	                                    all_matches = None, no_compatlist=False, depfile=None,
 	                                    goboPrograms=None, localdirs=None,
-	                                    availables=None):
+	                                    availables=None, no_builddeps=False):
 	global global_dependencies_blacklist
 	ordered_matches, ordered_rules = [], []
 	self_match, self_rule = None, None
@@ -407,7 +407,7 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 	if depfile:
 		all_rules = get_rules_of_files([depfile])
 	else:
-		all_rules = get_rules_for(p, v, r, t, u, noWeb=noWeb, no_compatlist=no_compatlist, availables=availables)
+		all_rules = get_rules_for(p, v, r, t, u, noWeb=noWeb, no_builddeps=no_builddeps, no_compatlist=no_compatlist, availables=availables)
 
 	# optimization only:
 	#all_rules  = [ rule for rule in all_rules if not any(pp == rule['program'] for pp,vv,tt,uu in all_matches) ]
@@ -476,7 +476,7 @@ def get_all_dependencies_and_matches_for( p, v=None, r='', t=None, u=None,
 
 			pp, vv, rr, tt, uu = match
 			if tt and recursive:
-				rr, mm = get_all_dependencies_and_matches_for(pp, vv, rr, tt, uu, acceptable_types, mode, recursive, hook=hook, all_matches=all_matches, ask_hook=ask_hook, install_optional=install_optional, noWeb=noWeb, availables=availables)
+				rr, mm = get_all_dependencies_and_matches_for(pp, vv, rr, tt, uu, acceptable_types, mode, recursive, hook=hook, all_matches=all_matches, ask_hook=ask_hook, install_optional=install_optional, noWeb=noWeb, availables=availables, no_builddeps=no_builddeps)
 				ordered_matches += mm
 				ordered_rules += rr
 
@@ -534,11 +534,11 @@ def ConvertRecipeToBinary(p, v, r, t, u, depfile, availables=None):
 #
 # This function is used when mode == 'list'
 #
-def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missing=False, report_updating=False, recursive=True, hook=None, noWeb=False, depfile=None, goboPrograms=None, localdirs=None):
+def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missing=False, report_updating=False, recursive=True, hook=None, noWeb=False, depfile=None, goboPrograms=None, localdirs=None, no_builddeps=False):
 	if not types:
 		types = getGoboVariable('defaultRepositories', 'Scripts/FindPackage.conf', True)
 
-	all_rules, all_matches = get_all_dependencies_and_matches_for(p,v,r,t,u, types, recursive=recursive, hook=hook, mode='all', noWeb=noWeb, depfile=depfile, goboPrograms=goboPrograms, localdirs=localdirs)
+	all_rules, all_matches = get_all_dependencies_and_matches_for(p,v,r,t,u, types, recursive=recursive, hook=hook, mode='all', noWeb=noWeb, depfile=depfile, goboPrograms=goboPrograms, localdirs=localdirs, no_builddeps=no_builddeps)
 
 	if report_missing:
 		missing_dependencies      = [ rule for rule in all_rules if not find_matching_package(rule, ['installed'], noWeb=noWeb, goboPrograms=goboPrograms, localdirs=localdirs)[3] ]
@@ -596,7 +596,7 @@ def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missin
 #
 # This function is used only in Manager at this time
 #
-def does_x_depend_on_y(x, py, acceptable_types=None, all_programs=None, hook=None, noWeb=False):
+def does_x_depend_on_y(x, py, acceptable_types=None, all_programs=None, hook=None, noWeb=False, no_builddeps=False):
 	px, vx, rx, tx, ux = x
 	if all_programs == None:
 		all_programs = []
@@ -604,7 +604,7 @@ def does_x_depend_on_y(x, py, acceptable_types=None, all_programs=None, hook=Non
 	if px.lower() == py.lower():
 		return True
 
-	for rule in get_rules_for(px, vx, rx, tx, ux):
+	for rule in get_rules_for(px, vx, rx, tx, ux, no_builddeps=no_builddeps):
 		if hook:
 			hook()
 		p = rule['program']
@@ -615,7 +615,7 @@ def does_x_depend_on_y(x, py, acceptable_types=None, all_programs=None, hook=Non
 			match = find_matching_package(rule, acceptable_types, noWeb=noWeb) # (program, version, type, site)
 			pp, vv, rr, tt, uu = match
 			if tt:
-				x = does_x_depend_on_y((pp, vv, rr, tt, uu), py, acceptable_types, all_programs, hook=hook)
+				x = does_x_depend_on_y((pp, vv, rr, tt, uu), py, acceptable_types, all_programs, hook=hook, no_builddeps=no_builddeps)
 				if x:
 					return True
 	return False
@@ -634,7 +634,7 @@ if __name__ == '__main__':
 		try:
 			if not sys.argv[1:]:
 				sys.argv[1:] = [ '--help' ]
-			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:l:p:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'blacklist=', 'quiet-progress', 'no-compatlist', 'file=', 'help', 'local-dirs=', 'gobo-programs=', 'no-prompt'])
+			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:l:p:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'blacklist=', 'quiet-progress', 'no-compatlist', 'file=', 'help', 'local-dirs=', 'gobo-programs=', 'no-prompt', 'no-builddeps'])
 		except getopt.GetoptError as detail:
 			print(sys.argv[0].split('/')[-1]+': '+str(detail))
 			sys.exit(1)
@@ -644,6 +644,7 @@ if __name__ == '__main__':
 		mode = 'missing'
 		recursive = True
 		noWeb = False
+		no_builddeps = False
 		add_self='if_required'
 		progress_hook=consoleProgressHook
 		install_optional = 'ask'
@@ -681,6 +682,8 @@ if __name__ == '__main__':
 				noWeb = True
 			elif o in ['--no-blacklist', '-B']:
 				global_dependencies_blacklist = []
+			elif o in ['--no-builddeps']:
+				no_builddeps = True
 			elif o in ['--blacklist']:
 				global_dependencies_blacklist = a.split(',')
 				for i in range(len(global_dependencies_blacklist)):
@@ -743,6 +746,8 @@ Options:
  -B
  --no-blacklist       Do not skip packages listed at Dependencies.blacklist
 
+ --no-builddeps       Ignore BuildDependencies files
+
  --blacklist=         List of application names to blacklist
 
  --no-prompt          Do not prompt to install anything
@@ -784,14 +789,14 @@ Examples of usage:
 		else:
 			v,r = '',''
 		if mode == 'list':
-			print(ListDependencies(p,v,r,t,u,types=types,recursive=recursive,hook=progress_hook,noWeb=noWeb,depfile=depfile, goboPrograms=goboPrograms, localdirs=localdirs))
+			print(ListDependencies(p,v,r,t,u,types=types,recursive=recursive,hook=progress_hook,noWeb=noWeb,depfile=depfile, goboPrograms=goboPrograms, localdirs=localdirs, no_builddeps=no_builddeps))
 		elif mode == 'convert':
 			print(ConvertRecipeToBinary(p, v, r, t, u, depfile=depfile), end=' ')
 		else:
 			rules, matches = get_all_dependencies_and_matches_for(p, v, r, t, u, types, mode=mode, recursive=recursive,
 			                     noWeb=noWeb, hook=progress_hook, add_self=add_self, ask_hook=ask_if_install,
 			                     no_compatlist=no_compatlist, depfile=depfile, goboPrograms=goboPrograms,
-			                     localdirs=localdirs)
+			                     localdirs=localdirs, no_builddeps=no_builddeps)
 			if rules:
 				for rule,match in zip(rules,matches):
 					pp,vv,rr,tt,uu=match
