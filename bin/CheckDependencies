@@ -181,6 +181,9 @@ def interpret_dependency_line(whole_line, t=None, flags=None):
 	if line.startswith('['):
 		return
 
+	# Force separation of program from operand (e.g., 'NcursesW>= 6.0' -> 'NcursesW >= 6.0')
+	line = re.sub(r"([A-Za-z0-9])([>=<!])", r"\1 \2", line)
+
 	global global_dependencies_blacklist
 	l = line.split()
 	programname = l[0]
