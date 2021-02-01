@@ -561,8 +561,8 @@ def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missin
 				ss += ' M' + (rule in missing_programs and 'P' or 'V')
 			if report_updating and rule in updating_dependencies:
 				ss += ' U'
-			s += ss + '\n'
-		return s.strip()
+			s += ss.strip() + '\n'
+		return s
 
 	elif mode == 'html':
 		s = '<p><font color="#000077"><b>['+'Dependencies'+'] </b></font><br>'
