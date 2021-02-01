@@ -14,7 +14,7 @@ Mtail # ColorMake
 Patch # UpdateSettings
 Perl # mkinitrd.pl
 Procps-NG # UnionSandbox (ps)
-Python >= 3,0, < 4.0
+Python >= 3.0, < 4.0
 Sed
 Tar # Archive
 Udev # UnionSandbox with FUSE
