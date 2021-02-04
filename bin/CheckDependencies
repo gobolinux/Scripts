@@ -12,6 +12,7 @@ import Alien
 
 import re
 
+debug = False
 global_wget_timeout = getGoboVariable('timeout', 'Scripts/GetAvailable.conf')
 global_dependencies_cache_dir = os.path.expanduser(getGoboVariable('goboTemp')+'/Scripts-'+os.getenv('USER')+'/dependencies_cache/')
 global_dependencies_blacklist = [ i.lower() for i in getGoboVariable('','Scripts/Dependencies.blacklist') ]
@@ -66,7 +67,7 @@ def get_rules_of_files(depfiles, t=None, no_compatlist=False):
 				first_rule = None
 				for o in options:
 					try:
-						rule = interpret_dependency_line(o,t, flags=flags)
+						rule = interpret_dependency_line(o,t, flags=flags, depfile=depfile)
 					except ParseError as e:
 						Log_Terse("At file '%s': "%depfile + e.args[0], 'CheckDependencies')
 					if rule:
@@ -171,7 +172,7 @@ def find_dependencies_files(p, v, r, t, u=None, noWeb=False, no_builddeps=False,
 	#sys.stderr.write('Dependencies for %s %s %s %s %s not found\n'%(p,v,r,t,u))
 	return []
 
-def interpret_dependency_line(whole_line, t=None, flags=None):
+def interpret_dependency_line(whole_line, t=None, flags=None, depfile=None):
 	if type(whole_line) == bytes:
 	    whole_line = whole_line.decode("utf-8")
 	line = whole_line.split('#')[0].strip()
@@ -222,7 +223,8 @@ def interpret_dependency_line(whole_line, t=None, flags=None):
 	ret = { 'program'    : programname,
 		'versions'   : versions,
 		'optional'   : True,
-		'activeflags': activeflags }
+		'activeflags': activeflags,
+		'depfile'    : depfile }
 
 	return ret
 
@@ -553,7 +555,8 @@ def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missin
 
 	if mode == 'terminal':
 		s = ''
-		for rule in all_rules:
+		prev_depfile = None
+		for rule in reversed(all_rules):
 			ss  = rule['program']
 			ss += ' ' + version_range_string(rule)
 
@@ -561,6 +564,9 @@ def ListDependencies(p, v, r, t, u, mode = 'terminal', types=None, report_missin
 				ss += ' M' + (rule in missing_programs and 'P' or 'V')
 			if report_updating and rule in updating_dependencies:
 				ss += ' U'
+			if debug and rule['depfile'] and rule['depfile'] != prev_depfile:
+			    s += "# {}\n".format(rule['depfile'].strip())
+			    prev_depfile = rule['depfile']
 			s += ss.strip() + '\n'
 		return s
 
@@ -637,7 +643,7 @@ if __name__ == '__main__':
 		try:
 			if not sys.argv[1:]:
 				sys.argv[1:] = [ '--help' ]
-			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:l:p:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'blacklist=', 'quiet-progress', 'no-compatlist', 'file=', 'help', 'local-dirs=', 'gobo-programs=', 'no-prompt', 'no-builddeps'])
+			opts, args = getopt.getopt(sys.argv[1:], 't:m:s:i:bWRBChf:l:p:', ['add-self=','install-optional=', 'batch','types=', 'type=', 'mode=', 'no-web', 'no-recursive', 'no-blacklist', 'blacklist=', 'quiet-progress', 'no-compatlist', 'file=', 'help', 'local-dirs=', 'gobo-programs=', 'no-prompt', 'no-builddeps', 'debug'])
 		except getopt.GetoptError as detail:
 			print(sys.argv[0].split('/')[-1]+': '+str(detail))
 			sys.exit(1)
@@ -672,6 +678,8 @@ if __name__ == '__main__':
 				recursive = False
 			elif o in ['--quiet-progress']:
 				progress_hook=None
+			elif o in ['--debug']:
+				debug = True
 			elif o in ['--add-self','-s']:
 				add_self=a
 			elif o in ['--install-optional','-i']:
@@ -756,6 +764,8 @@ Options:
  --no-prompt          Do not prompt to install anything
 
  --quiet-progress     Do not show progress indicator
+
+ --debug              Show verbose messages
 
  -f
  --file               Check for the dependencies listed in the given file.
