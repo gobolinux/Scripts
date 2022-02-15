@@ -245,7 +245,7 @@ static bool RuleBestThanLatest(char *candidate, char *latest)
 	if (latest[0] == '\0')
 		return true;
 	// If both versions are valid, the more recent one is taken
-	return strcmp(candidate, latest) >= 0 ? true : false;
+	return VersionCmp(candidate, latest) >= 0;
 }
 
 
