@@ -804,7 +804,7 @@ Examples of usage:
 		if mode == 'list':
 			print(ListDependencies(p,v,r,t,u,types=types,recursive=recursive,hook=progress_hook,noWeb=noWeb,depfile=depfile, goboPrograms=goboPrograms, localdirs=localdirs, no_builddeps=no_builddeps))
 		elif mode == 'convert':
-			print(ConvertRecipeToBinary(p, v, r, t, u, depfile=depfile), end=' ')
+			print(ConvertRecipeToBinary(p, v, r, t, u, depfile=depfile), end='')
 		else:
 			rules, matches = get_all_dependencies_and_matches_for(p, v, r, t, u, types, mode=mode, recursive=recursive,
 			                     noWeb=noWeb, hook=progress_hook, add_self=add_self, ask_hook=ask_if_install,
