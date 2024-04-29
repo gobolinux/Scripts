@@ -15,7 +15,7 @@ getversion() {
    local proginfo=$($pip list | sed 's,\(.*\),\L\1,g' | grep "^${prog} ")
    if [ -z "$proginfo" ]
    then exit 1
-   else echo "$proginfo | cut -d\( -f2 | cut -d\) -f1"
+   else echo "$proginfo" | cut -d\( -f2 | cut -d\) -f1
    fi
 }
 
@@ -55,20 +55,22 @@ install() {
    local ver="$2"
    local target="$goboSystem/Aliens/PIP/${python_version}"
    local srcdir="$goboData/Compile/Sources"
+   local pipprogarg="$prog"
+   [ ! -z "$ver" ] && local pipprogarg+="==$ver"
+   
    if [ ! -d "$target" ]
    then
       mkdir -p "$target" || { echo "Failed to create $target."; exit 1; }
    fi
-   $pip install --upgrade --prefix=$target --src=$srcdir "$prog" $ver
+   $pip install --upgrade --prefix=$target --src=$srcdir "$pipprogarg"
    
    Symlink_Aliens "$goboExecutables" "$goboSystem"/Aliens/PIP/${python_version}/bin
 }
 
 remove() {
    local prog="$1"
-   local ver="$2"
 
-   $pip uninstall "$prog" $ver
+   $pip uninstall "$prog"
    
    Cleanup_Aliens
 }
@@ -124,6 +126,6 @@ case "$command" in
       install "$2" "$3"
       ;;
    --remove)
-      remove "$2" "$3"
+      remove "$2"
       ;;
 esac # is ridiculous
