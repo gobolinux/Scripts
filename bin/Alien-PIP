@@ -56,7 +56,7 @@ install() {
    local target="$goboSystem/Aliens/PIP/${python_version}"
    local srcdir="$goboData/Compile/Sources"
    local pipprogarg="$prog"
-   [ ! -z "$ver" ] && local pipprogarg+="==$ver"
+   [ ! -z "$ver" ] && pipprogarg+="==$ver"
    
    if [ ! -d "$target" ]
    then
