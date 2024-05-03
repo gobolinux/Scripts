@@ -579,7 +579,7 @@ static char *ReadLine(char *buf, int size, FILE *fp)
 		/* lookahead */
 		next = fgetc(fp);
 		ungetc(next, fp);
-		if (next != EOF && !isprint(next))
+		if (next != EOF && !isprint(next) && !isspace(next))
 			/* this is likely an ELF file; stop parsing it */
 			return NULL;
 	}
