@@ -249,6 +249,31 @@ static bool RuleBestThanLatest(char *candidate, char *latest)
 }
 
 
+static FILE *GetManagerRulesFromAlien(struct parse_data *data, struct search_options *options)
+{
+  char *sp;
+  char alien[LINE_MAX];
+  char aliencmd[LINE_MAX+32];
+  FILE *fp;
+
+  sp = strchr(data->depname, ':');
+  if (!sp) {
+    WARN(options, "WARNING: %s is not an Alien dependency, ignoring dependency.\n", data->depname);
+    return NULL;
+  }
+  strncpy(alien, data->depname, sp-data->depname);
+  alien[sp - data->depname] = 0;
+
+  snprintf(aliencmd, sizeof(aliencmd)-1, "Alien-'%s' --get-manager-rule", alien);
+  fp = popen(aliencmd, "r");
+  if (!fp) {
+    WARN(options, "WARNING: %s: %s\n", aliencmd, strerror(errno));
+    return NULL;
+  }
+
+  return fp;
+}
+
 
 static char **GetVersionsFromAlien(struct parse_data *data, struct search_options *options)
 {
@@ -842,6 +867,8 @@ static bool ParseRanges(struct parse_data *data, struct search_options *options)
 	return true;
 }
 
+static void DoParseDependenciesFromStream(FILE *fp, struct search_options *options, struct list_head *head);
+
 static inline void DoParseDependencies(struct list_head *head, struct parse_data *data, struct search_options *options, int line)
 {
 	if (! ParseName(data, options)) {
@@ -855,18 +882,47 @@ static inline void DoParseDependencies(struct list_head *head, struct parse_data
 		if (line < 0) free(data->workbuf);
 		free(data);
 	} else {
+		/* implicit dependencies */
+		if (strrchr(data->depname, ':')) {
+			FILE *implicit_fp = GetManagerRulesFromAlien(data, options);
+			DoParseDependenciesFromStream(implicit_fp, options, head);
+			pclose (implicit_fp);
+		}
+		
 		bool quiet = options->quiet;
 		options->quiet = line >= 0 ? options->quiet : true;
+
 		if (GetBestVersion(data, options))
 			ListAppend(head, data, options);
 		options->quiet = quiet;
 	}
 }
 
+static void DoParseDependenciesFromStream(FILE *fp, struct search_options *options, struct list_head *head)
+{
+	int line = 0;
+
+	/* Parse given dependencies */
+	while (!feof(fp)) {
+		char buf[LINE_MAX];
+		if (ReadLine(buf, sizeof(buf), fp)) {
+			if (! EmptyLine(buf)) {
+				struct parse_data *data = (struct parse_data*) calloc(1, sizeof(struct parse_data));
+				if (data) {
+					data->workbuf = buf;
+					DoParseDependencies(head, data, options, line);
+				}
+			}
+			line++;
+		} else
+			break;
+	}
+}
+
+
 struct list_head *ParseDependencies(struct search_options *options)
 {
 	FILE *fp;
-	int line = 0;
 	struct list_head *head;
 	struct utsname *uts = RunningKernelInfo();
 
@@ -884,20 +940,8 @@ struct list_head *ParseDependencies(struct search_options *options)
 	INIT_LIST_HEAD(head);
 
 	/* Parse given dependencies */
-	while (!feof(fp)) {
-		char buf[LINE_MAX];
-		if (ReadLine(buf, sizeof(buf), fp)) {
-			if (! EmptyLine(buf)) {
-				struct parse_data *data = (struct parse_data*) calloc(1, sizeof(struct parse_data));
-				if (data) {
-					data->workbuf = buf;
-					DoParseDependencies(head, data, options, line);
-				}
-			}
-			line++;
-		} else
-			break;
-	}
+	DoParseDependenciesFromStream(fp, options, head);
+
 
 	/* Append other programs if spawning an executable built for a different architecture */
 	if (options->wantedArch && uts && strcmp(options->wantedArch, uts->machine) != 0) {
