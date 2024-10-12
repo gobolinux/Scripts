@@ -20,7 +20,7 @@ Parse_Options "$@"
 program="$(Arg 1)"
 version="$(Arg 2)"
 
-if [ -d "${program}" -a -n "$(echo "${program}" | grep '\/')" ]
+if [ -d "${program}" -a -n "$(echo "${program}" | grep '/')" ]
 then
    [ "${program:0:1}" != "/" ] && Die "If called with a directory as an argument it must be an absolute path."
    programpath="${program}"
