@@ -45,8 +45,8 @@ def split_list(list, delim):
 
 positives, negatives = split_list(patterns, "-n")
 
-posrxs = list(map(re.compile, positives))
-negrxs = list(map(re.compile, negatives))
+posrxs = list(map(re.compile, [re.escape(pattern) for pattern in positives]))
+negrxs = list(map(re.compile, [re.escape(pattern) for pattern in negatives]))
 
 ls = sys.stdin.readlines()
 for l in ls:
