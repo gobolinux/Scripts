@@ -58,4 +58,4 @@ for l in ls:
 				return 1
 		return 0
 	if (match_one(posrxs, l, 1) and not match_one(negrxs, l)):
-		print(l, end=' ')
+		print(l, end='')
