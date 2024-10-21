@@ -5,16 +5,26 @@
 . ScriptFunctions
 Import Alien
 
+alienroot=$goboSystem/Aliens/LuaRocks
+alientree=
+luarocksbin=
+
+versions=(5.3 5.2 5.1)
+
+run_luarocks() {
+   "$luarocksbin" --tree "$alientree" "$@"
+}
+
 getversion() {
-   prog="$1"
-   luarocks list "$prog" | awk '
+   pkg="$1"
+   run_luarocks list "$pkg" | awk '
       {
          if (found) {
             print $1
             exit
          }
       }
-      /^'"$prog"'$/ { found=1 }'
+      /^'"$pkg"'$/ { found=1 }'
 }
 
 in_version_range() {
@@ -30,11 +40,11 @@ in_version_range() {
 }
 
 getinstallversion() {
-   prog="$1"
-   for V in $(luarocks search "$prog" | awk '
+   pkg="$1"
+   for V in $(run_luarocks search "$pkg" | awk '
       /^$/ && found { exit }
       found { print $1 }
-      /^'"$prog"'$/ { found=1 }') 
+      /^'"$pkg"'$/ { found=1 }') 
    do
       if in_version_range "$2" "$V" "$3"
       then
@@ -45,41 +55,140 @@ getinstallversion() {
 }
 
 install() {
-   prog="$1"
+   pkg="$1"
    ver="$2"
-   luarocks install "$prog" $ver
-   Symlink_Aliens "$goboExecutables" "$goboSystem"/Aliens/LuaRocks/bin
+   Log_Normal "Installing $pkg to $alientree..."
+   run_luarocks install "$pkg" $ver
+   Symlink_Aliens "$goboExecutables" "${alientree}/bin"
 }
 
 command="$1"
-prog="$2"
+pkg="$2"
+version="$3"
+maxversion="$4"
+tree="$5"
+dependencies="$6"
+
+set_lua_tree() {
+   local lua="$1"
+   lua=${lua%/}
+   luaver=${lua##%/}
+   for v in "${versions[@]}"
+   do
+      if [ $(GuessLatest "$luaver" "$v") = "$luaver" ]
+      then
+         alientree="$alienroot/$v.x"
+         luarocksbin="luarocks-$v"
+         break
+      fi
+   done
+}
+
+valid_trees() {
+   echo "Accepted values for --tree are:"
+   for v in "${versions[@]}"
+   do
+      echo -n "   $v.x"
+      if ! type luarocks-$v &> /dev/null
+      then
+         echo -n " (requires installing LuaRocks for Lua $v)"
+      fi
+      echo
+   done
+}
+
+if [ -n "$tree" ]
+then
+   for v in "${versions[@]}"
+   do
+      if [ "$tree" = "$v.x" ]
+      then
+         luarocksbin="luarocks-$v"
+         if ! type luarocks-$v &> /dev/null
+         then
+            Die "LuaRocks for Lua $v is not currently installed."
+         fi
+      fi
+   done
+   if [ -z "$luarocksbin" ]
+   then
+      Die "Tree $tree is not supported. $(valid_trees)"
+   fi
+   alientree="$alienroot/$tree"
+elif [ -n "$dependencies" ]
+then
+   luajit=$(FindDependencies -d luajit "$dependencies")
+   if [ -n "$luajit" ]
+   then
+      alientree="$alienroot/5.1.x"
+      luarocksbin="luarocks-$v"
+   else
+      lua=$(FindDependencies -d lua "$dependencies")
+      if [ -n "$lua" ]
+      then
+         set_lua_tree "$lua"
+      fi
+   fi
+fi
+if [ -z "$alientree" ]
+then
+   # Autodetect: default to current Lua only if there is only one
+   luacount="$(FindPackage --types=installed lua --full-list | wc -l)"
+   luarocks_count() {
+      local i=0
+      for v in "${versions[@]}"
+      do
+         type luarocks-$v &>/dev/null && i=$[i+1]
+      done
+      echo $i
+   }
+   if [ "$luacount" != 1 ] && [ "$(luarocks_count)" != 1 ]
+   then
+      Die "Please specify a tree using --tree or --dependencies. $(valid_trees)"
+      # Not handling yet the case where there is one Lua >= 5.2 and one LuaJIT.
+   fi
+
+   # Autodetect: default to current Lua
+   lua="$(FindPackage --types=installed lua)"
+   if [ -n "$lua" ]
+   then
+      set_lua_tree "$lua"
+   else
+      luajit="$(FindPackage --types=installed luajit)"
+      if [ -n "$luajit" ]
+      then
+         alientree="$alienroot/5.1.x"
+         luarocksbin="luarocks-$v"
+      fi
+   fi
+fi
 
 case "$command" in
    --getversion)
-      echo $(getversion "$2")
+      echo $(getversion "$pkg")
       ;;
    --getinstallversion)
-      echo $(getinstallversion "$2" "$3" "$4")
+      echo $(getinstallversion "$pkg" "$version" "$maxversion")
       ;;
    --greater-than)
-      ver=$(getversion "$2")
-      latest=$(GuessLatest "$ver" "$3")
+      ver=$(getversion "$version")
+      latest=$(GuessLatest "$ver" "$maxversion")
       [ "$latest" = "$3" ] && exit 1 || exit 0
       ;;
    --met|--within-range|--interval)
-      prog="$2"
+      pkg="$2"
       lower="$3"
       upper="$4"
-      ver=$(getversion "$2")
+      ver=$(getversion "$version")
       in_version_range "$lower" "$ver" "$upper"
       ;;
    --have-manager)
-      which luarocks >/dev/null 2>&1 || exit 1
+      type "$luarocksbin" >/dev/null 2>&1 || exit 1
       ;;
    --get-manager-rule)
       echo "LuaRocks >= 1.0"
       ;;
    --install)
-      install "$2" "$3"
+      install "$pkg" "$version"
       ;;
 esac # is ridiculous
