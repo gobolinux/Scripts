@@ -11,7 +11,7 @@ scriptDescription="List files from a program in a 'clean' way, skipping some fil
 scriptCredits="Copyright (C) 2006. Released under the GNU GPL."
 helpOnNoArguments=yes
 scriptUsage="<program> [<version>] | <version_directory>"
-Add_Option_Boolean "f" "files" "List files (equivalent to -xtype f in 'find')"
+Add_Option_Boolean "f" "files" "List files (equivalent to -type f in 'find')"
 Add_Option_Boolean "l" "links" "List links (equivalent to -type l in 'find')"
 Add_Option_Boolean "R" "no-resources" "Do not list files in Resources directory"
 Add_Option_Boolean "p" "path" "Return full path, including the programs directory"
@@ -42,7 +42,7 @@ unset type
 if Boolean "files" && Boolean "links"
 then type="( -type f -or -type l )"
 elif Boolean "files"
-then type="-xtype f"
+then type="-type f"
 elif Boolean "links"
 then type="-type l"
 fi
