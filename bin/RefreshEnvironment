@@ -1,0 +1,15 @@
+#!/bin/bash
+
+##
+## RefreshEnvironment: Regenerate environment cache and re-source
+##
+
+# Imports
+source ScriptFunctions
+Import GoboLinux
+
+# Update environment cache
+Gen_Env_Cache
+
+# Source environment cache
+source "$goboEnvironment/Cache"
