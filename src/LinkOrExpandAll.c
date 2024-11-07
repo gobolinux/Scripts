@@ -153,10 +153,10 @@ static const char* colorCyan = "\033[36m";
 static const char* colorBoldCyan = "\033[1;36m";
 static const char* colorRedWhite = "\033[41;37m";
 static const char* colorNormal = "\033[0m";
+static const char* colorYellow = "\033[1;33m";
 /*
 static const char* colorBoldBlue = "\033[1;34m";
 static const char* colorBrown = "\033[33m";
-static const char* colorYellow = "\033[1;33m";
 static const char* colorBoldGreen = "\033[1;32m";
 */
 
@@ -415,7 +415,7 @@ static void Link_Or_Expand(char* new) {
          unlink(dotbn);
          create_single_link(realnew, bn);
          if (report_conflict(realold))
-            Log_Normal("Replaced with: %s", realnew);
+            Log_Normal("%sReplaced with: %s", colorYellow, realnew);
       }
       goto leave;
    }
