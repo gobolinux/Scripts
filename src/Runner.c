@@ -97,6 +97,7 @@ struct runner_args {
 	bool cleanup;              /* Cleanup work directory on exit? */
 	bool verbose;              /* Run in verbose mode? */
 	bool check;                /* Run in check mode? */
+	bool strict;               /* Run in strict mode? */
 	bool fallback;             /* Run in fallback mode if sandbox is not available */
 	bool sourceenv;            /* Source ENV at Resources/Environment? */
 	bool removedeps;           /* Remove conflicting dependencies from /System/Index? */
@@ -506,7 +507,7 @@ prepare_merge_string(const char *callerprogram, const char *dependencies,
 	options.quiet = args.quiet;
 	options.wantedArch = args.architecture;
 	options.goboPrograms = GOBO_PROGRAMS_DIR;
-	options.noOperator = EQUAL;
+	options.noOperator = args.strict ? EQUAL : GREATER_THAN_OR_EQUAL;
 
 	deps = ParseDependencies(&options);
 	if (!deps || list_empty(deps)) {
@@ -1246,6 +1247,7 @@ show_usage_and_exit(char *exec, int err)
 	"  -q, --quiet               Don't warn on bogus dependencies file(s)\n"
 	"  -v, --verbose             Run in verbose mode (type twice to enable debug messages)\n"
 	"  -c, --check               Check if Runner can be used in this system\n"
+	"  -S, --strict              Strict dependency resolution: If no operator is given assume '=' (Qt 5.2 to Qt=5.2)\n"
 	"  -p, --pure                Create a /System/Index overlay based purely on listed dependencies\n"
 	"  -f, --fallback            Run the command without the sandbox in case this is not available\n"
 	"  -E, --no-source-env       Do not import dependencies\' Resources/Environment files\n"
@@ -1268,6 +1270,7 @@ parse_arguments(int argc, char *argv[])
 		{"quiet",           no_argument,       0,  'q'},
 		{"check",           no_argument,       0,  'c'},
 		{"fallback",        no_argument,       0,  'f'},
+		{"strict",          no_argument,       0,  'S'},
 		{"pure",            no_argument,       0,  'p'},
 		{"no-cleanup",      no_argument,       0,  'C'},
 		{"no-source-env",   no_argument,       0,  'E'},
@@ -1275,7 +1278,7 @@ parse_arguments(int argc, char *argv[])
 		{"verbose",         no_argument,       0,  'v'},
 		{0,                 0,                 0,   0 }
 	};
-	const char *short_options = "+d:a:hcpqvfCER";
+	const char *short_options = "+d:a:hcSpqvfCER";
 	bool valid = true;
 	int next = optind;
 	int num_deps = 0;
@@ -1310,6 +1313,7 @@ parse_arguments(int argc, char *argv[])
 	args.cleanup = true;
 	args.verbose = false;
 	args.quiet = false;
+	args.strict = false;
 	args.pure = false;
 	args.fallback = false;
 	args.sourceenv = true;
@@ -1357,6 +1361,9 @@ parse_arguments(int argc, char *argv[])
 				if (args.verbose)
 					args.debug = true;
 				args.verbose = true;
+				break;
+			case 'S':
+				args.strict = true;
 				break;
 			case 'f':
 				args.fallback = true;
