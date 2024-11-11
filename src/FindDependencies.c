@@ -691,6 +691,7 @@ static bool MakeVersion(char *buf, struct version *v, struct search_options *opt
 		buf++;
 	} else {
 		// ptr holds the version alone
+		// the caller defines how to interpret a version with no operator (default '>=').
 		v->op = options->noOperator != NONE ?
 			options->noOperator : GREATER_THAN_OR_EQUAL;
 		v->version = buf;

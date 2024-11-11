@@ -92,20 +92,20 @@
 #define ERR_WRAPPER           8      /* Error creating wrapper */
 
 struct runner_args {
-	bool quiet;                /* Run in quiet mode? */
-	bool debug;                /* Print debug messages? */
-	bool cleanup;              /* Cleanup work directory on exit? */
-	bool verbose;              /* Run in verbose mode? */
-	bool check;                /* Run in check mode? */
-	bool strict;               /* Run in strict mode? */
-	bool fallback;             /* Run in fallback mode if sandbox is not available */
-	bool sourceenv;            /* Source ENV at Resources/Environment? */
-	bool removedeps;           /* Remove conflicting dependencies from /System/Index? */
-	bool pure;                 /* Create a /S/I tree based solely on listed dependencies? */
 	const char *executable;    /* Executable to run */
-	const char **dependencies; /* NULL-terminated */
 	char **arguments;          /* Arguments to pass to executable */
 	char *architecture;        /* Architecture of dependencies to consider */
+	const char **dependencies; /* NULL-terminated */
+	bool quiet;                /* Run in quiet mode? */
+	bool verbose;              /* Run in verbose mode? */
+	bool debug;                /* Print debug messages? */
+	bool check;                /* Run in check mode? */
+	bool strict;               /* Run in strict mode? */
+	bool pure;                 /* Create a /S/I tree based solely on listed dependencies? */
+	bool fallback;             /* Run in fallback mode if sandbox is not available */
+	bool sourceenv;            /* Source ENV at Resources/Environment? */
+	bool cleanup;              /* Cleanup work directory on exit? */
+	bool removedeps;           /* Remove conflicting dependencies from /System/Index? */
 
 	char *wrapper;             /* Wrapper file */
 	char *workdir;             /* Base work directory */
@@ -503,10 +503,10 @@ prepare_merge_string(const char *callerprogram, const char *dependencies,
 
 	memset(&options, 0, sizeof(options));
 	options.repository = LOCAL_PROGRAMS;
+	options.goboPrograms = GOBO_PROGRAMS_DIR;
+	options.wantedArch = args.architecture;
 	options.depsfile = dependencies;
 	options.quiet = args.quiet;
-	options.wantedArch = args.architecture;
-	options.goboPrograms = GOBO_PROGRAMS_DIR;
 	options.noOperator = args.strict ? EQUAL : GREATER_THAN_OR_EQUAL;
 
 	deps = ParseDependencies(&options);
@@ -520,7 +520,7 @@ prepare_merge_string(const char *callerprogram, const char *dependencies,
 	list_for_each_entry(entry, deps, list)
 		mergedirs_len += strlen(entry->path) + 1;
 	mergedirs_len++;
-	
+
 	mergedirs = calloc(mergedirs_len, sizeof(char));
 	if (! mergedirs) {
 		fprintf(stderr, "Not enough memory\n");
@@ -1245,7 +1245,7 @@ show_usage_and_exit(char *exec, int err)
 	"  -d, --dependencies=FILE   Path to GoboLinux Dependencies file to use\n"
 	"  -h, --help                This help\n"
 	"  -q, --quiet               Don't warn on bogus dependencies file(s)\n"
-	"  -v, --verbose             Run in verbose mode (type twice to enable debug messages)\n"
+	"  -v, --verbose             Run in verbose mode (-vv to enable debug messages)\n"
 	"  -c, --check               Check if Runner can be used in this system\n"
 	"  -S, --strict              Strict dependency resolution: If no operator is given assume '=' (Qt 5.2 to Qt=5.2)\n"
 	"  -p, --pure                Create a /System/Index overlay based purely on listed dependencies\n"
@@ -1264,21 +1264,21 @@ int
 parse_arguments(int argc, char *argv[])
 {
 	struct option long_options[] = {
-		{"arch",            required_argument, 0,  'a'},
 		{"dependencies",    required_argument, 0,  'd'},
+		{"arch",            required_argument, 0,  'a'},
 		{"help",            no_argument,       0,  'h'},
 		{"quiet",           no_argument,       0,  'q'},
+		{"verbose",         no_argument,       0,  'v'},
 		{"check",           no_argument,       0,  'c'},
-		{"fallback",        no_argument,       0,  'f'},
 		{"strict",          no_argument,       0,  'S'},
 		{"pure",            no_argument,       0,  'p'},
-		{"no-cleanup",      no_argument,       0,  'C'},
+		{"fallback",        no_argument,       0,  'f'},
 		{"no-source-env",   no_argument,       0,  'E'},
+		{"no-cleanup",      no_argument,       0,  'C'},
 		{"no-removedeps",   no_argument,       0,  'R'},
-		{"verbose",         no_argument,       0,  'v'},
 		{0,                 0,                 0,   0 }
 	};
-	const char *short_options = "+d:a:hcSpqvfCER";
+	const char *short_options = "+d:a:hqvcSpfECR";
 	bool valid = true;
 	int next = optind;
 	int num_deps = 0;
@@ -1308,6 +1308,9 @@ parse_arguments(int argc, char *argv[])
 	}
 
 	/* Default values */
+	args.executable = NULL;
+	args.arguments = NULL;
+	args.architecture = NULL;
 	args.check = false;
 	args.debug = false;
 	args.cleanup = true;
@@ -1318,9 +1321,6 @@ parse_arguments(int argc, char *argv[])
 	args.fallback = false;
 	args.sourceenv = true;
 	args.removedeps = true;
-	args.executable = NULL;
-	args.arguments = NULL;
-	args.architecture = NULL;
 
 	args.dependencies = (const char **) calloc(num_deps+1, sizeof(char *));
 	if (! args.dependencies)
@@ -1341,35 +1341,35 @@ parse_arguments(int argc, char *argv[])
 			case 'h':
 				show_usage_and_exit(argv[0], 0);
 				break;
-			case 'p':
-				args.pure = true;
-				args.removedeps = false; // implicitly set to 'false' with --pure
-				break;
 			case 'q':
 				args.quiet = true;
-				break;
-			case 'C':
-				args.cleanup = false;
-				break;
-			case 'E':
-				args.sourceenv = false;
-				break;
-			case 'R':
-				args.removedeps = false;
 				break;
 			case 'v':
 				if (args.verbose)
 					args.debug = true;
 				args.verbose = true;
 				break;
+			case 'c':
+				args.check = true;
+				break;
 			case 'S':
 				args.strict = true;
+				break;
+			case 'p':
+				args.pure = true;
+				args.removedeps = false; // implicitly set to 'false' with --pure
 				break;
 			case 'f':
 				args.fallback = true;
 				break;
-			case 'c':
-				args.check = true;
+			case 'E':
+				args.sourceenv = false;
+				break;
+			case 'C':
+				args.cleanup = false;
+				break;
+			case 'R':
+				args.removedeps = false;
 				break;
 			case '?':
 			default:
