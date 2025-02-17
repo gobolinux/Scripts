@@ -592,6 +592,17 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
    }
 }
 
+#define RETURN_SORT(a, b) do { \
+   if (a < b) { \
+      return -1; \
+   } else if (a == b) { \
+      return 0; \
+   } else { \
+      return 1; \
+   } \
+} while(0)
+
+
 int
 time_sort(const struct dirent **a, const struct dirent **b)
 {
@@ -606,12 +617,12 @@ time_sort(const struct dirent **a, const struct dirent **b)
 
 #if _POSIX_C_SOURCE >= 200809L
    if (status_a.st_mtim.tv_sec == status_b.st_mtim.tv_sec) {
-      return status_a.st_mtim.tv_nsec - status_b.st_mtim.tv_nsec;
+      RETURN_SORT(status_a.st_mtim.tv_nsec, status_b.st_mtim.tv_nsec);
    } else {
-      return status_a.st_mtime - status_b.st_mtime;
+      RETURN_SORT(status_a.st_mtime, status_b.st_mtime);
    }
 #else
-   return status_a.st_mtime - status_b.st_mtime;
+   RETURN_SORT(status_a.st_mtime, status_b.st_mtime);
 #endif
 }
 
@@ -626,7 +637,7 @@ size_sort(const struct dirent **a, const struct dirent **b)
    sprintf(filename_b, "%s/%s", current_dir, (*b)->d_name);
    stat(filename_a, &status_a);
    stat(filename_b, &status_b);
-   return (status_a.st_size - status_b.st_size) ? 1: 0;
+   RETURN_SORT(status_a.st_size, status_b.st_size);
 }
 
 int
@@ -681,7 +692,7 @@ list_entries(const char *path, long long *total, long *counter, long *hiddenfile
    
    /* scandir doesn't propagate the complete pathname */
    if (isbrokenlink)
-	   strncpy(complete_path, path, sizeof(complete_path)-1);
+      strncpy(complete_path, path, sizeof(complete_path)-1);
    else if (realpath(path, complete_path) == NULL) {
       perror(path);
       return -1;
