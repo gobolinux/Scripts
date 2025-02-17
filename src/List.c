@@ -626,8 +626,7 @@ size_sort(const struct dirent **a, const struct dirent **b)
    sprintf(filename_b, "%s/%s", current_dir, (*b)->d_name);
    stat(filename_a, &status_a);
    stat(filename_b, &status_b);
-
-   return status_a.st_size - status_b.st_size;
+   return (status_a.st_size - status_b.st_size) ? 1: 0;
 }
 
 int
