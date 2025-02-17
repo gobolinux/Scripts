@@ -320,12 +320,13 @@ get_file_color(char *full_pathname, char *extension, char *color, int len, mode_
 
 #define SCHEME_STATUS 1
 #define SCHEME_FILES  2
+#define SIZE_BUF_LEN  64
 char *
 colorize_bytes(unsigned long long value, int color_scheme, int pad_bytes)
 {
     int len;
     char *color_3 = NULL, *color_6 = NULL, *color_start = NULL;
-    char tmp_buf[64], buf[64], *ptr_3, *ptr_6, *ptr_start;
+    char tmp_buf[64], buf[SIZE_BUF_LEN], *ptr_3, *ptr_6, *ptr_start;
 
     sprintf(tmp_buf, "%lld", value);
     len = strlen(tmp_buf);
@@ -348,23 +349,11 @@ colorize_bytes(unsigned long long value, int color_scheme, int pad_bytes)
     memset(buf, 0, sizeof(buf));
 
     if (len > 6) {
-        sprintf(buf, "%s", color_start);
-        strncat(buf, ptr_start, len - 6);
-        
-        strncat(buf, color_6, strlen(color_6));
-        strncat(buf, ptr_6, 3);
-        
-        strncat(buf, color_3, strlen(color_3));
-        strncat(buf, ptr_3, 3);
+        snprintf(buf, SIZE_BUF_LEN - 1, "%s%.*s%s%.3s%s%s", color_start, len - 6, ptr_start, color_6, ptr_6, color_3, ptr_3);
     } else if (len > 3) {
-        sprintf(buf, "%s", color_6);
-        strncat(buf, ptr_start, len - 3);
-        
-        strncat(buf, color_3, strlen(color_3));
-        strncat(buf, ptr_3, 3);
+        snprintf(buf, SIZE_BUF_LEN - 1, "%s%.*s%s%s", color_6, len - 3, ptr_start, color_3, ptr_3);
     } else {
-        sprintf(buf, "%s", color_3);
-        strncat(buf, ptr_start, len);
+        snprintf(buf, SIZE_BUF_LEN - 1, "%s%*s", color_3, len, ptr_start);
     }
 
     if (pad_bytes && len < pad_bytes) {
@@ -547,18 +536,18 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
          }
 
          if (S_ISCHR(status.st_mode) || S_ISBLK(status.st_mode)) {
-            char major_minor[64], tmp[64];
+            char major_minor[64], padding[8];
             memset(major_minor, 0, sizeof(major_minor));
             sprintf(major_minor, "%" PRIu64 ":%-" PRIu64, MAJOR(status.st_rdev), MINOR(status.st_rdev));
             if (strlen(major_minor) < 7) {
-               size_t padding = 7 - strlen(major_minor);
-               memset(tmp, 0, sizeof(tmp));
-               for (size_t i=0; i<padding; ++i)
-                  tmp[i] = ' ';
-               strncat(tmp, major_minor, sizeof(tmp)-padding-1);
-               sprintf(major_minor, tmp);
+               int n = 7 - strlen(major_minor);
+               for (size_t i=0; i < n; ++i)
+                  padding[i] = ' ';
+               padding[n] = '\0';
+            } else {
+               padding[0] = '\0';
             }
-            fprintf(stdout, "%s%02d/%02d %02d:%02d %s%s    %s\033[%sm %s\n",
+            fprintf(stdout, "%s%02d/%02d %02d:%02d %s%s    %s%s \033[%sm%s%s\n",
                COLOR_WHITE_CODE,
                time_info->tm_mday,
                time_info->tm_mon + 1,
@@ -566,13 +555,15 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
                time_info->tm_min,
                final_mask,
                COLOR_WHITE_CODE,
+               padding,
                major_minor,
                color_code,
-               namelist[i]->d_name);
+               namelist[i]->d_name,
+               COLOR_WHITE_CODE);
          } else {
             char *size_str = colorize_bytes(status.st_size, SCHEME_FILES, 11);
 
-            fprintf(stdout, "%s%02d/%02d %02d:%02d %s%s%s \033[%sm%s%s\n",
+            fprintf(stdout, "%s%02d/%02d %02d:%02d %s%s%s \033[%sm%s%s%s\n",
                COLOR_WHITE_CODE,
                time_info->tm_mday,
                time_info->tm_mon + 1,
@@ -583,7 +574,10 @@ really_list_entries(struct file_info *file_info, struct dirent **namelist, int s
                size_str,
                color_code,
                namelist[i]->d_name,
-               link_entry);
+               link_entry,
+               COLOR_WHITE_CODE);
+
+            free(size_str);
          }
       
          *counter += 1;
