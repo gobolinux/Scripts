@@ -90,13 +90,21 @@ fi
 
 Import PackageAndVersionFromArguments
 
+Log_Normal "Symlinking ${package} ${version}."
+
+if [[ "$version" == *-Disabled ]]
+then
+   mv "$packageDir/$version" "$packageDir/${version%-Disabled}"
+   version="${version%-Disabled}"
+   Log_Normal "Renamed to ${package} ${version}."
+fi
+
 [ "$version" != "$currentVersion" ] && ln -sfn "$version" "$packageDir/Current"
 
 if [ "xyes" = "x$autoVersionExecutables" ]
 then
    VersionExecutables "${package}" "${version}"
 fi
-Log_Normal "Symlinking ${package} ${version}."
 
 ################################################################################
 #  Read $goboPrograms/$package/$version/Resources/RootFS

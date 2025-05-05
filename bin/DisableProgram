@@ -56,13 +56,19 @@ fi
 
 Log_Normal "Disabling ${programname}, version ${versionnumber}."
 
-disabled="${goboPrograms}/$programname/$versionnumber-Disabled"
-
 if [ "`Get_Version "$programname" "Current"`" == "$versionnumber" ]
 then
     rm -rf ${goboPrograms}/$programname/Current
 fi
-mv "$prefix" "$disabled" || Die "Couldn't disable $programname $versionnumber."
+
+# Append "-Disabled", unless it's already present...
+if [[ ! "$versionnumber" == *-Disabled ]]
+then
+   disabled="${goboPrograms}/$programname/$versionnumber-Disabled"
+   mv "$prefix" "$disabled" || Die "Couldn't disable $programname $versionnumber."
+else
+   disabled="${goboPrograms}/$programname/$versionnumber"
+fi
 
 filesdir=$(Get_System_Paths "$disabled")
 
@@ -120,7 +126,6 @@ Is_Real_Nonempty_Directory "${disabled}/lib/gtk-3.0" && Rebuild_GDK_Pixbuf_Loade
 [ -f "${disabled}/Resources/XmlCatalogData" ] && Remove_From_XML_Catalog "${disabled}"
 Gen_Env_Cache
 
-mv "$disabled" "$prefix" || Die "Please check $disabled."
 Log_Normal "${programname} ${versionnumber} disabled."
 [ -z "${failedunmanageddirs}" ] || {
    Log_Terse "The following unmanaged directories were not removed since they were not empty."
