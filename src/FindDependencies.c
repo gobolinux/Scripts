@@ -527,21 +527,23 @@ static char *strip(char *src)
 {
 	char *iter = NULL;
 
-	for (iter = src; *iter; iter++) {
-		if (!isblank(*iter)) break;
+	if (src == NULL) {
+		return NULL;
 	}
-	memmove(src, iter, strlen(iter));
 
-	for (iter = src + strlen(src); iter > src; iter--) {
-		if (!isblank(*iter)) break;
-	}
+	/* trailing */
+	for (iter = src + strlen(src) - 1; iter > src && isspace(*iter); iter--) { }
 	*(iter + 1) = '\0';
+
+	/* leading */
+	for (iter = src; *iter && isspace(*iter); iter++) { }
+	memmove(src, iter, strlen(iter)+1);
 
 	return src;
 }
 
 
-static bool GetCompatible(struct parse_data *data, struct search_options *options)
+static char *GetCompatible(struct parse_data *data, struct search_options *options)
 {
 	const char *compatibilitylist = "/System/Settings/Scripts/CompatibilityList";
 	FILE *fp = fopen (compatibilitylist, "r");
@@ -556,26 +558,29 @@ static bool GetCompatible(struct parse_data *data, struct search_options *option
 	if (fp == NULL)
 	{
 		WARN(options, "WARNING: CompatibilityList was not found at %s\n", compatibilitylist);
-		return false;
+		return strdup(data->depname);
 	}
 
 	while ((read = getline(&line, &len, fp)) != -1) {
-		strtok(line, ":");
-		dependency_x = strip(strtok(NULL, ":"));
+		dependency_x = strip(strtok(line, ":"));
+		if (dependency_x == NULL) {
+			continue;
+		}
 		is_satisfiable_by = strip(strtok (NULL, ":"));
+		if (is_satisfiable_by == NULL) {
+			continue;
+		}
 
 		if (strcmp(dependency_x, data->depname) != 0) {
 			continue;
 		}
 
-		WARN(options, "WARNING: Using %s instead of %s\n (found in CompatibilityList)", is_satisfiable_by, dependency_x);
-		free(data->depname);
-		data->depname = strdup(is_satisfiable_by);
-		return true;
+		WARN(options, "WARNING: Using %s instead of %s (found in CompatibilityList)\n", is_satisfiable_by, dependency_x);
+		return strdup(is_satisfiable_by);
 	}
 
 	fclose (fp);
-	return true;
+	return strdup(data->depname);
 }
 
 static bool GetBestVersion(struct parse_data *data, struct search_options *options)
@@ -583,21 +588,41 @@ static bool GetBestVersion(struct parse_data *data, struct search_options *optio
 	int i, latestindex = -1;
 	char *entry, **versions = NULL;
 	char latest[NAME_MAX], cmdline[PATH_MAX];
+	char *compatable = GetCompatible(data, options);
+	char *iter = NULL;
+	char *initial_depname = data->depname;
 
-	(void)GetCompatible(data, options);
+	iter = strip(strtok(compatable, " "));
+	while (iter != NULL) 
+	{
+		data->depname = iter;
 
-	if (options->repository == LOCAL_PROGRAMS) {
-		versions = GetVersionsFromReadDir(data, options);
-	} else if (options->repository == LOCAL_DIRECTORY) {
-		snprintf(cmdline, sizeof(cmdline), "bash -c \"ls '%s/%s'--*--*.tar.bz2 2> /dev/null\"", options->searchdir, data->depname);
-		versions = GetVersionsFromStore(data, options, cmdline);
-	} else if (options->repository == PACKAGE_STORE) {
-		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=official_package --full-list '%s'", data->depname);
-		versions = GetVersionsFromStore(data, options, cmdline);
-	} else if (options->repository == RECIPE_STORE) {
-		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=recipe --full-list '%s'", data->depname);
-		versions = GetVersionsFromStore(data, options, cmdline);
+		if (options->repository == LOCAL_PROGRAMS) {
+			versions = GetVersionsFromReadDir(data, options);
+		} else if (options->repository == LOCAL_DIRECTORY) {
+			snprintf(cmdline, sizeof(cmdline), "bash -c \"ls '%s/%s'--*--*.tar.bz2 2> /dev/null\"", options->searchdir, data->depname);
+			versions = GetVersionsFromStore(data, options, cmdline);
+		} else if (options->repository == PACKAGE_STORE) {
+			snprintf(cmdline, sizeof(cmdline), "FindPackage --types=official_package --full-list '%s'", data->depname);
+			versions = GetVersionsFromStore(data, options, cmdline);
+		} else if (options->repository == RECIPE_STORE) {
+			snprintf(cmdline, sizeof(cmdline), "FindPackage --types=recipe --full-list '%s'", data->depname);
+			versions = GetVersionsFromStore(data, options, cmdline);
+		}
+
+		if (versions) {
+			break;
+		}
+
+		iter = strip(strtok(NULL, " "));
 	}
+
+	if (iter != NULL)
+	{
+		strcpy(initial_depname, iter);
+	}
+	free(compatable);
+	data->depname = initial_depname;
 
 	if (! versions) {
 		WARN(options, "WARNING: No packages were found for dependency %s\n", data->depname);
