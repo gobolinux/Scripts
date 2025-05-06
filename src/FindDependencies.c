@@ -546,7 +546,7 @@ static char *strip(char *src)
 static char *GetCompatible(struct parse_data *data, struct search_options *options)
 {
 	const char *compatibilitylist = "/System/Settings/Scripts/CompatibilityList";
-	FILE *fp = fopen (compatibilitylist, "r");
+	FILE *fp = fopen(compatibilitylist, "r");
 	char *line = NULL;
 	size_t len = 0;
 	ssize_t read = 0;
@@ -566,7 +566,7 @@ static char *GetCompatible(struct parse_data *data, struct search_options *optio
 		if (dependency_x == NULL) {
 			continue;
 		}
-		is_satisfiable_by = strip(strtok (NULL, ":"));
+		is_satisfiable_by = strip(strtok(NULL, ":"));
 		if (is_satisfiable_by == NULL) {
 			continue;
 		}
