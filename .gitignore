@@ -1,0 +1,36 @@
+*.swp
+*~
+Resources/MetaData
+
+### The following rules ignore anything generated upon running `make`
+
+# Compiled executables under bin/ and src/:
+BackgroundExec
+CommandNotFound
+FindDependencies
+GetSupportedFilesystems
+IsExecutable
+LinkOrExpandAll
+List
+RescueSymlinkProgram
+Runner
+SuperUserName
+usleep
+
+# Compiled shared libraries:
+*.so
+
+# Generated manpages:
+share/man/
+
+# Generated symlinks under lib/python<version>/site-packages/:
+CheckDependencies.py
+Corrections.py
+DescribeProgram.py
+FindPackage.py
+GetAvailable.py
+GuessLatest.py
+UseFlags.py
+
+# Generated Python cache under lib/python<version>/site-packages/:
+__pycache__/
