@@ -31,7 +31,7 @@ clean:
 	rm -rf Resources/FileHash*
 	find * -path "*~" -or -path "*/.\#*" -or -path "*.bak" | xargs rm -f
 	cd src && $(MAKE) clean
-	cd $(PYTHON_SITE) && rm -f *.pyc *.pyo
+	cd $(PYTHON_SITE) && rm -f $(foreach plib, $(PYTHON_LIBS), $(plib).py) && rm -f __pycache__/*.pyc
 	rm -f $(exec_files)
 	rm -f $(lib_files)
 	rm -rf share/man/man1
