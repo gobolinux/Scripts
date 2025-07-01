@@ -522,11 +522,69 @@ static char **GetVersionsFromStore(struct parse_data *data, struct search_option
 	return versions;
 }
 
+
+static char *strip(char *src)
+{
+	char *iter = NULL;
+
+	for (iter = src; *iter; iter++) {
+		if (!isblank(*iter)) break;
+	}
+	memmove(src, iter, strlen(iter));
+
+	for (iter = src + strlen(src); iter > src; iter--) {
+		if (!isblank(*iter)) break;
+	}
+	*(iter + 1) = '\0';
+
+	return src;
+}
+
+
+static bool GetCompatible(struct parse_data *data, struct search_options *options)
+{
+	const char *compatibilitylist = "/System/Settings/Scripts/CompatibilityList";
+	FILE *fp = fopen (compatibilitylist, "r");
+	char *line = NULL;
+	size_t len = 0;
+	ssize_t read = 0;
+	char *iter = NULL;
+
+	char *dependency_x = NULL;
+	char *is_satisfiable_by = NULL;
+
+	if (fp == NULL)
+	{
+		WARN(options, "WARNING: CompatibilityList was not found at %s\n", compatibilitylist);
+		return false;
+	}
+
+	while ((read = getline(&line, &len, fp)) != -1) {
+		strtok(line, ":");
+		dependency_x = strip(strtok(NULL, ":"));
+		is_satisfiable_by = strip(strtok (NULL, ":"));
+
+		if (strcmp(dependency_x, data->depname) != 0) {
+			continue;
+		}
+
+		WARN(options, "WARNING: Using %s instead of %s\n (found in CompatibilityList)", is_satisfiable_by, dependency_x);
+		free(data->depname);
+		data->depname = strdup(is_satisfiable_by);
+		return true;
+	}
+
+	fclose (fp);
+	return true;
+}
+
 static bool GetBestVersion(struct parse_data *data, struct search_options *options)
 {
 	int i, latestindex = -1;
 	char *entry, **versions = NULL;
 	char latest[NAME_MAX], cmdline[PATH_MAX];
+
+	(void)GetCompatible(data, options);
 
 	if (options->repository == LOCAL_PROGRAMS) {
 		versions = GetVersionsFromReadDir(data, options);
