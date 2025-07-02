@@ -598,7 +598,7 @@ static bool GetBestVersion(struct parse_data *data, struct search_options *optio
 	int i, latestindex = -1;
 	char *entry, **versions = NULL;
 	char latest[NAME_MAX], cmdline[PATH_MAX];
-	char *compatable = GetCompatible(data, options);
+	char *compatible = GetCompatible(data, options);
 	char *iter = NULL;
 	char *initial_depname = data->depname;
 
