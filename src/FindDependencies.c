@@ -747,7 +747,7 @@ static void PrintRestrictions(struct parse_data *data, struct search_options *op
 
 static bool ParseName(struct parse_data *data, struct search_options *options)
 {
-	data->depname = strtok_r(data->workbuf, " \t><=!", &data->saveptr);
+	data->depname = strdup(strtok_r(data->workbuf, " \t><=!", &data->saveptr));
 	if (options->dependency && strcmp(data->depname, options->dependency))
 		return false;
 	return data->depname ? true : false;
