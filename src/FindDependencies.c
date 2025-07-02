@@ -532,8 +532,11 @@ static char *strip(char *src)
 	}
 
 	/* trailing */
-	for (iter = src + strlen(src) - 1; iter > src && isspace(*iter); iter--) { }
-	*(iter + 1) = '\0';
+	char *end = src + strlen(src);
+        while (end > src && isspace((unsigned char) end[-1])) {
+            end--;
+        }
+        *end = '\0';
 
 	/* leading */
 	for (iter = src; *iter && isspace(*iter); iter++) { }
