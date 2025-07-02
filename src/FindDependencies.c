@@ -546,6 +546,8 @@ static char *strip(char *src)
 }
 
 
+// Return a space-separated string with all programs compatible with `data->depname`.
+// The caller must tokenize the resulting string and free it once it's no longer needed.
 static char *GetCompatible(struct parse_data *data, struct search_options *options)
 {
 	const char *compatibilitylist = "/System/Settings/Scripts/CompatibilityList";
