@@ -551,6 +551,7 @@ static char *GetCompatible(struct parse_data *data, struct search_options *optio
 	size_t len = 0;
 	ssize_t read = 0;
 	char *iter = NULL;
+	char *copy = NULL;
 
 	char *dependency_x = NULL;
 	char *is_satisfiable_by = NULL;
@@ -576,11 +577,17 @@ static char *GetCompatible(struct parse_data *data, struct search_options *optio
 		}
 
 		WARN(options, "WARNING: Using %s instead of %s (found in CompatibilityList)\n", is_satisfiable_by, dependency_x);
-		return strdup(is_satisfiable_by);
+		
+		copy = strdup(is_satisfiable_by);
+		free(line);
+		fclose(fp);
+		return copy;
 	}
 
-	fclose (fp);
-	return strdup(data->depname);
+	copy = strdup(data->depname);
+	free(line);
+	fclose(fp);
+	return copy;
 }
 
 static bool GetBestVersion(struct parse_data *data, struct search_options *options)
