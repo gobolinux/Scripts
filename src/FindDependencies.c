@@ -522,24 +522,115 @@ static char **GetVersionsFromStore(struct parse_data *data, struct search_option
 	return versions;
 }
 
+
+static char *strip(char *src)
+{
+	char *iter = NULL;
+
+	if (src == NULL) {
+		return NULL;
+	}
+
+	/* trailing */
+	char *end = src + strlen(src);
+        while (end > src && isspace((unsigned char) end[-1])) {
+            end--;
+        }
+        *end = '\0';
+
+	/* leading */
+	for (iter = src; *iter && isspace(*iter); iter++) { }
+	memmove(src, iter, strlen(iter)+1);
+
+	return src;
+}
+
+
+// Return a space-separated string with all programs compatible with `data->depname`.
+// The caller must tokenize the resulting string and free it once it's no longer needed.
+static char *GetCompatible(struct parse_data *data, struct search_options *options)
+{
+	const char *compatibilitylist = "/System/Settings/Scripts/CompatibilityList";
+	FILE *fp = fopen(compatibilitylist, "r");
+	char *line = NULL;
+	size_t len = 0;
+	ssize_t read = 0;
+	char *iter = NULL;
+	char *copy = NULL;
+
+	char *dependency_x = NULL;
+	char *is_satisfiable_by = NULL;
+
+	if (fp == NULL)
+	{
+		WARN(options, "WARNING: CompatibilityList was not found at %s\n", compatibilitylist);
+		return strdup(data->depname);
+	}
+
+	while ((read = getline(&line, &len, fp)) != -1) {
+		dependency_x = strip(strtok(line, ":"));
+		if (dependency_x == NULL) {
+			continue;
+		}
+		is_satisfiable_by = strip(strtok(NULL, ":"));
+		if (is_satisfiable_by == NULL) {
+			continue;
+		}
+
+		if (strcmp(dependency_x, data->depname) != 0) {
+			continue;
+		}
+
+		WARN(options, "WARNING: Using %s instead of %s (found in CompatibilityList)\n", is_satisfiable_by, dependency_x);
+		
+		copy = strdup(is_satisfiable_by);
+		free(line);
+		fclose(fp);
+		return copy;
+	}
+
+	copy = strdup(data->depname);
+	free(line);
+	fclose(fp);
+	return copy;
+}
+
 static bool GetBestVersion(struct parse_data *data, struct search_options *options)
 {
 	int i, latestindex = -1;
 	char *entry, **versions = NULL;
 	char latest[NAME_MAX], cmdline[PATH_MAX];
+	char *compatible = GetCompatible(data, options);
+	char *iter = NULL;
+	char *initial_depname = data->depname;
 
-	if (options->repository == LOCAL_PROGRAMS) {
-		versions = GetVersionsFromReadDir(data, options);
-	} else if (options->repository == LOCAL_DIRECTORY) {
-		snprintf(cmdline, sizeof(cmdline), "bash -c \"ls '%s/%s'--*--*.tar.bz2 2> /dev/null\"", options->searchdir, data->depname);
-		versions = GetVersionsFromStore(data, options, cmdline);
-	} else if (options->repository == PACKAGE_STORE) {
-		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=official_package --full-list '%s'", data->depname);
-		versions = GetVersionsFromStore(data, options, cmdline);
-	} else if (options->repository == RECIPE_STORE) {
-		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=recipe --full-list '%s'", data->depname);
-		versions = GetVersionsFromStore(data, options, cmdline);
+	iter = strip(strtok(compatable, " "));
+	while (iter != NULL) 
+	{
+		data->depname = iter;
+
+		if (options->repository == LOCAL_PROGRAMS) {
+			versions = GetVersionsFromReadDir(data, options);
+		} else if (options->repository == LOCAL_DIRECTORY) {
+			snprintf(cmdline, sizeof(cmdline), "bash -c \"ls '%s/%s'--*--*.tar.bz2 2> /dev/null\"", options->searchdir, data->depname);
+			versions = GetVersionsFromStore(data, options, cmdline);
+		} else if (options->repository == PACKAGE_STORE) {
+			snprintf(cmdline, sizeof(cmdline), "FindPackage --types=official_package --full-list '%s'", data->depname);
+			versions = GetVersionsFromStore(data, options, cmdline);
+		} else if (options->repository == RECIPE_STORE) {
+			snprintf(cmdline, sizeof(cmdline), "FindPackage --types=recipe --full-list '%s'", data->depname);
+			versions = GetVersionsFromStore(data, options, cmdline);
+		}
+
+		if (versions) {
+			break;
+		}
+
+		iter = strip(strtok(NULL, " "));
 	}
+
+	data->depname = strdup(iter == NULL ? initial_depname : iter);
+	free(compatible);
 
 	if (! versions) {
 		WARN(options, "WARNING: No packages were found for dependency %s\n", data->depname);
@@ -656,7 +747,7 @@ static void PrintRestrictions(struct parse_data *data, struct search_options *op
 
 static bool ParseName(struct parse_data *data, struct search_options *options)
 {
-	data->depname = strtok_r(data->workbuf, " \t><=!", &data->saveptr);
+	data->depname = strdup(strtok_r(data->workbuf, " \t><=!", &data->saveptr));
 	if (options->dependency && strcmp(data->depname, options->dependency))
 		return false;
 	return data->depname ? true : false;
