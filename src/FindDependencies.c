@@ -629,12 +629,8 @@ static bool GetBestVersion(struct parse_data *data, struct search_options *optio
 		iter = strip(strtok(NULL, " "));
 	}
 
-	if (iter != NULL)
-	{
-		strcpy(initial_depname, iter);
-	}
-	free(compatable);
-	data->depname = initial_depname;
+	data->depname = strdup(iter == NULL ? initial_depname : iter);
+	free(compatible);
 
 	if (! versions) {
 		WARN(options, "WARNING: No packages were found for dependency %s\n", data->depname);
