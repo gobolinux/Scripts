@@ -651,7 +651,7 @@ static bool GetBestVersion(struct parse_data *data, struct search_options *optio
 				WARN(options, "WARNING: Cannot find any compatible, using fallback %s\n", data->depname);
 			}
 		} else {
-			WARN(options, "WARNING: Using %s instead of %s (found in CompatibilityLIst)\n", iter, initial_depname);
+			WARN(options, "WARNING: Using %s instead of %s (found in CompatibilityList)\n", iter, initial_depname);
 		}
 	}
 
