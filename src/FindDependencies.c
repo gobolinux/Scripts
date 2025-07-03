@@ -642,7 +642,7 @@ static bool GetBestVersion(struct parse_data *data, struct search_options *optio
 	if (strcmp(compatible, initial_depname) != 0) {
 
 		if (iter == NULL) {
-			/* compatible packges were listed but none are available */
+			/* compatible packages were listed but none are available */
 			/* fallback to trying the original package name */
 			data->depname = initial_depname;
 			versions = GetAvailableVersions(data, options);
