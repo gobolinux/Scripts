@@ -522,7 +522,6 @@ static char **GetVersionsFromStore(struct parse_data *data, struct search_option
 	return versions;
 }
 
-
 static char *strip(char *src)
 {
 	char *iter = NULL;
@@ -544,7 +543,6 @@ static char *strip(char *src)
 
 	return src;
 }
-
 
 // Return a space-separated string with all programs compatible with `data->depname`.
 // The caller must tokenize the resulting string and free it once it's no longer needed.
@@ -581,7 +579,7 @@ static char *GetCompatible(struct parse_data *data, struct search_options *optio
 			continue;
 		}
 
-		WARN(options, "WARNING: Using %s instead of %s (found in CompatibilityList)\n", is_satisfiable_by, dependency_x);
+		WARN(options, "WARNING: Prefer %s over %s (CompatibilityList)\n", is_satisfiable_by, dependency_x);
 		
 		copy = strdup(is_satisfiable_by);
 		free(line);
@@ -595,33 +593,43 @@ static char *GetCompatible(struct parse_data *data, struct search_options *optio
 	return copy;
 }
 
+static char **GetAvailableVersions(struct parse_data *data, struct search_options *options)
+{
+	char cmdline[PATH_MAX];
+	char **versions = NULL;
+
+	if (options->repository == LOCAL_PROGRAMS) {
+		versions = GetVersionsFromReadDir(data, options);
+	} else if (options->repository == LOCAL_DIRECTORY) {
+		snprintf(cmdline, sizeof(cmdline), "bash -c \"ls '%s/%s'--*--*.tar.bz2 2> /dev/null\"", options->searchdir, data->depname);
+		versions = GetVersionsFromStore(data, options, cmdline);
+	} else if (options->repository == PACKAGE_STORE) {
+		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=official_package --full-list '%s'", data->depname);
+		versions = GetVersionsFromStore(data, options, cmdline);
+	} else if (options->repository == RECIPE_STORE) {
+		snprintf(cmdline, sizeof(cmdline), "FindPackage --types=recipe --full-list '%s'", data->depname);
+		versions = GetVersionsFromStore(data, options, cmdline);
+	}
+
+	return versions;
+}
+
 static bool GetBestVersion(struct parse_data *data, struct search_options *options)
 {
 	int i, latestindex = -1;
 	char *entry, **versions = NULL;
-	char latest[NAME_MAX], cmdline[PATH_MAX];
+	char latest[NAME_MAX];
 	char *compatible = GetCompatible(data, options);
 	char *iter = NULL;
 	char *initial_depname = data->depname;
 
-	iter = strip(strtok(compatable, " "));
+	/* prefer compatbile */
+	iter = strip(strtok(compatible, " "));
 	while (iter != NULL) 
 	{
 		data->depname = iter;
 
-		if (options->repository == LOCAL_PROGRAMS) {
-			versions = GetVersionsFromReadDir(data, options);
-		} else if (options->repository == LOCAL_DIRECTORY) {
-			snprintf(cmdline, sizeof(cmdline), "bash -c \"ls '%s/%s'--*--*.tar.bz2 2> /dev/null\"", options->searchdir, data->depname);
-			versions = GetVersionsFromStore(data, options, cmdline);
-		} else if (options->repository == PACKAGE_STORE) {
-			snprintf(cmdline, sizeof(cmdline), "FindPackage --types=official_package --full-list '%s'", data->depname);
-			versions = GetVersionsFromStore(data, options, cmdline);
-		} else if (options->repository == RECIPE_STORE) {
-			snprintf(cmdline, sizeof(cmdline), "FindPackage --types=recipe --full-list '%s'", data->depname);
-			versions = GetVersionsFromStore(data, options, cmdline);
-		}
-
+		versions = GetAvailableVersions(data, options);
 		if (versions) {
 			break;
 		}
@@ -629,7 +637,26 @@ static bool GetBestVersion(struct parse_data *data, struct search_options *optio
 		iter = strip(strtok(NULL, " "));
 	}
 
+
+	/* copatible packages were listed */
+	if (strcmp(compatible, initial_depname) != 0) {
+
+		if (iter == NULL) {
+			/* compatilble packges were listed but none are available */
+			/* fallback to trying the original package name */
+			data->depname = initial_depname;
+			versions = GetAvailableVersions(data, options);
+
+			if (versions) {
+				WARN(options, "WARNING: Cannot find any compatible, using fallback %s\n", data->depname);
+			}
+		} else {
+			WARN(options, "WARNING: Using %s instead of %s (found in CompatibilityLIst)\n", iter, initial_depname);
+		}
+	}
+
 	data->depname = strdup(iter == NULL ? initial_depname : iter);
+	free(initial_depname);
 	free(compatible);
 
 	if (! versions) {
