@@ -623,7 +623,7 @@ static bool GetBestVersion(struct parse_data *data, struct search_options *optio
 	char *iter = NULL;
 	char *initial_depname = data->depname;
 
-	/* prefer compatbile */
+	/* prefer compatible */
 	iter = strip(strtok(compatible, " "));
 	while (iter != NULL) 
 	{
@@ -638,11 +638,11 @@ static bool GetBestVersion(struct parse_data *data, struct search_options *optio
 	}
 
 
-	/* copatible packages were listed */
+	/* compatible packages were listed */
 	if (strcmp(compatible, initial_depname) != 0) {
 
 		if (iter == NULL) {
-			/* compatilble packges were listed but none are available */
+			/* compatible packges were listed but none are available */
 			/* fallback to trying the original package name */
 			data->depname = initial_depname;
 			versions = GetAvailableVersions(data, options);
