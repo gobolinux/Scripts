@@ -16,10 +16,12 @@ Giflib: LibUngif
 LibUngif: Giflib
 Xorg: Xorg-Lib
 XFree86: Xorg
-Util-Linux: Util-Linux-NG
 LZMA-Utils: XZ-Utils
 Procps: Procps-NG
 Udev: Eudev
 S-Lang: Slang
 UnixODBC: LibIODBC
 Ncurses: NcursesW
+ATK: At-Spi2-Core
+At-Spi2-ATK: At-Spi2-Core
+Pkgconfig: Pkgconf
