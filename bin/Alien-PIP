@@ -27,13 +27,13 @@ try:
    from urllib2 import urlopen, Request
 except ImportError:
    from urllib.request import urlopen, Request
-from distutils.version import StrictVersion
+from pkg_resources import parse_version 
 def available_versions(prog):
    try:
      url = "https://pypi.python.org/pypi/%s/json" %prog
      data = json.load(urlopen(Request(url)))
-     versions = data["releases"].keys()
-     versions.sort(key=StrictVersion)
+     versions = list(data["releases"].keys())
+     versions.sort(key=parse_version)
      return versions
    except:
      return ''
